@@ -1,16 +1,20 @@
 // app/api/orders/[orderId]/messages/route.ts
+
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
 
-export async function GET(req: Request, { params }: { params: { orderId: string } }) {
+// GET: Obtener mensajes de una orden
+export async function GET(req: NextRequest, context: { params: { orderId: string } }) {
+  const { orderId } = context.params;
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const order = await prisma.order.findUnique({
-    where: { id: params.orderId },
+    where: { id: orderId },
     select: { userId: true },
   });
 
@@ -21,15 +25,19 @@ export async function GET(req: Request, { params }: { params: { orderId: string 
   }
 
   const messages = await prisma.message.findMany({
-    where: { orderId: params.orderId },
+    where: { orderId },
     orderBy: { createdAt: "asc" },
-    include: { sender: { select: { fullName: true, email: true } } },
+    include: {
+      sender: { select: { fullName: true, email: true } },
+    },
   });
 
   return NextResponse.json(messages);
 }
 
-export async function POST(req: Request, { params }: { params: { orderId: string } }) {
+// POST: Enviar mensaje
+export async function POST(req: NextRequest, context: { params: { orderId: string } }) {
+  const { orderId } = context.params;
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
@@ -41,7 +49,7 @@ export async function POST(req: Request, { params }: { params: { orderId: string
   }
 
   const order = await prisma.order.findUnique({
-    where: { id: params.orderId },
+    where: { id: orderId },
     select: { userId: true },
   });
 
@@ -55,7 +63,7 @@ export async function POST(req: Request, { params }: { params: { orderId: string
     data: {
       content,
       senderId: user.id,
-      orderId: params.orderId,
+      orderId,
     },
     include: {
       sender: { select: { fullName: true, email: true } },
