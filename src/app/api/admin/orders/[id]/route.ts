@@ -1,13 +1,13 @@
-// src/app/api/admin/orders/[id]/route.ts
-
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { NextRequest } from "next/server";
 
 const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID!;
 
-export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: { id: string } }
+) {
   const { userId } = await auth();
 
   if (userId !== ADMIN_CLERK_ID) {
@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest, context: { params: { id: string } 
 
     return NextResponse.json(updatedOrder);
   } catch (error) {
-    console.error("Error actualizando estado:", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    console.error("Error al actualizar la orden:", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
