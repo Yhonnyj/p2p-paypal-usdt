@@ -11,21 +11,26 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      const result = await signIn!.create({
+      if (!signIn) {
+        setError("Error interno: signIn no está disponible");
+        return;
+      }
+
+      const result = await signIn.create({
         identifier: email,
         password,
       });
 
-      if (result.status === "complete") {
-        await setActive!({ session: result.createdSessionId });
+      if (result.status === "complete" && setActive) {
+        await setActive({ session: result.createdSessionId });
         router.push("/admin/config");
       }
-    } catch (err: any) {
+    } catch (err) {
       setError("Credenciales inválidas");
       console.error(err);
     }
