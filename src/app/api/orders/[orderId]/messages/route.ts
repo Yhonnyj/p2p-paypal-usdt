@@ -2,14 +2,16 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
 
 // GET: Obtener mensajes de una orden
-export async function GET(req: NextRequest, context: { params: { orderId: string } }) {
-  const { orderId } = context.params;
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
+  const { orderId } = params;
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
@@ -36,8 +38,11 @@ export async function GET(req: NextRequest, context: { params: { orderId: string
 }
 
 // POST: Enviar mensaje
-export async function POST(req: NextRequest, context: { params: { orderId: string } }) {
-  const { orderId } = context.params;
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
+  const { orderId } = params;
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
