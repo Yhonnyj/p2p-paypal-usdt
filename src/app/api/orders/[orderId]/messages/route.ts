@@ -1,13 +1,10 @@
 // app/api/orders/[orderId]/messages/route.ts
 
-export const dynamic = "force-dynamic"; // 👈 evita errores de build en rutas API dinámicas
-
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { pusherServer } from "@/lib/pusher";
 import { NextResponse, type NextRequest } from "next/server";
 
-const ADMIN_ID = process.env.ADMIN_CLERK_ID ?? "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
+const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
 
 // GET: Obtener mensajes de una orden
 export async function GET(
@@ -77,9 +74,6 @@ export async function POST(
       sender: { select: { fullName: true, email: true } },
     },
   });
-
-  // ✅ Emitir mensaje con Pusher
-  await pusherServer.trigger(`order-${orderId}`, "new-message", message);
 
   return NextResponse.json(message);
 }
