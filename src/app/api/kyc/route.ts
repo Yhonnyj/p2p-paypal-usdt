@@ -28,7 +28,7 @@ export async function POST() {
     }
 
     return NextResponse.json(data); // <- contiene sessionId y URL de verificación
-  } catch (err) {
+  } catch (_err) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

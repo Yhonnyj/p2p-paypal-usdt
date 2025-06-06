@@ -12,7 +12,6 @@ export default function NuevoPedidoPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const cotizacion = 1.13;
   const porcentajeComision = 13;
   const montoRecibido = (monto) * (1 - porcentajeComision / 100);
 
