@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Pusher from "pusher-js";
 import { motion } from "framer-motion";
@@ -31,11 +31,11 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const windowFocusedRef = useRef(true);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     const res = await fetch(`/api/orders/${orderId}/messages`);
     const data = await res.json();
     setMessages(data);
-  };
+  }, [orderId]);
 
   // Escucha foco/blur
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
     return () => {
       pusher.unsubscribe(`order-${orderId}`);
     };
-  }, [orderId, isOpen, currentUserEmail]);
+  }, [orderId, isOpen, currentUserEmail, fetchMessages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

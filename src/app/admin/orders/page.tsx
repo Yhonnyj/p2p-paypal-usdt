@@ -48,10 +48,11 @@ export default function AdminDashboardPage() {
           const data = await res.json();
           throw new Error(data.error || "Error cargando órdenes");
         }
-        const data = await res.json();
+        const data: Order[] = await res.json();
         setOrders(data);
-      } catch (err: any) {
-        setError(err.message || "Error desconocido");
+      } catch (err) {
+        const error = err as Error;
+        setError(error.message || "Error desconocido");
       } finally {
         setLoading(false);
       }
@@ -78,7 +79,7 @@ export default function AdminDashboardPage() {
     page * PAGE_SIZE
   );
 
-  const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
 
   const updateStatus = async (orderId: string, newStatus: OrderStatus) => {
     try {
@@ -93,12 +94,13 @@ export default function AdminDashboardPage() {
         throw new Error(data.error || "Error actualizando estado");
       }
 
-      const updatedOrder = await res.json();
+      const updatedOrder: Order = await res.json();
       setOrders((prev) =>
         prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
       );
-    } catch (err: any) {
-      alert(err.message || "Error actualizando estado");
+    } catch (err) {
+      const error = err as Error;
+      alert(error.message || "Error actualizando estado");
     }
   };
 
@@ -201,17 +203,16 @@ export default function AdminDashboardPage() {
         </>
       )}
 
-    {isChatOpen && selectedOrderId && (
-  <OrderChatModal
-    orderId={selectedOrderId}
-    isOpen={isChatOpen}
-    onClose={() => {
-      setIsChatOpen(false);
-      setSelectedOrderId(null);
-    }}
-  />
-)}
-
+      {isChatOpen && selectedOrderId && (
+        <OrderChatModal
+          orderId={selectedOrderId}
+          isOpen={isChatOpen}
+          onClose={() => {
+            setIsChatOpen(false);
+            setSelectedOrderId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
