@@ -10,7 +10,8 @@ export const config = {
   },
 };
 
-const WEBHOOK_SECRET = "whsec_k1uFy53zGVxUJndTwjeMNyLVBguadZ1Q"; // ⚠️ Mantén esto en .env para producción
+const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
+ // ⚠️ Mantén esto en .env para producción
 
 export async function POST(req: Request) {
   try {
