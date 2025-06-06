@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model UserProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique              // ID de Clerk
+  country          String
+  documentType     String
+  documentFrontUrl String
+  documentBackUrl  String
+  selfieUrl        String
+  status           String   @default("pending")  // Estado del KYC
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Order {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  platform    String   // Ej: PayPal
+  to          String   // Ej: USDT - TRC20
+  amount      Float    // Monto enviado por el usuario (USD)
+  finalUsd    Float    // Monto neto tras comisión (USD)
+  finalUsdt   Float    // Monto en USDT entregado
+
+  paypalEmail String   // Correo del cliente
+  wallet      String   // Wallet USDT o user ID de Binance Pay
+
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id     String  @id @default(cuid())
+  email  String  @unique
+  orders Order[]
+}
+
+
+
+model AppConfig {
+  id           Int      @id @default(1)
+  feePercent   Float    @default(13.0)
+  rate         Float    @default(1.13)
+  updatedAt    DateTime @updatedAt
+}
