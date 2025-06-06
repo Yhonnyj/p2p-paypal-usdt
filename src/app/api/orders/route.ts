@@ -33,8 +33,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Usuario no encontrado en base de datos" }, { status: 404 });
     }
 
-    const rate = 1.13;
-    const feePercent = 13;
+    // Obtener configuración actual de tasa y comisión
+    const config = await prisma.appConfig.findUnique({ where: { id: 1 } });
+
+    if (!config) {
+      return NextResponse.json({ error: "Configuración no encontrada" }, { status: 500 });
+    }
+
+    const { rate, feePercent } = config;
+
     const finalUsd = amount * (1 - feePercent / 100);
     const finalUsdt = finalUsd / rate;
 

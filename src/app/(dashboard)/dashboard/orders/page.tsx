@@ -8,8 +8,6 @@ type Order = {
   platform: string;
   to: string;
   amount: number;
-  rate: number;
-  feePercent: number;
   finalUsd: number;
   finalUsdt: number;
   status: "PENDING" | "COMPLETED" | "CANCELLED";
@@ -56,7 +54,7 @@ export default function OrdersPage() {
     <div className="min-h-screen px-4 py-10 bg-gradient-to-br from-black via-gray-900 to-gray-950 text-white">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-extrabold mb-6 text-center text-green-400 flex items-center justify-center gap-2">
-          <Zap className="text-yellow-400 animate-pulse" /> Historial de Ordenes
+          <Zap className="text-yellow-400 animate-pulse" /> Historial de Órdenes
         </h1>
 
         {loading ? (
@@ -64,7 +62,7 @@ export default function OrdersPage() {
             <Loader2 className="animate-spin w-8 h-8 text-white" />
           </div>
         ) : orders.length === 0 ? (
-          <p className="text-center text-gray-400 mt-20">Aún no tienes ordenes.</p>
+          <p className="text-center text-gray-400 mt-20">Aún no tienes órdenes.</p>
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
@@ -93,15 +91,8 @@ export default function OrdersPage() {
                   </div>
                   <div>
                     <span className="block text-gray-400">Monto enviado</span>
-                    <span className="font-medium text-white">${order.amount.toFixed(2)}</span>
-                  </div>
-                  <div>
-                    <span className="block text-gray-400">Cotización</span>
-                    <span className="font-medium text-white">{order.rate.toFixed(2)}</span>
-                  </div>
-                  <div>
-                    <span className="block text-gray-400">Comisión</span>
-                    <span className="font-medium text-white">{order.feePercent.toFixed(2)}%</span>
+                    <span className="font-medium text-white">{order.amount.toFixed(2)} USD</span>
+
                   </div>
                   <div>
                     <span className="block text-gray-400">USDT Recibido</span>
