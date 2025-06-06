@@ -1,36 +1,27 @@
-// app/api/clerk/route.ts
-
+import { Webhook } from "svix";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
- // ⚠️ Mantén esto en .env para producción
+
+type ClerkEvent = {
+  data: {
+    id: string;
+    email_addresses: { email_address: string }[];
+  };
+  type: "user.created";
+};
 
 export async function POST(req: Request) {
   try {
-    const rawBody = await req.text();
-    const signature = req.headers.get("svix-signature");
+    const payload = await req.text();
+    const headers = Object.fromEntries(req.headers.entries());
 
-    if (!signature) {
-      return NextResponse.json({ error: "Sin firma" }, { status: 400 });
-    }
+    const wh = new Webhook(WEBHOOK_SECRET);
+    const evt = wh.verify(payload, headers) as ClerkEvent;
 
-    const isValid = verifySignature(rawBody, signature, WEBHOOK_SECRET);
-    if (!isValid) {
-      return NextResponse.json({ error: "Firma inválida" }, { status: 400 });
-    }
-
-    const event = JSON.parse(rawBody);
-
-    if (event.type === "user.created") {
-      const { id, email_addresses } = event.data;
+    if (evt.type === "user.created") {
+      const { id, email_addresses } = evt.data;
       const email = email_addresses?.[0]?.email_address;
 
       if (!email) {
@@ -38,33 +29,17 @@ export async function POST(req: Request) {
       }
 
       await prisma.user.upsert({
-  where: { clerkId: id },
-  update: { email },
-  create: { clerkId: id, email },
-});
+        where: { clerkId: id },
+        update: { email },
+        create: { clerkId: id, email },
+      });
 
       return NextResponse.json({ message: "Usuario creado" }, { status: 200 });
     }
 
     return NextResponse.json({ message: "Evento ignorado" }, { status: 200 });
-  } catch (error) {
-    console.error("Error en webhook Clerk:", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
-  }
-}
-
-function verifySignature(payload: string, header: string, secret: string): boolean {
-  try {
-    const [timestampPart, signaturePart] = header.split(",").map(p => p.split("=")[1]);
-    const signedPayload = `${timestampPart}.${payload}`;
-
-    const expectedSignature = crypto
-      .createHmac("sha256", secret)
-      .update(signedPayload)
-      .digest("hex");
-
-    return crypto.timingSafeEqual(Buffer.from(signaturePart), Buffer.from(expectedSignature));
-  } catch {
-    return false;
+  } catch (err) {
+    console.error("Error procesando webhook Clerk:", err);
+    return NextResponse.json({ error: "Webhook inválido o fallo interno" }, { status: 400 });
   }
 }
