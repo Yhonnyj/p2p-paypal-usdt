@@ -2,6 +2,9 @@
 
 import { Zap, Loader2, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+
+const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), { ssr: false });
 
 type Order = {
   id: string;
@@ -29,6 +32,7 @@ const statusIcons = {
 export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [chatOrderId, setChatOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -68,7 +72,8 @@ export default function OrdersPage() {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="border border-gray-800 rounded-2xl bg-gray-900/70 shadow-md px-6 py-4 backdrop-blur-md transition-all hover:shadow-lg"
+                onClick={() => setChatOrderId(order.id)}
+                className="border border-gray-800 rounded-2xl bg-gray-900/70 shadow-md px-6 py-4 backdrop-blur-md transition-all hover:shadow-lg cursor-pointer"
               >
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-gray-400">
@@ -92,7 +97,6 @@ export default function OrdersPage() {
                   <div>
                     <span className="block text-gray-400">Monto enviado</span>
                     <span className="font-medium text-white">{order.amount.toFixed(2)} USD</span>
-
                   </div>
                   <div>
                     <span className="block text-gray-400">USDT Recibido</span>
@@ -106,6 +110,14 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+
+      {chatOrderId && (
+        <OrderChatModal
+          orderId={chatOrderId}
+          isOpen={!!chatOrderId}
+          onClose={() => setChatOrderId(null)}
+        />
+      )}
     </div>
   );
 }

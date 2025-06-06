@@ -6,7 +6,7 @@ import { LayoutDashboard, Settings, LogOut } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 
 const links = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/orders", label: "Ordenes", icon: LayoutDashboard },
   { href: "/admin/config", label: "Configuración", icon: Settings },
 ];
 

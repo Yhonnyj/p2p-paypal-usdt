@@ -1,3 +1,5 @@
+// app/api/clerk/route.ts
+
 import { Webhook } from "svix";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +10,8 @@ type ClerkEvent = {
   data: {
     id: string;
     email_addresses: { email_address: string }[];
+    first_name?: string;
+    last_name?: string;
   };
   type: "user.created";
 };
@@ -21,8 +25,9 @@ export async function POST(req: Request) {
     const evt = wh.verify(payload, headers) as ClerkEvent;
 
     if (evt.type === "user.created") {
-      const { id, email_addresses } = evt.data;
+      const { id, email_addresses, first_name, last_name } = evt.data;
       const email = email_addresses?.[0]?.email_address;
+      const fullName = [first_name, last_name].filter(Boolean).join(" ");
 
       if (!email) {
         return NextResponse.json({ error: "Email no encontrado" }, { status: 400 });
@@ -30,8 +35,8 @@ export async function POST(req: Request) {
 
       await prisma.user.upsert({
         where: { clerkId: id },
-        update: { email },
-        create: { clerkId: id, email },
+        update: { email, fullName },
+        create: { clerkId: id, email, fullName },
       });
 
       return NextResponse.json({ message: "Usuario creado" }, { status: 200 });

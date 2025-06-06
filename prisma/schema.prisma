@@ -22,22 +22,45 @@ model UserProfile {
 }
 
 model Order {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  platform    String   // Ej: PayPal
-  to          String   // Ej: USDT - TRC20
-  amount      Float    // Monto enviado por el usuario (USD)
-  finalUsd    Float    // Monto neto tras comisión (USD)
-  finalUsdt   Float    // Monto en USDT entregado
+  platform    String     // Ej: PayPal
+  to          String     // Ej: USDT - TRC20
+  amount      Float      // Monto enviado por el usuario (USD)
+  finalUsd    Float      // Monto neto tras comisión (USD)
+  finalUsdt   Float      // Monto en USDT entregado
 
-  paypalEmail String   // Correo del cliente
-  wallet      String   // Wallet USDT o user ID de Binance Pay
+  paypalEmail String     // Correo del cliente
+  wallet      String     // Wallet USDT o user ID de Binance Pay
 
-  status     OrderStatus @default(PENDING)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  messages    Message[]   @relation("OrderMessages")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
+
+  senderId  String
+  sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id        String    @id @default(cuid())
+  clerkId   String    @unique
+  email     String    @unique
+  fullName  String?   // ← campo opcional como lo tenías
+  orders    Order[]
+  messages  Message[] @relation("UserMessages")
 }
 
 enum OrderStatus {
@@ -46,18 +69,9 @@ enum OrderStatus {
   CANCELLED
 }
 
-model User {
-  id       String   @id @default(cuid())
-  clerkId  String   @unique
-  email    String   @unique
-  orders   Order[]
-}
-
-
-
 model AppConfig {
-  id           Int      @id @default(1)
-  feePercent   Float    @default(13.0)
-  rate         Float    @default(1.13)
-  updatedAt    DateTime @updatedAt
+  id         Int      @id @default(1)
+  feePercent Float    @default(13.0)
+  rate       Float    @default(1.13)
+  updatedAt  DateTime @updatedAt
 }
