@@ -27,6 +27,8 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const windowFocusedRef = useRef(true);
@@ -37,7 +39,6 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
     setMessages(data);
   }, [orderId]);
 
-  // Escucha foco/blur
   useEffect(() => {
     const handleFocus = () => (windowFocusedRef.current = true);
     const handleBlur = () => (windowFocusedRef.current = false);
@@ -49,7 +50,6 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
     };
   }, []);
 
-  // Solicita permiso de notificación
   useEffect(() => {
     if (typeof window !== "undefined" && Notification.permission !== "granted") {
       Notification.requestPermission();
@@ -72,15 +72,13 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
         if (exists) return prev;
 
         if (data.sender.email !== currentUserEmail) {
-          // 🔊 Sonido
           audioRef.current?.play().catch(() => {});
-
-          // 🔔 Notificación
           if (!windowFocusedRef.current && Notification.permission === "granted") {
-            new Notification("Nuevo mensaje", {
-              body: data.content,
-            });
+            new Notification("Nuevo mensaje", { body: data.content });
           }
+
+          setHighlightedId(data.id);
+          setTimeout(() => setHighlightedId(null), 3000);
         }
 
         return [...prev, data];
@@ -107,7 +105,6 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
 
     if (res.ok) {
       setNewMessage("");
-      // No agregamos el mensaje manualmente porque vendrá por Pusher
     }
   };
 
@@ -131,17 +128,39 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3 px-1">
-          {messages.map((msg) => (
-            <div key={msg.id} className="bg-gray-800 p-3 rounded shadow">
-              <p className="text-sm text-white">
-                <strong>{msg.sender.fullName || msg.sender.email}</strong>
-              </p>
-              <p className="text-white">{msg.content}</p>
-              <p className="text-xs text-gray-400">
-                {new Date(msg.createdAt).toLocaleString()}
-              </p>
-            </div>
-          ))}
+          {messages.map((msg) => {
+            const isHighlighted = highlightedId === msg.id;
+            return (
+              <motion.div
+                key={msg.id}
+                initial={false}
+                animate={
+                  isHighlighted
+                    ? {
+                        backgroundColor: "#15803d", // bg-green-700
+                        scale: [1, 1.03, 1],
+                        transition: {
+                          duration: 0.6,
+                          ease: "easeInOut",
+                          repeat: 2,
+                        },
+                      }
+                    : {}
+                }
+                className={`p-3 rounded shadow transition-colors ${
+                  isHighlighted ? "text-white" : "bg-gray-800"
+                }`}
+              >
+                <p className="text-sm text-white">
+                  <strong>{msg.sender.fullName || msg.sender.email}</strong>
+                </p>
+                <p className="text-white">{msg.content}</p>
+                <p className="text-xs text-gray-400">
+                  {new Date(msg.createdAt).toLocaleString()}
+                </p>
+              </motion.div>
+            );
+          })}
           <div ref={bottomRef} />
         </div>
 
