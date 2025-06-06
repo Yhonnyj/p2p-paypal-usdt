@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 }
 
 // GET: Listar órdenes del usuario autenticado
-export async function GET(req: Request) {
+export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
