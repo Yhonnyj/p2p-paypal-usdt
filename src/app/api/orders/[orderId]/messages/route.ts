@@ -1,7 +1,11 @@
 // app/api/orders/[orderId]/messages/route.ts
+
+// ✅ Forzar modo dinámico para evitar error de pre-render en build
+export const dynamic = "force-dynamic";
+
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { pusherServer } from "@/lib/pusher"; // ✅ IMPORTANTE
+import { pusherServer } from "@/lib/pusher";
 import { NextResponse, type NextRequest } from "next/server";
 
 const ADMIN_ID = process.env.ADMIN_CLERK_ID ?? "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
@@ -13,7 +17,8 @@ export async function GET(
 ) {
   const { orderId } = params;
   const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  if (!clerkId)
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -44,7 +49,8 @@ export async function POST(
 ) {
   const { orderId } = params;
   const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  if (!clerkId)
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const body = await req.json();
   const { content } = body;
@@ -75,7 +81,7 @@ export async function POST(
     },
   });
 
-  // ✅ EMITIR EVENTO PUSHER
+  // ✅ Emitir mensaje por Pusher
   await pusherServer.trigger(`order-${orderId}`, "new-message", message);
 
   return NextResponse.json(message);
