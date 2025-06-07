@@ -22,9 +22,9 @@ export default function AdminConfigPage() {
         const res = await fetch("/api/admin/config");
         const data = await res.json();
         if (res.ok) setConfig(data);
-        else console.error(data);
-      } catch (err) {
-        console.error("Error al obtener configuración:", err);
+        else console.error("Error cargando configuración:", data);
+      } catch {
+        console.error("Error al obtener configuración");
       } finally {
         setLoading(false);
       }
@@ -58,7 +58,7 @@ export default function AdminConfigPage() {
       } else {
         setError(data.error || "Error al guardar cambios");
       }
-    } catch (err) {
+    } catch {
       setError("Error de red al guardar configuración");
     } finally {
       setSaving(false);

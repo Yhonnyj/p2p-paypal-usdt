@@ -19,7 +19,7 @@ export async function GET() {
     }
 
     return NextResponse.json(config);
-  } catch (e) {
+  } catch {
     console.error("Error obteniendo configuración");
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
@@ -45,7 +45,7 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json(updated);
-  } catch (e) {
+  } catch {
     console.error("Error actualizando configuración");
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
