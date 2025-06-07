@@ -1,5 +1,3 @@
-// app/api/admin/config/route.ts
-
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -21,8 +19,8 @@ export async function GET() {
     }
 
     return NextResponse.json(config);
-  } catch (error) {
-    console.error("Error obteniendo configuración:", error);
+  } catch (e) {
+    console.error("Error obteniendo configuración");
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
@@ -47,8 +45,8 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
-    console.error("Error actualizando configuración:", error);
+  } catch (e) {
+    console.error("Error actualizando configuración");
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
