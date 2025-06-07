@@ -6,9 +6,9 @@ const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID ?? "user_2y8MDKMBaoV4ar3YzC3oZ
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Record<string, string> }
+  { params }: { params: { orderId: string } }
 ) {
-  const orderId = context.params.id;
+  const orderId = params.orderId;
   const { userId } = await auth();
 
   if (userId !== ADMIN_CLERK_ID) {
@@ -16,8 +16,7 @@ export async function PATCH(
   }
 
   try {
-    const body = await req.json();
-    const status = body?.status;
+    const { status } = await req.json();
 
     if (!["PENDING", "COMPLETED", "CANCELLED"].includes(status)) {
       return NextResponse.json({ error: "Estado inválido" }, { status: 400 });

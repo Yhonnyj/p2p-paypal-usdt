@@ -95,8 +95,12 @@ export default function AdminDashboardPage() {
       }
 
       const updatedOrder: Order = await res.json();
+
+      // 🔧 Corregido: mantenemos el `user` anterior
       setOrders((prev) =>
-        prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+        prev.map((o) =>
+          o.id === updatedOrder.id ? { ...updatedOrder, user: o.user } : o
+        )
       );
     } catch (err) {
       const error = err as Error;

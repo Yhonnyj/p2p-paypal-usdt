@@ -4,7 +4,9 @@ import { Zap, Loader2, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), { ssr: false });
+const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), {
+  ssr: false,
+});
 
 type Order = {
   id: string;
@@ -30,16 +32,18 @@ const statusIcons = {
 };
 
 export default function OrdersPage() {
-  const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
+
     const fetchOrders = async () => {
       try {
         const res = await fetch("/api/orders");
         const data = await res.json();
-        if (res.ok) {
+        if (res.ok && active) {
           setOrders(data);
         } else {
           console.error(data);
@@ -47,11 +51,18 @@ export default function OrdersPage() {
       } catch (error) {
         console.error("Error cargando órdenes", error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchOrders(); // primera carga
+
+    const intervalId = setInterval(fetchOrders, 3000); // actualizar cada 3s
+
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+    };
   }, []);
 
   return (
