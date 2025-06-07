@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -10,10 +10,33 @@ export default function NuevoPedidoPage() {
   const [network, setNetwork] = useState("TRC20");
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
+  const [feePercent, setFeePercent] = useState<number | null>(null);
+  const [rate, setRate] = useState<number | null>(null);
   const router = useRouter();
 
-  const porcentajeComision = 13;
-  const montoRecibido = (monto) * (1 - porcentajeComision / 100);
+  // Calcular monto recibido dinámicamente
+  const montoRecibido = feePercent !== null ? monto * (1 - feePercent / 100) : 0;
+
+  // Obtener configuración inicial y cada 10 segundos
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch("/api/config");
+        const data = await res.json();
+        if (res.ok) {
+          setFeePercent(data.feePercent);
+          setRate(data.rate);
+        }
+      } catch (error) {
+        console.error("Error al obtener configuración:", error);
+      }
+    };
+
+    fetchConfig(); // llamada inicial
+    const interval = setInterval(fetchConfig, 10000); // cada 10s
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCrearOrden = async () => {
     if (!paypalEmail || !wallet) {
@@ -135,11 +158,15 @@ export default function NuevoPedidoPage() {
           <div className="bg-gray-800 rounded-2xl px-6 py-5 text-sm border border-gray-700 shadow-inner">
             <div className="flex justify-between mb-2">
               <span className="text-gray-400">Cotización del día</span>
-              <span className="text-red-400 font-semibold">1.13</span>
+              <span className="text-red-400 font-semibold">
+                {rate !== null ? rate.toFixed(2) : "Cargando..."}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-300">Usted recibirá</span>
-              <span className="text-green-400 text-xl font-bold">{montoRecibido.toFixed(2)} USDT</span>
+              <span className="text-green-400 text-xl font-bold">
+                {feePercent !== null ? montoRecibido.toFixed(2) : "Cargando..."} USDT
+              </span>
             </div>
           </div>
 
