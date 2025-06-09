@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageSquareText } from "lucide-react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
@@ -114,37 +115,38 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl font-bold mb-6 text-green-400">Dashboard Admin</h1>
+  <div className="min-h-screen bg-black text-white p-6">
+    <h1 className="text-3xl font-bold mb-6 text-green-400">Dashboard Admin</h1>
 
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Buscar por nombre, email, PayPal o wallet"
-        className="mb-6 w-full p-2 rounded bg-gray-800 border border-gray-600 text-white"
-      />
+    <input
+      type="text"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      placeholder="Buscar por nombre, email, PayPal o wallet"
+      className="mb-6 w-full p-3 rounded-lg bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+    />
 
-      {loading ? (
-        <p className="text-center mt-10">Cargando órdenes...</p>
-      ) : error ? (
-        <p className="text-center mt-10 text-red-500">{error}</p>
-      ) : filteredOrders.length === 0 ? (
-        <p>No hay órdenes encontradas.</p>
-      ) : (
-        <>
-          <table className="w-full border border-gray-700 rounded-lg overflow-hidden">
-            <thead className="bg-gray-900">
-              <tr>
-                <th className="p-3 border-b border-gray-700 text-left">Nombre</th>
-                <th className="p-3 border-b border-gray-700 text-left">Email</th>
-                <th className="p-3 border-b border-gray-700 text-left">PayPal</th>
-                <th className="p-3 border-b border-gray-700 text-left">Wallet</th>
-                <th className="p-3 border-b border-gray-700 text-left">Plataforma</th>
-                <th className="p-3 border-b border-gray-700 text-right">Monto USD</th>
-                <th className="p-3 border-b border-gray-700 text-right">USDT</th>
-                <th className="p-3 border-b border-gray-700 text-left">Estado</th>
-                <th className="p-3 border-b border-gray-700 text-left">Fecha</th>
+    {loading ? (
+      <p className="text-center mt-10">Cargando órdenes...</p>
+    ) : error ? (
+      <p className="text-center mt-10 text-red-500">{error}</p>
+    ) : filteredOrders.length === 0 ? (
+      <p>No hay órdenes encontradas.</p>
+    ) : (
+      <>
+        <div className="overflow-x-auto rounded-xl shadow-lg border border-gray-800">
+          <table className="min-w-full bg-gray-900 text-sm">
+            <thead>
+              <tr className="text-gray-400 bg-gray-800 text-left">
+                <th className="px-4 py-3">Nombre</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">PayPal</th>
+                <th className="px-4 py-3">Wallet</th>
+                <th className="px-4 py-3">Plataforma</th>
+                <th className="px-4 py-3 text-right">USD</th>
+                <th className="px-4 py-3 text-right">USDT</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Fecha</th>
               </tr>
             </thead>
             <tbody>
@@ -152,71 +154,91 @@ export default function AdminDashboardPage() {
                 <tr
                   key={order.id}
                   onClick={() => handleRowClick(order.id)}
-                  className="hover:bg-gray-800 cursor-pointer"
+                  className="hover:bg-gray-800/70 border-t border-gray-800 transition cursor-pointer"
                 >
-                  <td className="p-3 border-b border-gray-700">{order.user?.fullName ?? "—"}</td>
-                  <td className="p-3 border-b border-gray-700">{order.user?.email ?? "—"}</td>
-                  <td className="p-3 border-b border-gray-700">{order.paypalEmail}</td>
-                  <td className="p-3 border-b border-gray-700">{order.wallet}</td>
-                  <td className="p-3 border-b border-gray-700">{order.platform}</td>
-                  <td className="p-3 border-b border-gray-700 text-right">${order.amount.toFixed(2)}</td>
-                  <td className="p-3 border-b border-gray-700 text-right text-green-400 font-semibold">
+                  <td className="px-4 py-3">{order.user?.fullName ?? "—"}</td>
+                  <td className="px-4 py-3">{order.user?.email ?? "—"}</td>
+                  <td className="px-4 py-3">{order.paypalEmail}</td>
+                  <td className="px-4 py-3">{order.wallet}</td>
+                  <td className="px-4 py-3">{order.platform}</td>
+                  <td className="px-4 py-3 text-right">${order.amount.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right text-green-400 font-semibold">
                     {order.finalUsdt.toFixed(2)} USDT
                   </td>
-                  <td className="p-3 border-b border-gray-700">
-                    <select
-                      value={order.status}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) =>
-                        updateStatus(order.id, e.target.value as OrderStatus)
-                      }
-                      className="bg-gray-800 text-white rounded px-2 py-1"
-                    >
-                      <option value="PENDING">Pendiente</option>
-                      <option value="COMPLETED">Pagado</option>
-                      <option value="CANCELLED">Cancelado</option>
-                    </select>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          order.status === "PENDING"
+                            ? "bg-yellow-500/10 text-yellow-400"
+                            : order.status === "COMPLETED"
+                            ? "bg-green-500/10 text-green-400"
+                            : "bg-red-500/10 text-red-400"
+                        }`}
+                      >
+                        {order.status === "PENDING"
+                          ? "Pendiente"
+                          : order.status === "COMPLETED"
+                          ? "Pagado"
+                          : "Cancelado"}
+                      </span>
+                      <select
+                        value={order.status}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          updateStatus(order.id, e.target.value as OrderStatus)
+                        }
+                        className="bg-gray-800 text-white rounded px-2 py-1 text-xs border border-gray-700"
+                      >
+                        <option value="PENDING">Pendiente</option>
+                        <option value="COMPLETED">Pagado</option>
+                        <option value="CANCELLED">Cancelado</option>
+                      </select>
+                    </div>
                   </td>
-                  <td className="p-3 border-b border-gray-700">
-                    {new Date(order.createdAt).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  <td className="px-4 py-3 flex items-center justify-between gap-2">
+  <span>{new Date(order.createdAt).toLocaleString()}</span>
+  <MessageSquareText className="w-8 h-8 text-green-400" />
+</td>
+</tr>
+))}
+</tbody>
+</table>
+</div>
 
-          <div className="flex justify-between items-center mt-4">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-              className="px-3 py-1 rounded bg-gray-700 disabled:opacity-50"
-            >
-              Anterior
-            </button>
-            <span className="text-sm text-gray-300">
-              Página {page} de {totalPages}
-            </span>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-              className="px-3 py-1 rounded bg-gray-700 disabled:opacity-50"
-            >
-              Siguiente
-            </button>
-          </div>
-        </>
-      )}
 
-      {isChatOpen && selectedOrderId && (
-        <OrderChatModal
-          orderId={selectedOrderId}
-          isOpen={isChatOpen}
-          onClose={() => {
-            setIsChatOpen(false);
-            setSelectedOrderId(null);
-          }}
-        />
-      )}
-    </div>
-  );
+        <div className="flex justify-between items-center mt-6">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-40"
+          >
+            Anterior
+          </button>
+          <span className="text-sm text-gray-300">
+            Página {page} de {totalPages}
+          </span>
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            className="px-4 py-2 bg-gray-700 text-white rounded disabled:opacity-40"
+          >
+            Siguiente
+          </button>
+        </div>
+      </>
+    )}
+
+    {isChatOpen && selectedOrderId && (
+      <OrderChatModal
+        orderId={selectedOrderId}
+        isOpen={isChatOpen}
+        onClose={() => {
+          setIsChatOpen(false);
+          setSelectedOrderId(null);
+        }}
+      />
+    )}
+  </div>
+);
 }

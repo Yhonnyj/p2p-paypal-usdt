@@ -1,12 +1,18 @@
-import { auth } from "@clerk/nextjs/server";
-import { currentUser } from "@clerk/nextjs/server";
-import Script from "next/script";
+"use client";
 
-export default async function DashboardPage() {
-  const { userId } = await auth();
-  const user = await currentUser();
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 
-  if (!userId || !user) {
+const VerificationModal = dynamic(() => import("@/components/VerificationModal"), {
+  ssr: false,
+});
+
+export default function DashboardPage() {
+  const { user } = useUser();
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!user) {
     return <div className="text-red-500">No autorizado</div>;
   }
 
@@ -15,50 +21,19 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-bold mb-4">
         Bienvenido, {user.firstName} 👋
       </h1>
-      <p className="text-sm text-gray-400">
-        Tu ID de usuario es: <code>{userId}</code>
+
+      <p className="text-sm text-gray-400 mb-6">
+        Para poder realizar operaciones, debes completar la verificación de identidad.
       </p>
 
-      {/* Contenedor donde se carga Didit */}
-      <div id="didit-verification" className="mt-8" />
+      <button
+        onClick={() => setIsOpen(true)}
+        className="bg-green-600 hover:bg-green-700 transition px-6 py-3 rounded-lg text-white font-semibold shadow-lg"
+      >
+        Verificar Identidad
+      </button>
 
-      {/* Script Didit con integración de backend */}
-      <Script id="didit-init" strategy="afterInteractive">
-        {`
-          window.DiditVerify?.init({
-            publicKey: "zvlZemIiVktXAhGNvNFc8k7c5vhB5RLyyH78AEzQF8E",
-            referenceId: "${userId}",
-            containerId: "didit-verification",
-            onSuccess: async function(result) {
-              console.log("Verificación exitosa", result);
-
-              try {
-                const res = await fetch("/api/user-profile", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({
-                    status: result.status || "approved",
-                    country: result.data?.country || "Desconocido"
-                  }),
-                });
-
-                if (!res.ok) {
-                  console.error("Error al guardar perfil:", await res.text());
-                } else {
-                  console.log("Perfil guardado correctamente");
-                }
-              } catch (error) {
-                console.error("Error al enviar datos a backend:", error);
-              }
-            },
-            onError: function(error) {
-              console.error("Error de verificación", error);
-            }
-          });
-        `}
-      </Script>
+      <VerificationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </div>
   );
 }
