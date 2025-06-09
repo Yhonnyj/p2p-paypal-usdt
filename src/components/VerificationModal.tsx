@@ -34,7 +34,7 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
       } else {
         setMessage("✅ Verificación enviada correctamente");
       }
-    } catch (e) {
+    } catch {
       setMessage("Error inesperado al enviar verificación");
     } finally {
       setSubmitting(false);
