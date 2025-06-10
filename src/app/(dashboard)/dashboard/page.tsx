@@ -26,7 +26,7 @@ export default function DashboardPage() {
         } else {
           setVerificationStatus("NONE");
         }
-      } catch (e) {
+      } catch (_e) {
         setVerificationStatus("NONE");
       }
     };

@@ -30,7 +30,6 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
       formData.append("selfie", selfieFile);
 
       const res = await fetch("/api/verifications", {
-
         method: "POST",
         body: formData,
       });
@@ -43,8 +42,10 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
         setDocumentFile(null);
         setSelfieFile(null);
       }
-    } catch (err: any) {
+    } catch (err: unknown) { // CAMBIO AQUÍ: 'err: any' a 'err: unknown'
       console.error("Error en frontend verificación:", err);
+      // Puedes añadir una comprobación de tipo si necesitas acceder a propiedades específicas de 'err'
+      // Por ejemplo: if (err instanceof Error) { setMessage(err.message); }
       setMessage("Error inesperado al enviar verificación");
     } finally {
       setSubmitting(false);

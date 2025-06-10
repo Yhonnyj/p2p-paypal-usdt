@@ -16,7 +16,9 @@ export default function VerificationStatusBadge() {
         } else {
           setStatus("NONE");
         }
-      } catch (e) {
+      } catch (_e) { // CAMBIO AQUÍ: 'e' a '_e'
+        // Puedes logear el error aquí si necesitas debuggear, por ejemplo:
+        // console.error("Error al obtener el estado de verificación:", _e);
         setStatus("NONE");
       }
     };
