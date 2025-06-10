@@ -16,7 +16,7 @@ export default function VerificationStatusBadge() {
         } else {
           setStatus("NONE");
         }
-      } catch (_e) { // CAMBIO AQUÍ: 'e' a '_e'
+      } catch (_e) { // eslint-disable-line @typescript-eslint/no-unused-vars
         // Puedes logear el error aquí si necesitas debuggear, por ejemplo:
         // console.error("Error al obtener el estado de verificación:", _e);
         setStatus("NONE");

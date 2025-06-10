@@ -26,7 +26,7 @@ export default function DashboardPage() {
         } else {
           setVerificationStatus("NONE");
         }
-      } catch (_e) {
+      } catch (_e) { // eslint-disable-line @typescript-eslint/no-unused-vars <--- CHANGE HERE
         setVerificationStatus("NONE");
       }
     };
