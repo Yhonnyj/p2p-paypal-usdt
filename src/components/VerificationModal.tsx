@@ -16,6 +16,12 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
       setMessage("Debes subir ambos archivos");
       return;
     }
+
+    if (!documentFile.type.startsWith("image/") || !selfieFile.type.startsWith("image/")) {
+      setMessage("Los archivos deben ser imágenes válidas");
+      return;
+    }
+
     setSubmitting(true);
     setMessage("");
     try {
@@ -23,7 +29,8 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
       formData.append("document", documentFile);
       formData.append("selfie", selfieFile);
 
-      const res = await fetch("/api/verification", {
+      const res = await fetch("/api/verifications", {
+
         method: "POST",
         body: formData,
       });
@@ -33,8 +40,11 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
         setMessage(data.error || "Error al enviar verificación");
       } else {
         setMessage("✅ Verificación enviada correctamente");
+        setDocumentFile(null);
+        setSelfieFile(null);
       }
-    } catch {
+    } catch (err: any) {
+      console.error("Error en frontend verificación:", err);
       setMessage("Error inesperado al enviar verificación");
     } finally {
       setSubmitting(false);
@@ -59,30 +69,29 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
           <p className="text-sm text-gray-300 mb-4">
             Sube una selfie sosteniendo tu documento (Pasaporte o Cédula).
           </p>
-<div className="mb-6 flex justify-center gap-4">
-  <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow">
-    <Image
-      src="/ejemplo-selfie.png"
-      alt="Ejemplo de selfie con documento"
-      width={192}
-      height={160}
-      unoptimized
-      className="w-full h-auto object-cover"
-    />
-  </div>
-  <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow">
-    <Image
-      src="/ejemplo-documento.png"
-      alt="Ejemplo de documento"
-      width={192}
-      height={160}
-      unoptimized
-      className="w-full h-auto object-cover"
-    />
-  </div>
-</div>
 
-
+          <div className="mb-6 flex justify-center gap-4">
+            <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow">
+              <Image
+                src="/ejemplo-selfie.png"
+                alt="Ejemplo de selfie con documento"
+                width={192}
+                height={160}
+                unoptimized
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow">
+              <Image
+                src="/ejemplo-documento.png"
+                alt="Ejemplo de documento"
+                width={192}
+                height={160}
+                unoptimized
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          </div>
 
           <div className="space-y-4">
             <div>

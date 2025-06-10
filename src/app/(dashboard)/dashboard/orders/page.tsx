@@ -43,21 +43,24 @@ export default function OrdersPage() {
       try {
         const res = await fetch("/api/orders");
         const data = await res.json();
+
+        console.log("🟡 STATUS:", res.status);
+        console.log("🟡 RESPONSE:", data);
+
         if (res.ok && active) {
           setOrders(data);
         } else {
-          console.error(data);
+          console.error("🔴 Error del backend:", data);
         }
       } catch (error) {
-        console.error("Error cargando órdenes", error);
+        console.error("🔴 Error cargando órdenes:", error);
       } finally {
         if (active) setLoading(false);
       }
     };
 
     fetchOrders(); // primera carga
-
-    const intervalId = setInterval(fetchOrders, 3000); // actualizar cada 3s
+    const intervalId = setInterval(fetchOrders, 3000); // refresca cada 3 segundos
 
     return () => {
       active = false;
