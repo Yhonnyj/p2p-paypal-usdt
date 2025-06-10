@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, ShieldCheck } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 
 const links = [
   { href: "/admin/orders", label: "Ordenes", icon: LayoutDashboard },
   { href: "/admin/config", label: "Configuración", icon: Settings },
+  { href: "/admin/verifications", label: "Verificación", icon: ShieldCheck },
 ];
 
 export default function AdminSidebar() {
