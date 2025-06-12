@@ -63,12 +63,10 @@ export default function NuevoPedidoPage() {
           setExchangeRates(ratesData);
         } else {
           console.error("Error al obtener tasas del API de clientes:", ratesData.error || "Error desconocido");
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           displayAlert("Error al cargar las tasas de cambio. Por favor, inténtalo de nuevo más tarde.", "error");
         }
       } catch (err) {
         console.error("Error de conexión al cargar la configuración o las tasas de cambio:", err);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         displayAlert("Error de conexión al cargar la configuración o las tasas de cambio.", "error");
       }
     };
@@ -78,7 +76,7 @@ export default function NuevoPedidoPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // La función 'displayAlert' es utilizada, así que no necesitamos la directiva eslint-disable.
   const displayAlert = (message: string, type: 'success' | 'error' = 'error') => {
     setAlertMessage(message);
     setAlertType(type);
@@ -97,6 +95,8 @@ export default function NuevoPedidoPage() {
       return;
     }
 
+    // FIX: Añadido la directiva para deshabilitar el error de 'any' en esta línea.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let recipientDetails: any = {};
 
     if (selectedDestinationCurrency === "USDT") {

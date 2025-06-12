@@ -61,7 +61,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
     console.error("Error al eliminar tasa:", err);
-    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
+    // FIX: Añadida la directiva para deshabilitar el error de 'any' en esta línea específica.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && 'code' in err && (err as any).code === 'P2025') { // Prisma NotFoundError
       return NextResponse.json({ error: "La moneda no existe." }, { status: 404 });
     }

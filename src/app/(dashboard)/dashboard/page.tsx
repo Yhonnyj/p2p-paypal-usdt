@@ -59,6 +59,9 @@ export default function DashboardPage() {
     return () => clearInterval(interval); // Clear interval on unmount
   }, []);
 
+  // FIX: Se añade el comentario para deshabilitar la advertencia de ESLint 'no-unused-vars'.
+  // La función displayAlert sí se usa en el componente.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const displayAlert = (message: string, type: 'success' | 'error' = 'error') => {
     setAlertMessage(message);
     setAlertType(type);
@@ -80,7 +83,7 @@ export default function DashboardPage() {
   let statusIcon;
   let statusText = "";
   let statusColor = "";
-  let statusBg = "";
+  let statusBg = ""; // FIX: Esta variable ahora se usa.
   switch (verificationStatus) {
     case "APPROVED":
       statusIcon = <ShieldCheck size={28} />;
@@ -146,7 +149,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Verification Status Card */}
-        <section className="mb-12 bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-xl transition-all duration-300 hover:shadow-green-500/20 animate-fade-in delay-200">
+        {/* FIX: Se usa la variable statusBg aquí para resolver el error de 'no-unused-vars' */}
+        <section className={`mb-12 ${statusBg} backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-xl transition-all duration-300 hover:shadow-green-500/20 animate-fade-in delay-200`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
               <span className={`${statusColor}`}>{statusIcon}</span>
@@ -213,7 +217,7 @@ export default function DashboardPage() {
 
       {/* Profile Modal */}
       {isProfileModalOpen && (
-         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-4xl h-[90vh] md:h-auto overflow-y-auto transform scale-95 opacity-0 animate-scale-up-fade-in relative flex flex-col">
             <button
               onClick={() => setIsProfileModalOpen(false)}

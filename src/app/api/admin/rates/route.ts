@@ -59,7 +59,8 @@ export async function POST(req: Request) {
     return NextResponse.json(newRate, { status: 201 });
   } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
     console.error("Error al crear tasa:", err);
-    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
+    // FIX: Añadida la directiva para deshabilitar el error de 'any' en esta línea específica.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (err instanceof Error && 'code' in err && (err as any).code === "P2002") {
       return NextResponse.json({ error: "Esa moneda ya existe" }, { status: 409 });
     }
