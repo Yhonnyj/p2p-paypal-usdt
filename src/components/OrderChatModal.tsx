@@ -4,6 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Pusher from "pusher-js";
 import { motion } from "framer-motion";
+// Importa los íconos necesarios de lucide-react
+import { ArrowLeft, LifeBuoy, Paperclip, Send } from 'lucide-react'; 
+
 
 type Message = {
   id: string;
@@ -29,7 +32,7 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
   const [newMessage, setNewMessage] = useState("");
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null); // Corregido: HTMLDivElement
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const windowFocusedRef = useRef(true);
 
@@ -116,20 +119,28 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-gray-900 rounded-xl p-6 w-full max-w-xl h-[80vh] flex flex-col"
+        className="bg-gray-900 rounded-2xl p-6 w-full max-w-xl h-[80vh] flex flex-col shadow-lg"
       >
         <audio ref={audioRef} src="/notification.mp3" preload="auto" />
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white">Chat de Orden</h2>
-          <button onClick={onClose} className="text-red-400 hover:text-red-600">
-            Cerrar
+        {/* Header del chat */}
+        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-300 p-1 rounded-full">
+            <ArrowLeft size={20} />
+          </button>
+          <h2 className="text-xl font-semibold text-white">Chat de Orden</h2>
+          <button className="text-gray-400 hover:text-gray-300 flex items-center gap-1 p-1 rounded-full">
+            <LifeBuoy size={20} />
+            <span className="text-sm hidden sm:inline">Soporte</span>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 px-1">
+        {/* Área de mensajes */}
+        <div className="flex-1 overflow-y-auto space-y-3 px-2 py-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
           {messages.map((msg) => {
+            const isCurrentUser = msg.sender.email === currentUserEmail;
             const isHighlighted = highlightedId === msg.id;
+
             return (
               <motion.div
                 key={msg.id}
@@ -137,26 +148,28 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
                 animate={
                   isHighlighted
                     ? {
-                        backgroundColor: "#15803d", // bg-green-700
-                        scale: [1, 1.03, 1],
+                        backgroundColor: "#22c55e", // bg-green-600
+                        scale: [1, 1.01, 1],
                         transition: {
-                          duration: 0.6,
+                          duration: 0.4,
                           ease: "easeInOut",
-                          repeat: 2,
+                          repeat: 1,
                         },
                       }
                     : {}
                 }
-                className={`p-3 rounded shadow transition-colors ${
-                  isHighlighted ? "text-white" : "bg-gray-800"
+                className={`p-3 rounded-lg shadow-sm transition-colors max-w-[85%] ${
+                  isCurrentUser
+                    ? "bg-gray-700 ml-auto" // Tus mensajes: gris oscuro, alineados a la derecha
+                    : "bg-sky-600 text-white mr-auto" // Otros mensajes: azul claro, alineados a la izquierda
                 }`}
               >
-                <p className="text-sm text-white">
-                  <strong>{msg.sender.fullName || msg.sender.email}</strong>
+                <p className={`text-sm font-medium ${isCurrentUser ? 'text-green-300' : 'text-gray-200'} mb-1`}>
+                  {isCurrentUser ? "Tú" : msg.sender.fullName || msg.sender.email}
                 </p>
-                <p className="text-white">{msg.content}</p>
-                <p className="text-xs text-gray-400">
-                  {new Date(msg.createdAt).toLocaleString()}
+                <p className="text-white text-base">{msg.content}</p>
+                <p className="text-xs text-gray-400 mt-1 text-right">
+                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' })}
                 </p>
               </motion.div>
             );
@@ -164,19 +177,25 @@ export default function OrderChatModal({ orderId, isOpen, onClose }: Props) {
           <div ref={bottomRef} />
         </div>
 
-        <div className="mt-4 flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Escribe un mensaje..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1 px-4 py-2 rounded bg-gray-800 text-white outline-none"
-          />
+        {/* Área de entrada de mensaje */}
+        <div className="mt-4 flex items-center gap-2 pt-2 border-t border-gray-700">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Escribe un mensaje..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-gray-800 text-white outline-none focus:ring-2 focus:ring-green-600 pr-10"
+            />
+            <button className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-green-400">
+              <Paperclip size={20} />
+            </button>
+          </div>
           <button
             onClick={sendMessage}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg flex-shrink-0"
           >
-            Enviar
+            <Send size={24} />
           </button>
         </div>
       </motion.div>
