@@ -1,8 +1,11 @@
+// src/app/api/admin/rates/[currency]/route.ts
+// Esta ruta es EXCLUSIVA para que el ADMINISTRADOR gestione (PATCH, DELETE) tasas de cambio específicas.
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // tu ID real
+const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // ¡IMPORTANTE: Reemplaza esto con TU ID de administrador de Clerk!
 
 export async function PATCH(
   req: Request,
@@ -28,9 +31,13 @@ export async function PATCH(
     });
 
     return NextResponse.json(updated);
-  } catch (err: any) {
+  } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
     console.error("Error actualizando tasa:", err);
-    return NextResponse.json({ error: "Moneda no encontrada o error" }, { status: 500 });
+    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
+    if (err instanceof Error) {
+        return NextResponse.json({ error: err.message || "Moneda no encontrada o error del servidor" }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Moneda no encontrada o error del servidor" }, { status: 500 });
   }
 }
 
@@ -52,8 +59,15 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
     console.error("Error al eliminar tasa:", err);
+    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
+    if (err instanceof Error && 'code' in err && (err as any).code === 'P2025') { // Prisma NotFoundError
+      return NextResponse.json({ error: "La moneda no existe." }, { status: 404 });
+    }
+    if (err instanceof Error) {
+        return NextResponse.json({ error: err.message || "No se pudo eliminar la moneda" }, { status: 500 });
+    }
     return NextResponse.json({ error: "No se pudo eliminar la moneda" }, { status: 500 });
   }
 }

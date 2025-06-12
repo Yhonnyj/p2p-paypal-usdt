@@ -44,7 +44,8 @@ export async function POST(req: Request) {
     }
 
     // --- Validación y preparación de datos específicos según el tipo de destino ---
-    let orderDetailsForDb: { to: string; wallet: string | null } = {
+    // FIX: Cambiado de 'let' a 'const' porque orderDetailsForDb no se reasigna
+    const orderDetailsForDb: { to: string; wallet: string | null } = {
         to: "",
         wallet: null,
     };
@@ -62,7 +63,8 @@ export async function POST(req: Request) {
       orderDetailsForDb.to = recipientDetails.currency;
       orderDetailsForDb.wallet = null; // Wallet es nulo para transacciones FIAT
 
-      let fiatDetails: { bankName: string; phoneNumber?: string; idNumber?: string } = {
+      // FIX: Cambiado de 'let' a 'const' porque fiatDetails no se reasigna
+      const fiatDetails: { bankName: string; phoneNumber?: string; idNumber?: string } = {
           bankName: recipientDetails.bankName,
       };
       if (recipientDetails.currency === "BS") {
@@ -92,12 +94,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Configuración no encontrada" }, { status: 500 });
     }
 
-    const { rate, feePercent } = config;
+    // FIX: Eliminado 'rate' de la desestructuración porque no se usa directamente
+    const { feePercent } = config; 
 
     const finalUsd = amount * (1 - feePercent / 100);
     let finalUsdt = 0;
 
-    // FIX: Asegurar que 'rate' sea un número válido y distinto de cero para el cálculo de finalUsdt
+    // Asegurar que 'config.rate' sea un número válido y distinto de cero para el cálculo de finalUsdt
     if (recipientDetails.type === "USDT") {
       // Usar la tasa de USD de la configuración para la conversión a USDT.
       // Si la tasa es 0 o nula, usar 1 como fallback para evitar división por cero.
@@ -125,10 +128,13 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json(order, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) { // FIX: Cambiado de 'any' a 'unknown'
     console.error("Error creando orden:", error);
-    if (error instanceof Error && error.name === 'PrismaClientValidationError') {
+    if (error instanceof Error && 'name' in error && error.name === 'PrismaClientValidationError') {
         return NextResponse.json({ error: "Error de validación de la base de datos. Por favor, revisa los datos enviados." }, { status: 400 });
+    }
+    if (error instanceof Error) {
+        return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
     }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
@@ -157,8 +163,11 @@ export async function GET() {
     });
 
     return NextResponse.json(orders);
-  } catch (error) {
+  } catch (error: unknown) { // FIX: Cambiado de 'any' a 'unknown'
     console.error("Error cargando órdenes:", error);
+    if (error instanceof Error) {
+        return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+    }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

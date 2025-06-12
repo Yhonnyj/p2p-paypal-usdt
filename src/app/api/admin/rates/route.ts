@@ -1,3 +1,6 @@
+// src/app/api/admin/rates/route.ts
+// Esta ruta es para que el ADMINISTRADOR gestione (GET, POST) las tasas de cambio.
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +10,7 @@ const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Reemplaza por tu ID si e
 export async function GET() {
   const { userId } = await auth();
 
+  // La función GET del administrador permanece con su protección de ADMIN_ID.
   if (userId !== ADMIN_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -17,8 +21,12 @@ export async function GET() {
     });
 
     return NextResponse.json(rates);
-  } catch (err) {
-    console.error("Error al obtener tasas:", err);
+  } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
+    console.error("Error al obtener tasas (admin):", err);
+    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
+    if (err instanceof Error) {
+        return NextResponse.json({ error: err.message || "Error del servidor" }, { status: 500 });
+    }
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
@@ -38,20 +46,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
     }
 
-    const newRate = await prisma.exchangeRate.create({
-      data: {
+    // Aquí, en lugar de crear siempre, se usa 'upsert' que actualiza si existe o crea si no.
+    const newRate = await prisma.exchangeRate.upsert({
+      where: { currency: currency.toUpperCase() },
+      update: { rate: rate },
+      create: {
         currency: currency.toUpperCase(),
         rate,
       },
     });
 
     return NextResponse.json(newRate, { status: 201 });
-  } catch (err: any) {
-    if (err.code === "P2002") {
+  } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
+    console.error("Error al crear tasa:", err);
+    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
+    if (err instanceof Error && 'code' in err && (err as any).code === "P2002") {
       return NextResponse.json({ error: "Esa moneda ya existe" }, { status: 409 });
     }
-
-    console.error("Error al crear tasa:", err);
+    if (err instanceof Error) {
+        return NextResponse.json({ error: err.message || "Error del servidor" }, { status: 500 });
+    }
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }

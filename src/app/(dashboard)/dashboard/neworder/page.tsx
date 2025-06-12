@@ -26,7 +26,6 @@ export default function NuevoPedidoPage() {
   // State for custom alert/modal
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  // FIX: Corrected TypeScript syntax for useState type annotation
   const [alertType, setAlertType] = useState<'success' | 'error'>('error'); 
 
   // Determine the effective rate for calculations.
@@ -45,7 +44,7 @@ export default function NuevoPedidoPage() {
     const fetchData = async () => {
       try {
         const configRes = await fetch("/api/config");
-        // *** CAMBIO CRÍTICO AQUÍ: Ahora llama a la API de tasas para clientes ***
+        // Llamada a la API de tasas para clientes
         const ratesRes = await fetch("/api/rates"); 
 
         const configData = await configRes.json();
@@ -64,10 +63,12 @@ export default function NuevoPedidoPage() {
           setExchangeRates(ratesData);
         } else {
           console.error("Error al obtener tasas del API de clientes:", ratesData.error || "Error desconocido");
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           displayAlert("Error al cargar las tasas de cambio. Por favor, inténtalo de nuevo más tarde.", "error");
         }
       } catch (err) {
         console.error("Error de conexión al cargar la configuración o las tasas de cambio:", err);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         displayAlert("Error de conexión al cargar la configuración o las tasas de cambio.", "error");
       }
     };
@@ -77,6 +78,7 @@ export default function NuevoPedidoPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const displayAlert = (message: string, type: 'success' | 'error' = 'error') => {
     setAlertMessage(message);
     setAlertType(type);
@@ -162,7 +164,7 @@ export default function NuevoPedidoPage() {
         displayAlert("Error: " + (data.error || "Algo salió mal."), 'error');
         console.error("API Error Response:", data);
       }
-    } catch (err) {
+    } catch (err: unknown) { // Mejorar el tipo de 'err' para TS
       console.error("Error al crear la orden:", err);
       displayAlert("Error al crear la orden. Inténtalo de nuevo.", 'error');
     } finally {
