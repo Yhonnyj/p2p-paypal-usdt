@@ -73,6 +73,7 @@ model AppConfig {
   id         Int      @id @default(1)
   feePercent Float    @default(13.0)
   rate       Float    @default(1.13)
+  bsRate     Float    @default(40.0)   // USDT → BS ✅
   updatedAt  DateTime @updatedAt
 }
 

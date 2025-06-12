@@ -34,13 +34,14 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const { feePercent, rate } = body;
+    const { feePercent, rate, bsRate } = body; // 👈 incluimos bsRate
 
     const updated = await prisma.appConfig.update({
       where: { id: 1 },
       data: {
         feePercent: parseFloat(feePercent),
         rate: parseFloat(rate),
+        bsRate: parseFloat(bsRate), // 👈 lo agregamos aquí también
       },
     });
 

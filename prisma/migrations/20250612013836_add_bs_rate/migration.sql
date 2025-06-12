@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "AppConfig" ADD COLUMN     "bsRate" DOUBLE PRECISION NOT NULL DEFAULT 40.0;
