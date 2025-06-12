@@ -77,6 +77,14 @@ model AppConfig {
   updatedAt  DateTime @updatedAt
 }
 
+model ExchangeRate {
+  id        String   @id @default(cuid())
+  currency  String   @unique // Ej: "BS", "USD", "ARS", etc.
+  rate      Float
+  updatedAt DateTime @updatedAt
+}
+
+
 model Verification {
   id          String   @id @default(cuid())
   userId      String   @unique

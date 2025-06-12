@@ -7,7 +7,7 @@ import { useClerk } from "@clerk/clerk-react";
 
 const links = [
   { href: "/admin/orders", label: "Ordenes", icon: LayoutDashboard },
-  { href: "/admin/config", label: "Configuración", icon: Settings },
+  { href: "/admin/rates", label: "Cotizaciones", icon: Settings },
   { href: "/admin/verifications", label: "Verificación", icon: ShieldCheck },
 ];
 

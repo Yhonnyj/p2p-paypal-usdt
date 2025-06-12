@@ -1,6 +1,25 @@
+// src/app/api/orders/route.ts
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+
+// Definición de tipos para el cuerpo de la solicitud (para mayor claridad)
+interface RecipientDetails {
+  type: "USDT" | "FIAT";
+  currency: string; // Ej: "USDT", "BS", "ARS"
+  wallet?: string;
+  network?: string; // Ej: "TRC20", "BEP20"
+  bankName?: string; // Solo bankName, sin bankAccount
+  phoneNumber?: string; // Solo para BS
+  idNumber?: string; // Solo para BS
+}
+
+interface OrderRequestBody {
+  platform: string;
+  amount: number; // Monto en USD
+  paypalEmail: string;
+  recipientDetails: RecipientDetails; // El objeto estructurado que viene del frontend
+}
 
 // POST: Crear nueva orden
 export async function POST(req: Request) {
@@ -11,20 +30,54 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
+    const body: OrderRequestBody = await req.json();
     const {
-      platform,       // Ej: "PayPal"
-      destination,    // Ej: "USDT - TRC20"
+      platform,
       amount,
       paypalEmail,
-      wallet,
+      recipientDetails, // Ahora esperamos este objeto estructurado
     } = body;
 
-    if (!platform || !destination || !amount || !paypalEmail || !wallet) {
-      return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
+    // --- Validación inicial de campos básicos ---
+    if (!platform || !amount || !paypalEmail || !recipientDetails || !recipientDetails.type || !recipientDetails.currency) {
+      return NextResponse.json({ error: "Datos básicos del pedido incompletos" }, { status: 400 });
     }
 
-    // Buscar usuario interno usando el clerkId
+    // --- Validación y preparación de datos específicos según el tipo de destino ---
+    let orderDetailsForDb: { to: string; wallet: string | null } = {
+        to: "",
+        wallet: null,
+    };
+
+    if (recipientDetails.type === "USDT") {
+      if (!recipientDetails.wallet || !recipientDetails.network) {
+        return NextResponse.json({ error: "Datos de USDT incompletos (wallet o red)" }, { status: 400 });
+      }
+      orderDetailsForDb.to = `USDT - ${recipientDetails.network}`;
+      orderDetailsForDb.wallet = recipientDetails.wallet;
+    } else if (recipientDetails.type === "FIAT") {
+      if (!recipientDetails.bankName) {
+        return NextResponse.json({ error: "Datos bancarios incompletos (nombre del banco)" }, { status: 400 });
+      }
+      orderDetailsForDb.to = recipientDetails.currency;
+      orderDetailsForDb.wallet = null; // Wallet es nulo para transacciones FIAT
+
+      let fiatDetails: { bankName: string; phoneNumber?: string; idNumber?: string } = {
+          bankName: recipientDetails.bankName,
+      };
+      if (recipientDetails.currency === "BS") {
+        if (!recipientDetails.phoneNumber || !recipientDetails.idNumber) {
+          return NextResponse.json({ error: "Datos de BS incompletos (teléfono o cédula)" }, { status: 400 });
+        }
+        fiatDetails.phoneNumber = recipientDetails.phoneNumber;
+        fiatDetails.idNumber = recipientDetails.idNumber;
+      }
+      orderDetailsForDb.wallet = JSON.stringify(fiatDetails); // Guarda como JSON string en el campo 'wallet'
+    } else {
+      return NextResponse.json({ error: "Tipo de destino desconocido" }, { status: 400 });
+    }
+
+    // --- Buscar usuario interno y configuración ---
     const dbUser = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -33,7 +86,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Usuario no encontrado en base de datos" }, { status: 404 });
     }
 
-    // Obtener configuración actual de tasa y comisión
     const config = await prisma.appConfig.findUnique({ where: { id: 1 } });
 
     if (!config) {
@@ -43,30 +95,46 @@ export async function POST(req: Request) {
     const { rate, feePercent } = config;
 
     const finalUsd = amount * (1 - feePercent / 100);
-    const finalUsdt = finalUsd / rate;
+    let finalUsdt = 0;
 
+    // FIX: Asegurar que 'rate' sea un número válido y distinto de cero para el cálculo de finalUsdt
+    if (recipientDetails.type === "USDT") {
+      // Usar la tasa de USD de la configuración para la conversión a USDT.
+      // Si la tasa es 0 o nula, usar 1 como fallback para evitar división por cero.
+      const usdRateForUsdtConversion = (config.rate !== null && config.rate !== 0) ? config.rate : 1;
+      finalUsdt = finalUsd / usdRateForUsdtConversion;
+    }
+
+    // --- Crear la orden en la base de datos ---
     const order = await prisma.order.create({
       data: {
-        userId: dbUser.id,
+        user: {
+          connect: {
+            id: dbUser.id
+          }
+        },
         platform,
-        to: destination,
         amount,
         finalUsd,
         finalUsdt,
         paypalEmail,
-        wallet,
         status: "PENDING",
+        to: orderDetailsForDb.to,
+        wallet: orderDetailsForDb.wallet,
       },
     });
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error("Error creando orden:", error);
+    if (error instanceof Error && error.name === 'PrismaClientValidationError') {
+        return NextResponse.json({ error: "Error de validación de la base de datos. Por favor, revisa los datos enviados." }, { status: 400 });
+    }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
 
-// GET: Listar órdenes del usuario autenticado
+// GET: Listar órdenes del usuario autenticado (sin cambios aquí)
 export async function GET() {
   const { userId } = await auth();
 
