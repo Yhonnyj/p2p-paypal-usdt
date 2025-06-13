@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pusherServer } from "@/lib/pusher"; // ✅ AÑADIDO
 
 const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID ?? "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
 
@@ -25,11 +26,18 @@ export async function PATCH(
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { status },
+      include: { user: true }, // ✅ necesario para que el cliente reciba info completa
     });
 
+    // ✅ Emitir evento a Pusher
+    await pusherServer.trigger("orders-channel", "order-updated", updatedOrder);
+
     return NextResponse.json(updatedOrder);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error actualizando orden:", error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

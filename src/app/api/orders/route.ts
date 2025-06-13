@@ -2,160 +2,123 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pusherServer } from "@/lib/pusher"; // ✅ Pusher
 
-// Definición de tipos para el cuerpo de la solicitud (para mayor claridad)
 interface RecipientDetails {
   type: "USDT" | "FIAT";
-  currency: string; // Ej: "USDT", "BS", "ARS"
+  currency: string;
   wallet?: string;
-  network?: string; // Ej: "TRC20", "BEP20"
-  bankName?: string; // Solo bankName, sin bankAccount
-  phoneNumber?: string; // Solo para BS
-  idNumber?: string; // Solo para BS
+  network?: string;
+  bankName?: string;
+  phoneNumber?: string;
+  idNumber?: string;
 }
 
 interface OrderRequestBody {
   platform: string;
-  amount: number; // Monto en USD
+  amount: number;
   paypalEmail: string;
-  recipientDetails: RecipientDetails; // El objeto estructurado que viene del frontend
+  recipientDetails: RecipientDetails;
 }
 
-// POST: Crear nueva orden
+// ✅ POST: Crear nueva orden
 export async function POST(req: Request) {
   const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   try {
     const body: OrderRequestBody = await req.json();
-    const {
-      platform,
-      amount,
-      paypalEmail,
-      recipientDetails, // Ahora esperamos este objeto estructurado
-    } = body;
+    const { platform, amount, paypalEmail, recipientDetails } = body;
 
-    // --- Validación inicial de campos básicos ---
-    if (!platform || !amount || !paypalEmail || !recipientDetails || !recipientDetails.type || !recipientDetails.currency) {
+    if (
+      !platform || !amount || !paypalEmail ||
+      !recipientDetails?.type || !recipientDetails.currency
+    ) {
       return NextResponse.json({ error: "Datos básicos del pedido incompletos" }, { status: 400 });
     }
 
-    // --- Validación y preparación de datos específicos según el tipo de destino ---
-    // FIX: Cambiado de 'let' a 'const' porque orderDetailsForDb no se reasigna
-    const orderDetailsForDb: { to: string; wallet: string | null } = {
-        to: "",
-        wallet: null,
-    };
+    const orderDetails: { to: string; wallet: string | null } = { to: "", wallet: null };
 
     if (recipientDetails.type === "USDT") {
       if (!recipientDetails.wallet || !recipientDetails.network) {
         return NextResponse.json({ error: "Datos de USDT incompletos (wallet o red)" }, { status: 400 });
       }
-      orderDetailsForDb.to = `USDT - ${recipientDetails.network}`;
-      orderDetailsForDb.wallet = recipientDetails.wallet;
+      orderDetails.to = `USDT - ${recipientDetails.network}`;
+      orderDetails.wallet = recipientDetails.wallet;
     } else if (recipientDetails.type === "FIAT") {
       if (!recipientDetails.bankName) {
-        return NextResponse.json({ error: "Datos bancarios incompletos (nombre del banco)" }, { status: 400 });
+        return NextResponse.json({ error: "Falta nombre del banco" }, { status: 400 });
       }
-      orderDetailsForDb.to = recipientDetails.currency;
-      orderDetailsForDb.wallet = null; // Wallet es nulo para transacciones FIAT
+      orderDetails.to = recipientDetails.currency;
 
-      // FIX: Cambiado de 'let' a 'const' porque fiatDetails no se reasigna
-      const fiatDetails: { bankName: string; phoneNumber?: string; idNumber?: string } = {
-          bankName: recipientDetails.bankName,
+      const fiatData: { bankName: string; phoneNumber?: string; idNumber?: string } = {
+        bankName: recipientDetails.bankName,
       };
+
       if (recipientDetails.currency === "BS") {
         if (!recipientDetails.phoneNumber || !recipientDetails.idNumber) {
-          return NextResponse.json({ error: "Datos de BS incompletos (teléfono o cédula)" }, { status: 400 });
+          return NextResponse.json({ error: "Faltan teléfono o cédula para BS" }, { status: 400 });
         }
-        fiatDetails.phoneNumber = recipientDetails.phoneNumber;
-        fiatDetails.idNumber = recipientDetails.idNumber;
+        fiatData.phoneNumber = recipientDetails.phoneNumber;
+        fiatData.idNumber = recipientDetails.idNumber;
       }
-      orderDetailsForDb.wallet = JSON.stringify(fiatDetails); // Guarda como JSON string en el campo 'wallet'
+
+      orderDetails.wallet = JSON.stringify(fiatData);
     } else {
       return NextResponse.json({ error: "Tipo de destino desconocido" }, { status: 400 });
     }
 
-    // --- Buscar usuario interno y configuración ---
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: "Usuario no encontrado en base de datos" }, { status: 404 });
-    }
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+    if (!dbUser) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
     const config = await prisma.appConfig.findUnique({ where: { id: 1 } });
+    if (!config) return NextResponse.json({ error: "Configuración no encontrada" }, { status: 500 });
 
-    if (!config) {
-      return NextResponse.json({ error: "Configuración no encontrada" }, { status: 500 });
-    }
-
-    // FIX: Eliminado 'rate' de la desestructuración porque no se usa directamente
-    const { feePercent } = config; 
-
+    const { feePercent, rate } = config;
     const finalUsd = amount * (1 - feePercent / 100);
-    let finalUsdt = 0;
+    const finalUsdt = recipientDetails.type === "USDT"
+      ? finalUsd / ((rate && rate !== 0) ? rate : 1)
+      : 0;
 
-    // Asegurar que 'config.rate' sea un número válido y distinto de cero para el cálculo de finalUsdt
-    if (recipientDetails.type === "USDT") {
-      // Usar la tasa de USD de la configuración para la conversión a USDT.
-      // Si la tasa es 0 o nula, usar 1 como fallback para evitar división por cero.
-      const usdRateForUsdtConversion = (config.rate !== null && config.rate !== 0) ? config.rate : 1;
-      finalUsdt = finalUsd / usdRateForUsdtConversion;
-    }
-
-    // --- Crear la orden en la base de datos ---
     const order = await prisma.order.create({
       data: {
-        user: {
-          connect: {
-            id: dbUser.id
-          }
-        },
+        user: { connect: { id: dbUser.id } },
         platform,
         amount,
         finalUsd,
         finalUsdt,
         paypalEmail,
         status: "PENDING",
-        to: orderDetailsForDb.to,
-        wallet: orderDetailsForDb.wallet,
+        to: orderDetails.to,
+        wallet: orderDetails.wallet,
       },
+      include: { user: true },
     });
 
+    // ✅ Notificar vía Pusher
+    await pusherServer.trigger("orders-channel", "order-created", order);
+
     return NextResponse.json(order, { status: 201 });
-  } catch (error: unknown) { // FIX: Cambiado de 'any' a 'unknown'
+  } catch (error: unknown) {
     console.error("Error creando orden:", error);
-    if (error instanceof Error && 'name' in error && error.name === 'PrismaClientValidationError') {
-        return NextResponse.json({ error: "Error de validación de la base de datos. Por favor, revisa los datos enviados." }, { status: 400 });
-    }
     if (error instanceof Error) {
-        return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+      if (error.name === "PrismaClientValidationError") {
+        return NextResponse.json({ error: "Error de validación en la base de datos" }, { status: 400 });
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
 
-// GET: Listar órdenes del usuario autenticado (sin cambios aquí)
+// ✅ GET: Listar órdenes del usuario autenticado
 export async function GET() {
   const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   try {
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: "Usuario no encontrado en base de datos" }, { status: 404 });
-    }
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+    if (!dbUser) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
     const orders = await prisma.order.findMany({
       where: { userId: dbUser.id },
@@ -163,10 +126,10 @@ export async function GET() {
     });
 
     return NextResponse.json(orders);
-  } catch (error: unknown) { // FIX: Cambiado de 'any' a 'unknown'
+  } catch (error: unknown) {
     console.error("Error cargando órdenes:", error);
     if (error instanceof Error) {
-        return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }

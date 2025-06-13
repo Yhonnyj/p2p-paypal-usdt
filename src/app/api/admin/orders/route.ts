@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const ADMIN_CLERK_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
+const ADMIN_CLERK_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Asegúrate de que este ID sea correcto.
 
 export async function GET() {
   const { userId } = await auth();
@@ -25,8 +25,12 @@ export async function GET() {
     });
 
     return NextResponse.json(orders);
-  } catch (error) {
+  } catch (error: unknown) { // FIX: Tipado 'unknown' para el error
     console.error("Error obteniendo órdenes admin:", error);
+    // FIX: Verificación de tipo para acceder a 'message' de forma segura
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+    }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
