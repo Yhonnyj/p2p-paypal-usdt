@@ -5,8 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import Pusher from "pusher-js";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, LifeBuoy, Paperclip, Send, Info, ChevronDown, Wallet, RefreshCcw, DollarSign,
-  CreditCard, Banknote, FileText, CheckCircle2, Star, PhoneCall, User as UserIcon, CircleX
+  ArrowLeft, Paperclip, Send, Info, ChevronDown, Wallet,
+  CreditCard, Banknote, FileText, CheckCircle2, PhoneCall, User as UserIcon, CircleX
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -56,8 +56,8 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
 
   // Estados para las secciones colapsables
   const [isInfoOpen, setIsInfoOpen] = useState(true); // Abrir por defecto
-  const [isTermsOpen, setIsTermsOpen] = useState(false);
-  const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
+  // const [isTermsOpen, setIsTermsOpen] = useState(false); // Eliminado: no se usa
+  // const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false); // Eliminado: no se usa
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -204,7 +204,7 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
                     <ArrowLeft size={24} />
                   </button>
                   <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">Detalles de Orden</h2>
-                  {/* <LifeBuoy size={24} className="text-gray-400" /> */} {/* Eliminado el icono de soporte sin funcionalidad */}
+                  {/* Iconos de soporte comentados o eliminados según el original */}
                 </div>
 
                 {/* Sección de estado de la orden */}
@@ -236,8 +236,6 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
                     </div>
                   )}
                 </div>
-
-          
 
                 {/* Sección Información Adicional */}
                 <div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
@@ -295,7 +293,6 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
                     )}
                   </AnimatePresence>
                 </div>
-       
 
                 <div className="mt-auto pt-4 text-center">
                     <button
@@ -318,10 +315,7 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
                 <ArrowLeft size={24} />
               </button>
               <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-500 flex-1 text-center">Chat de Orden</h2>
-              {/* <button className="text-gray-400 hover:text-green-400 flex items-center gap-1 p-1 rounded-full">
-                <LifeBuoy size={24} />
-                <span className="text-sm hidden sm:inline">Soporte</span>
-              </button> */} {/* Eliminado el icono de soporte sin funcionalidad */}
+              {/* Iconos de soporte comentados o eliminados según el original */}
             </div>
 
             {/* Área de mensajes */}
