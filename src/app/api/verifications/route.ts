@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { resend } from "@/lib/resend"; // Asegúrate que esto esté al inicio
 
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
@@ -93,6 +94,19 @@ export async function POST(req: Request) {
         status: "PENDING",
       },
     });
+
+    // ✅ Notificar por email
+await resend.emails.send({
+  from: "Nueva verificacion por aprobar <noreply@managerp2p.com>",
+  to: "info@caibo.ca",
+  subject: `🔐 Nueva verificación de ${user.fullName || user.email}`,
+  html: `
+    <h2>Tienes una nueva verificacion pendiente</h2>
+    <p><strong>Cliente:</strong> ${user.fullName || user.email}</p>
+    <p><strong>Email:</strong> ${user.email}</p>
+    <p><strong>Fecha:</strong> ${new Date().toLocaleString("es-ES")}</p>
+  `,
+});
 
     return NextResponse.json(verification);
   } catch (e) {

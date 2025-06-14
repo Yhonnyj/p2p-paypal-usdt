@@ -5,6 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher"; // ✅ Pusher
+import { resend } from "@/lib/resend"; // ✅ Este import es necesario
+
 
 interface RecipientDetails {
   type: "USDT" | "FIAT";
@@ -99,6 +101,22 @@ export async function POST(req: Request) {
 
     // ✅ Notificar vía Pusher
     await pusherServer.trigger("orders-channel", "order-created", order);
+
+    // Notificar por email
+await resend.emails.send({
+  from: "Ordenes <noreply@managerp2p.com>", // Usa dominio verificado
+  to: "info@caibo.ca", // o múltiples destinatarios
+  subject: `🟢 Nueva orden de ${order.user.fullName || order.user.email}`,
+  html: `
+    <h2>Nueva orden recibida</h2>
+    <p><strong>Cliente:</strong> ${order.user.fullName || order.user.email}</p>
+    <p><strong>Plataforma:</strong> ${order.platform}</p>
+    <p><strong>Monto:</strong> $${order.amount.toFixed(2)}</p>
+    <p><strong>Destino:</strong> ${order.to}</p>
+    <p><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString("es-ES")}</p>
+  `
+});
+
 
     return NextResponse.json(order, { status: 201 });
   } catch (error: unknown) {
