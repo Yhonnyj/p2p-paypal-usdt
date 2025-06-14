@@ -228,7 +228,7 @@ export default function AdminDashboardPage() {
                   {paginatedOrders.map((order, index) => (
                     <tr
                       key={order.id}
-                      onClick={() => handleRowClick(order.id)} // Llama a handleRowClick con el ID
+                      onClick={() => handleRowClick(order.id)} // Llama a handleRowClick con el ID//
                       className={`hover:bg-gray-800/70 border-t border-gray-800 transition duration-150 ease-in-out cursor-pointer ${index % 2 === 0 ? 'bg-gray-900' : 'bg-gray-850'}`}
                     >
                       <td className="px-6 py-4 font-mono text-xs text-gray-400">{order.id.substring(0, 8)}...</td>

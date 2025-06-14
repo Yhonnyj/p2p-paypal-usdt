@@ -104,9 +104,9 @@ export async function POST(req: Request) {
 
     // Notificar por email
 await resend.emails.send({
-  from: "Ordenes <noreply@managerp2p.com>", // Usa dominio verificado
+  from: "Neva Orden P2P en TuCapi <noreply@managerp2p.com>", // Usa dominio verificado
   to: "info@caibo.ca", // o múltiples destinatarios
-  subject: `🟢 Nueva orden de ${order.user.fullName || order.user.email}`,
+  subject: `🟢Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
   html: `
     <h2>Nueva orden recibida</h2>
     <p><strong>Cliente:</strong> ${order.user.fullName || order.user.email}</p>
