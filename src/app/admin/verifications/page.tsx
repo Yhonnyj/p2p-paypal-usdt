@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { pusherClient } from "@/lib/pusher"; // Asegúrate de tener este import
 
 interface VerificationItem {
   id: string;
@@ -31,13 +32,26 @@ export default function AdminVerificationsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    await fetchVerifications(); // Refresca la lista
+    // No se llama directamente a fetchVerifications aquí porque Pusher notificará
   };
 
   useEffect(() => {
-    fetchVerifications();
-    const interval = setInterval(fetchVerifications, 3000); // Actualiza cada 3s
-    return () => clearInterval(interval);
+    fetchVerifications(); // carga inicial
+
+    // Escuchar actualizaciones
+    pusherClient.subscribe("admin-verifications");
+
+    const handler = () => {
+      console.log("🔔 Verificación actualizada - recargando lista");
+      fetchVerifications(); // recarga solo cuando hay cambios
+    };
+
+    pusherClient.bind("admin-verifications-updated", handler);
+
+    return () => {
+      pusherClient.unbind("admin-verifications-updated", handler);
+      pusherClient.unsubscribe("admin-verifications");
+    };
   }, []);
 
   if (loading) return <p className="p-4 text-white">Cargando verificaciones...</p>;

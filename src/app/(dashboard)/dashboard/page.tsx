@@ -5,8 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import VerificationStatusBadge from "@/components/VerificationStatusBadge";
-import { ShieldCheck, CircleAlert, CircleX, Loader2, DollarSign, Wallet, Repeat2, User as UserIcon } from "lucide-react";
-import { CheckCircle, XCircle } from "lucide-react"; // Explicitly import for alert modal
+import { ShieldCheck, CircleAlert, CircleX, Loader2, DollarSign, Wallet, Repeat2,CheckCircle, XCircle, User as UserIcon } from "lucide-react";
+import { pusherClient } from "@/lib/pusher"; // Asegúrate de tener este import
 
 // Dynamically import VerificationModal and UserProfile
 const VerificationModal = dynamic(() => import("@/components/VerificationModal"), {
@@ -33,31 +33,43 @@ export default function DashboardPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<'success' | 'error'>('error');
 
-  useEffect(() => {
+    useEffect(() => {
+    if (!user?.id) return;
+
     const fetchStatus = async () => {
       try {
         const res = await fetch("/api/verifications/status");
         const data = await res.json();
-        
-        console.log("API Response for /api/verifications/status:", data);
-        console.log("Received status:", data.status);
 
         if (res.ok) {
           setVerificationStatus(data.status);
         } else {
           setVerificationStatus("NONE");
-          console.error("Error fetching verification status:", data.error || "Unknown error");
         }
       } catch (e) {
-        console.error("Error in fetchStatus:", e);
+        console.error("Error fetching verification status:", e);
         setVerificationStatus("NONE");
       }
     };
 
-    fetchStatus(); // Fetch status immediately on mount
-    const interval = setInterval(fetchStatus, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval); // Clear interval on unmount
-  }, []);
+    fetchStatus(); // llamado inicial
+
+    const channelName = `user-${user.id}-verification`;
+    pusherClient.subscribe(channelName);
+
+    const handleUpdate = (data: { status: VerificationStatus }) => {
+      console.log("🔄 Verificación actualizada vía Pusher:", data.status);
+      setVerificationStatus(data.status);
+    };
+
+    pusherClient.bind("verification-updated", handleUpdate);
+
+    return () => {
+      pusherClient.unbind("verification-updated", handleUpdate);
+      pusherClient.unsubscribe(channelName);
+    };
+  }, [user?.id]);
+
 
   // FIX: Se añade el comentario para deshabilitar la advertencia de ESLint 'no-unused-vars'.
   // La función displayAlert sí se usa en el componente.
@@ -156,7 +168,7 @@ export default function DashboardPage() {
               <span className={`${statusColor}`}>{statusIcon}</span>
               Estado de Verificación
             </h2>
-            <VerificationStatusBadge /> {/* Keep the existing badge */}
+<VerificationStatusBadge status={verificationStatus} />
           </div>
           <p className="text-gray-300 mb-6 leading-relaxed">
             {statusText}

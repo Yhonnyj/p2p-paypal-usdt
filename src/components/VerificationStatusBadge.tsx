@@ -1,31 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+type VerificationStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED" | "LOADING";
 
-export default function VerificationStatusBadge() {
-  const [status, setStatus] = useState<"NONE" | "PENDING" | "APPROVED" | "REJECTED" | "LOADING">("LOADING");
+interface Props {
+  status: VerificationStatus;
+}
 
-  useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/verifications/status");
-        const data = await res.json();
-
-        if (res.ok) {
-          setStatus(data.status);
-        } else {
-          setStatus("NONE");
-        }
-      } catch (_e) { // eslint-disable-line @typescript-eslint/no-unused-vars
-        // Puedes logear el error aquí si necesitas debuggear, por ejemplo:
-        // console.error("Error al obtener el estado de verificación:", _e);
-        setStatus("NONE");
-      }
-    };
-
-    fetchStatus();
-  }, []);
-
+export default function VerificationStatusBadge({ status }: Props) {
   const getStatusLabel = () => {
     switch (status) {
       case "LOADING":

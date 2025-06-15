@@ -1,9 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
+import { pusherServer } from "@/lib/pusher"; // ✅ NUEVO
 import { NextResponse } from "next/server";
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // tu ID real de admin
+const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
 
 export async function PATCH(req: Request, context: { params: { id: string } }) {
   const { userId } = await auth();
@@ -22,7 +23,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
   const verification = await prisma.verification.update({
     where: { id },
     data: { status },
-    include: { user: true }, // 🔁 necesario para obtener el email
+    include: { user: true },
   });
 
   // ✅ Notificar al cliente por correo
@@ -50,6 +51,16 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
       html,
     });
   }
+
+  // ✅ Notificar al cliente en tiempo real
+  await pusherServer.trigger(`user-${verification.user.clerkId}-verification`, "verification-updated", {
+  status: verification.status,
+});
+
+
+// ✅ Notificar al admin
+await pusherServer.trigger("admin-verifications", "admin-verifications-updated", {});
+
 
   return NextResponse.json({ success: true, verification });
 }
