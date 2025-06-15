@@ -5,9 +5,15 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "P2P Paypal a USDT",
+  
   description: "Tu plataforma privada de cambio",
+
+    title: "TuCapi",
+  icons: {
+    icon: "/favicon.ico", // usa tu ícono personalizado
+  },
 };
+
 
 export default function RootLayout({
   children,
@@ -28,3 +34,4 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
+
