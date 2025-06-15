@@ -26,10 +26,10 @@ export default function Home() {
 
         {/* Título y Subtítulo - Más impactantes */}
         <h1 className="text-7xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-tight mb-6 drop-shadow-lg animate-slideInUp">
-          TuCapi: Libertad Financiera al Instante.
+          TuCapi: Mas que una plataforma, somos tu aliado.
         </h1>
         <p className="text-2xl md:text-3xl font-light text-gray-200 max-w-4xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
-          Convierte **PayPal a USDT** de forma **segura y sin fricciones**. Tu puente directo al mundo crypto.
+          Convierte PayPal a USDT/BS de forma segura y sin fricciones. Tu puente directo al mundo crypto.
         </p>
 
         {/* Botones - Con más punch */}
@@ -76,7 +76,7 @@ export default function Home() {
       {/* Llamada a la Acción Final - Con más fuerza */}
       <section className="w-full text-center bg-gradient-to-r from-emerald-600 to-teal-500 text-white p-16 rounded-xl shadow-2xl max-w-4xl mb-12 relative z-10">
         <h2 className="text-4xl md:text-5xl font-extrabold mb-5 leading-tight animate-fadeInUp">
-          ¡Tu Futuro Financiero Comienza Aquí!
+          ¡Tu Cambio perfecto, comienza aqui!
         </h2>
         <p className="text-xl md:text-2xl font-light mb-8 opacity-90 animate-fadeInUp delay-200">
           Únete a TuCapi y experimenta la evolución de los intercambios P2P.

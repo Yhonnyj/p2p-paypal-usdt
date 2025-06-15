@@ -223,16 +223,15 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
                 <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-300">Recibiste:</span>
-                    <span className="text-green-400 font-bold text-lg">${orderData.finalUsd.toFixed(2)} USD</span>
+                    <span className="text-green-400 font-bold text-lg">${orderData.finalUsd.toFixed(2)} USDT</span>
                   </div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-300">Enviaste:</span>
-                    <span className="text-yellow-400 font-bold text-lg">{orderData.amount.toFixed(2)} USDT</span>
+                    <span className="text-yellow-400 font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
                   </div>
                   {pricePerUsdt && (
                     <div className="flex justify-between items-center text-sm text-gray-400">
-                      <span>Precio por cada USDT:</span>
-                      <span>${pricePerUsdt.toFixed(3)} USD</span>
+          
                     </div>
                   )}
                 </div>
