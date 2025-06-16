@@ -37,12 +37,10 @@ const FaqPage = () => {
     {
       question: '¿Cómo me registro en TuCapi?',
       answer: (
-        // Usamos un array de ReactNode para combinar texto y componentes de Link
-        // Esto es un patrón común cuando necesitas mezclar strings con JSX
         <>
           Registrarse es fácil y rápido. Simplemente haz clic en el botón{" "}
           <Link href="/sign-up" className="text-emerald-300 hover:underline">
-            "Registrarse"
+            &quot;Registrarse&quot;
           </Link>{" "}
           en la página de inicio y sigue los pasos. Necesitarás proporcionar algunos datos básicos y verificar tu cuenta para comenzar a operar.
         </>
@@ -59,7 +57,7 @@ const FaqPage = () => {
         <>
           Puedes contactar a nuestro equipo de soporte a través de la sección de{" "}
           <Link href="/contact" className="text-emerald-300 hover:underline">
-            "Contacto"
+            &quot;Contacto&quot;
           </Link>{" "}
           en nuestro sitio web. Estamos disponibles las 24 horas del día, los 7 días de la semana para responder tus preguntas y ayudarte con cualquier inconveniente.
         </>
