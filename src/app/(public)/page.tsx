@@ -1,4 +1,4 @@
-import Image from 'next/image';
+// app/(public)/page.tsx
 import Link from 'next/link';
 
 export default function Home() {
@@ -10,30 +10,17 @@ export default function Home() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-      <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full">
-        {/* Logo con un halo sutil */}
-        <div className="mb-8 relative inline-block">
-          <Image
-            src="/tu-capi-logo.png" // Asegúrate de que tu logo esté en la carpeta 'public'
-            alt="Logo de TuCapi"
-            width={220} // Un poco más grande, imponente
-            height={220}
-            className="rounded-full shadow-2xl border-4 border-emerald-500 transform hover:scale-105 transition-transform duration-500 ease-out-back object-cover relative z-10"
-          />
-          {/* Halo sutil detrás del logo */}
-          <div className="absolute inset-0 -m-2 rounded-full bg-gradient-to-br from-emerald-400 to-teal-400 opacity-20 blur-lg animate-pulse-slow"></div>
-        </div>
-
-        {/* Título y Subtítulo - Más impactantes */}
-        <h1 className="text-7xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-tight mb-6 drop-shadow-lg animate-slideInUp">
-          TuCapi: Mas que una plataforma, somos tu aliado.
+      <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32"> {/* Ajuste de padding superior para dejar espacio al Navbar */}
+        {/* Título y Subtítulo - Aún más impactantes y centrales sin el logo */}
+        <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
+          Tu Dinero. Tu Control.
         </h1>
-        <p className="text-2xl md:text-3xl font-light text-gray-200 max-w-4xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
-          Convierte PayPal a USDT/BS de forma segura y sin fricciones. Tu puente directo al mundo crypto.
+        <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
+          Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> y <strong className="font-bold text-emerald-200">Bolívares</strong> de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
         </p>
 
-        {/* Botones - Con más punch */}
-        <div className="flex flex-col sm:flex-row justify-center gap-6">
+        {/* Botones - Con más punch y una pequeña separación visual */}
+        <div className="flex flex-col sm:flex-row justify-center gap-6 mt-10">
           <Link href="/sign-in" passHref legacyBehavior>
             <a className="relative px-12 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
               <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
@@ -43,13 +30,13 @@ export default function Home() {
           <Link href="/sign-up" passHref legacyBehavior>
             <a className="relative px-12 py-4 rounded-full bg-gray-800 text-emerald-300 border border-emerald-600 font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
               <span className="absolute inset-0 bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <span className="relative z-10 group-hover:text-white">Registrarse</span>
+              <span className="relative z-10 group-hover:text-white">Regístrate Ahora</span>
             </a>
           </Link>
         </div>
       </section>
 
-      {/* Sección de Beneficios - Minimalista y Potente */}
+      {/* Sección de Beneficios - Minimalista y Potente (sin cambios) */}
       <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-12 mt-28 mb-24 px-4 relative z-10">
         {[
           { title: 'Seguridad Blindada', desc: 'Protegemos cada transacción con tecnología de cifrado avanzada.' },
@@ -58,7 +45,7 @@ export default function Home() {
         ].map((item, index) => (
           <div
             key={item.title}
-            className="bg-gray-800 p-10 rounded-3xl shadow-xl border border-gray-700 flex flex-col items-center text-center transition-all duration-300 ease-out-quart hover:bg-emerald-900 hover:shadow-2xl hover:border-emerald-600 animate-slideIn delay-animation-${index * 100}"
+            className="bg-gray-800 p-10 rounded-3xl shadow-xl border border-gray-700 flex flex-col items-center text-center transition-all duration-300 ease-out-quart hover:bg-emerald-900 hover:shadow-2xl hover:border-emerald-600 animate-slideIn"
             style={{ animationDelay: `${index * 150}ms` }} // Retraso de animación para cada tarjeta
           >
             {/* Iconos más prominentes y estéticos */}
@@ -73,10 +60,10 @@ export default function Home() {
         ))}
       </section>
 
-      {/* Llamada a la Acción Final - Con más fuerza */}
+      {/* Llamada a la Acción Final - Con más fuerza (sin cambios) */}
       <section className="w-full text-center bg-gradient-to-r from-emerald-600 to-teal-500 text-white p-16 rounded-xl shadow-2xl max-w-4xl mb-12 relative z-10">
         <h2 className="text-4xl md:text-5xl font-extrabold mb-5 leading-tight animate-fadeInUp">
-          ¡Tu Cambio perfecto, comienza aqui!
+          ¡Tu Cambio perfecto, comienza aquí!
         </h2>
         <p className="text-xl md:text-2xl font-light mb-8 opacity-90 animate-fadeInUp delay-200">
           Únete a TuCapi y experimenta la evolución de los intercambios P2P.
