@@ -3,12 +3,18 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
+interface PaymentMethod {
+  id: string;
+  type: string;
+  details: Record<string, string>;
+}
+
 export default function WalletPage() {
-  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [type, setType] = useState("PayPal");
-  const [details, setDetails] = useState<any>({});
+  const [details, setDetails] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const fetchMethods = async () => {
@@ -43,7 +49,7 @@ export default function WalletPage() {
     setSubmitting(false);
   };
 
-  const renderMethodDetails = (type: string, details: any) => {
+  const renderMethodDetails = (type: string, details: Record<string, string>) => {
     switch (type) {
       case "PayPal":
         return <p className="text-sm text-gray-200">Correo: {details.email}</p>;
@@ -140,7 +146,7 @@ export default function WalletPage() {
         <p>Cargando...</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          {paymentMethods.map((method: any) => (
+          {paymentMethods.map((method) => (
             <div key={method.id} className="bg-gray-800 p-4 rounded-xl shadow relative">
               <h3 className="text-lg font-semibold mb-2">{method.type}</h3>
               {renderMethodDetails(method.type, method.details)}
