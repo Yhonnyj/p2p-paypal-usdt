@@ -75,13 +75,17 @@ const fetchVerifications = async () => {
         throw new Error(errorData.error || `Error al ${status === "APPROVED" ? "aprobar" : "rechazar"} la verificación.`);
       }
 
-      // La actualización se reflejará a través de Pusher, así que no se necesita fetchVerifications aquí directamente
-      toast.success(`Verificación ${id.substring(0, 8)}... ${status === "APPROVED" ? "aprobada" : "rechazada"} con éxito.`);
-    } catch (err: any) {
-      console.error("Error updating verification status:", err);
-      toast.error(`Error: ${err.message || "Falló la actualización del estado de verificación."}`);
-    }
-  };
+    // La actualización se reflejará a través de Pusher, así que no se necesita fetchVerifications aquí directamente
+toast.success(`Verificación ${id.substring(0, 8)}... ${status === "APPROVED" ? "aprobada" : "rechazada"} con éxito.`);
+} catch (err: unknown) {
+  console.error("Error updating verification status:", err);
+
+  const errorMessage = err instanceof Error
+    ? err.message
+    : "Falló la actualización del estado de verificación.";
+
+  toast.error(`Error: ${errorMessage}`);
+}
 
   // Efecto para la carga inicial y la suscripción a Pusher
   useEffect(() => {
