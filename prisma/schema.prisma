@@ -42,15 +42,16 @@ model Order {
 }
 
 model Message {
-  id      String @id @default(cuid())
-  orderId String
-  order   Order  @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  orderId   String
+  order     Order     @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
 
-  senderId String
-  sender   User   @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User      @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
-  content   String
-  createdAt DateTime @default(now())
+  content   String?   @db.Text // <-- CAMBIADO: '?' lo hace opcional. @db.Text para mensajes largos
+  imageUrl  String?   @db.Text // <-- ¡NUEVO CAMPO!: '?' lo hace opcional para imágenes
+  createdAt DateTime  @default(now())
 }
 
 model User {

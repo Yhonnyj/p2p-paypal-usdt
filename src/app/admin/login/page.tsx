@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
 
       if (result.status === "complete" && setActive) {
         await setActive({ session: result.createdSessionId });
-        router.push("/admin/config");
+        router.push("/admin/orders");
       }
     } catch (err) {
       setError("Credenciales inválidas");
