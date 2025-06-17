@@ -61,8 +61,7 @@ const fetchVerifications = async () => {
 };
 
 
-  // Función para actualizar el estado de una verificación
-  const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
+   const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
     try {
       const res = await fetch(`/api/admin/verifications/${id}/status`, {
         method: "PATCH",
@@ -75,17 +74,19 @@ const fetchVerifications = async () => {
         throw new Error(errorData.error || `Error al ${status === "APPROVED" ? "aprobar" : "rechazar"} la verificación.`);
       }
 
-    // La actualización se reflejará a través de Pusher, así que no se necesita fetchVerifications aquí directamente
-toast.success(`Verificación ${id.substring(0, 8)}... ${status === "APPROVED" ? "aprobada" : "rechazada"} con éxito.`);
-} catch (err: unknown) {
-  console.error("Error updating verification status:", err);
+      // La actualización se reflejará a través de Pusher, así que no se necesita fetchVerifications aquí directamente
+      toast.success(`Verificación ${id.substring(0, 8)}... ${status === "APPROVED" ? "aprobada" : "rechazada"} con éxito.`);
+    } catch (err: unknown) {
+      console.error("Error updating verification status:", err);
 
-  const errorMessage = err instanceof Error
-    ? err.message
-    : "Falló la actualización del estado de verificación.";
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Falló la actualización del estado de verificación.";
 
-  toast.error(`Error: ${errorMessage}`);
-}
+      toast.error(`Error: ${errorMessage}`);
+    } // 👈 AQUÍ VA LA LLAVE FALTANTE
+  };
+
 
   // Efecto para la carga inicial y la suscripción a Pusher
   useEffect(() => {
