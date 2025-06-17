@@ -106,11 +106,11 @@ export async function POST(request: Request) {
     // Retorna la URL segura (pública) de la imagen subida al frontend.
     return NextResponse.json({ url: uploadResult.secure_url }, { status: 200 });
 
-  } catch (error: any) {
-    // Captura y maneja cualquier error inesperado.
-    console.error('Error general en la API de subida de imagen de chat:', error);
-    // Intentar extraer un mensaje de error más específico
-    const errorMessage = error.message || 'Error desconocido del servidor.';
-    return NextResponse.json({ error: `Error interno del servidor: ${errorMessage}` }, { status: 500 });
-  }
+} catch (err: unknown) {
+  const error = err as Error;
+  console.error('Error general en la API de subida de imagen de chat:', error);
+  const errorMessage = error.message || 'Error desconocido del servidor.';
+  return NextResponse.json({ error: `Error interno del servidor: ${errorMessage}` }, { status: 500 });
+}
+
 }

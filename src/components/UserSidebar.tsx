@@ -16,9 +16,7 @@ import {
   Clock,
   LogOut,
   Menu,
-  X,
-  Settings,
-  UserCircle2
+  X
 } from "lucide-react";
 
 // Definición de los enlaces del sidebar
@@ -94,7 +92,8 @@ export default function UserSidebar() {
             visible: { transition: { staggerChildren: 0.07, delayChildren: 0.2 } } // Animación escalonada para los enlaces
           }}
         >
-          {links.map(({ href, icon: Icon, label, functional }, index) => (
+          {links.map(({ href, icon: Icon, label, functional }) => (
+
             <motion.li key={href} variants={itemVariants}> {/* Cada enlace es un elemento de lista animado */}
               <Link
                 href={functional ? href : "#"} // Redirige si es funcional, usa '#' si no

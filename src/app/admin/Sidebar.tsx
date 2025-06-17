@@ -6,9 +6,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Settings, LogOut, ShieldCheck, BellRing } from "lucide-react"; // Añadido BellRing para la notificación en el icono
 import { useClerk } from "@clerk/clerk-react";
-import { motion, AnimatePresence } from "framer-motion"; // Importar Framer Motion
+import { motion, } from "framer-motion"; // Importar Framer Motion
 import Image from 'next/image'; // Importar Image para el logo
-import { toast } from 'react-toastify'; // Importar toast para notificaciones
+
 
 // Definición de enlaces del sidebar
 const links = [

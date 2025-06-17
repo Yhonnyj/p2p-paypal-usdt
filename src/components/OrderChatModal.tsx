@@ -7,7 +7,7 @@ import Pusher from "pusher-js";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from 'next/image';
 import {
-  ArrowLeft, Paperclip, Send, Info, ChevronDown, Wallet,
+  ArrowLeft, Paperclip, Send, Info, Wallet,
   CreditCard, Banknote, FileText, CheckCircle2, PhoneCall, User as UserIcon, CircleX, X, Loader2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -203,13 +203,15 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
         const data = await uploadResponse.json();
         uploadedImageUrl = data.url;
         toast.success("Imagen subida con éxito.");
-      } catch (error: any) {
-        console.error('Fallo en la subida de imagen:', error);
-        toast.error(`Error al subir la imagen: ${error.message || 'Inténtalo de nuevo.'}`);
-        setUploadingImage(false);
-        setSendingMessage(false);
-        return;
-      } finally {
+     } catch (err: unknown) {
+  const error = err as Error;
+  console.error('Fallo en la subida de imagen:', error);
+  toast.error(`Error al subir la imagen: ${error.message || 'Inténtalo de nuevo.'}`);
+  setUploadingImage(false);
+  setSendingMessage(false);
+  return;
+}
+ finally {
         setUploadingImage(false);
       }
     }

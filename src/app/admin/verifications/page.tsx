@@ -38,26 +38,28 @@ export default function AdminVerificationsPage() {
   // Nuevo estado para la URL de la imagen en pantalla completa
   const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
 
-  // Función para obtener las verificaciones desde la API
-  const fetchVerifications = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/verifications");
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Error al cargar las verificaciones.");
-      }
-      const data: VerificationItem[] = await res.json();
-      setVerifications(data);
-    } catch (err: any) {
-      console.error("Error fetching verifications:", err);
-      setError(err.message || "Error desconocido al cargar verificaciones.");
-      toast.error(`Error: ${err.message || "No se pudieron cargar las verificaciones."}`);
-    } finally {
-      setLoading(false);
+// Función para obtener las verificaciones desde la API
+const fetchVerifications = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const res = await fetch("/api/admin/verifications");
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Error al cargar las verificaciones.");
     }
-  };
+    const data: VerificationItem[] = await res.json();
+    setVerifications(data);
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error("Error fetching verifications:", error);
+    setError(error.message || "Error desconocido al cargar verificaciones.");
+    toast.error(`Error: ${error.message || "No se pudieron cargar las verificaciones."}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Función para actualizar el estado de una verificación
   const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
