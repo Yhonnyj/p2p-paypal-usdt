@@ -11,20 +11,25 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-900 bg-opacity-80 backdrop-blur-md z-50 shadow-lg py-4">
       <div className="container mx-auto px-6 flex justify-between items-center">
-        {/* Logo de la marca */}
-        <Link href="/" passHref legacyBehavior>
-          <a className="flex items-center space-x-3 text-white text-2xl font-bold group">
-            <Image
-              src="/tu-capi-logo.png" // Asegúrate de que este logo sea una versión pequeña para el navbar
-              alt="Logo TuCapi"
-              width={40} // Tamaño más pequeño para el navbar
-              height={40}
-              className="rounded-full border border-emerald-500 transform group-hover:scale-110 transition-transform duration-200"
-            />
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-300 text-transparent bg-clip-text">TuCapi</span>
-          </a>
-        </Link>
-
+  {/* Logo de la marca */}
+  <Link href="/" passHref legacyBehavior>
+    <a className="flex items-center space-x-3 group">
+      <Image
+        src="/tu-capi-logo2.png" // Logo del capibara
+        alt="Logo TuCapi"
+        width={60}
+        height={60}
+        className="rounded-full border border-emerald-500 transform group-hover:scale-110 transition-transform duration-200"
+      />
+      <Image
+        src="/tu-capi-letras.png" // Logo tipográfico, asegúrate que esté en /public
+        alt="TuCapi Letras"
+        width={120}
+        height={40}
+        className="transform group-hover:scale-105 transition-transform duration-200"
+      />
+    </a>
+  </Link>
         {/* Menú de navegación principal (escritorio) */}
         <div className="hidden md:flex space-x-8 items-center">
           <Link href="/" passHref legacyBehavior>

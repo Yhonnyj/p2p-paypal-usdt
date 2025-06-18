@@ -13,10 +13,10 @@ export default function Home() {
       <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32"> {/* Ajuste de padding superior para dejar espacio al Navbar */}
         {/* Título y Subtítulo - Aún más impactantes y centrales sin el logo */}
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
-          Tu Dinero. Tu Control.
+          Tu dinero directo a tu wallet.
         </h1>
         <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
-          Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> y <strong className="font-bold text-emerald-200">Bolívares</strong> de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
+          Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> casi de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
         </p>
 
         {/* Botones - Con más punch y una pequeña separación visual */}
@@ -39,8 +39,8 @@ export default function Home() {
       {/* Sección de Beneficios - Minimalista y Potente (sin cambios) */}
       <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-12 mt-28 mb-24 px-4 relative z-10">
         {[
-          { title: 'Seguridad Blindada', desc: 'Protegemos cada transacción con tecnología de cifrado avanzada.' },
-          { title: 'Velocidad Rayo', desc: 'Intercambios instantáneos para que no pierdas ni un segundo.' },
+          { title: 'Seguridad Blindada', desc: 'Protegemos cada transacción como nadie lo hace.' },
+          { title: 'Velocidad Rayo', desc: 'Intercambios casi instantáneos para que no pierdas ni un segundo.' },
           { title: 'Soporte 24/7', desc: 'Siempre a tu lado para resolver cualquier duda o problema.' }
         ].map((item, index) => (
           <div
@@ -76,9 +76,17 @@ export default function Home() {
         </Link>
       </section>
 
-      <footer className="text-center text-gray-500 text-sm mt-10 mb-4 relative z-10">
-        &copy; {new Date().getFullYear()} TuCapi. Todos los derechos reservados.
-      </footer>
+      <footer className="text-center text-gray-500 text-sm mt-10 mb-4 relative z-10 space-y-2">
+  <p>
+    &copy; {new Date().getFullYear()} TuCapi. Todos los derechos reservados. Operamos bajo la firma Caibo INC.
+  </p>
+  <div className="space-x-4">
+    <a href="/terms" className="underline hover:text-emerald-400 transition-colors">Términos y Condiciones</a>
+    <span>|</span>
+    <a href="/privacy" className="underline hover:text-emerald-400 transition-colors">Política de Privacidad</a>
+  </div>
+</footer>
+
     </main>
   );
 }

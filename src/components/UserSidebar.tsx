@@ -70,18 +70,25 @@ export default function UserSidebar() {
   const renderSidebarContent = () => (
     <>
       {/* Sección del Logo de TuCapi */}
-      <div className="mb-10 flex flex-col items-center">
-        <Image
-          src="/tu-capi-logo.png" // Asegúrate de tener este archivo en tu carpeta `public/`
-          alt="Logo TuCapi"
-          width={100} // Ancho del logo
-          height={100} // Alto del logo
-          className="rounded-full shadow-lg border border-emerald-500 mb-4" // Estilos visuales
-        />
-        <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg">
-          TuCapi
-        </h2>
-      </div>
+     <div className="flex flex-col items-center">
+  <Image
+    src="/tu-capi-logo2.png"
+    alt="Logo TuCapi"
+    width={120}
+    height={120}
+    className="rounded-full shadow-lg border border-emerald-500 mb-4"
+  />
+
+  {/* Imagen con texto TuCapi estilizado */}
+  <Image
+    src="/tu-capi-texto.png" // Debe estar en /public
+    alt="Texto TuCapi"
+    width={120}
+    height={70}
+    className="drop-shadow-md"
+  />
+</div>
+
 
       {/* Sección de Navegación (Enlaces) */}
       <nav className="flex flex-col gap-3 flex-grow">
@@ -137,7 +144,8 @@ export default function UserSidebar() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <button
           onClick={handleLogout} // Llama a la función de cierre de sesión
-          className="mt-8 w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold text-lg shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105 active:scale-98 relative overflow-hidden"
+          className="mt-8 w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-[#F6C343] to-[#F6C343] hover:from-yellow-400 hover:to-yellow-300 text-white font-bold text-lg shadow-lg shadow-yellow-400/30 transition-all duration-300 transform hover:scale-105 active:scale-98 relative overflow-hidden"
+
         >
           {/* Efecto visual de "halo" en el botón de cerrar sesión */}
           <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>

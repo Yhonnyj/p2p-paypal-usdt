@@ -140,7 +140,7 @@ export default function DashboardPage() {
       <div className="relative z-10 max-w-4xl mx-auto">
         {/* Top bar for User Profile */}
         <div className="flex justify-between items-center mb-12 pt-4">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg animate-fade-in-up">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-lg animate-fade-in-up">
             ¡Bienvenido, {user.firstName}!
           </h1>
           

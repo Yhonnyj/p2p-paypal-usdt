@@ -107,7 +107,7 @@ export default function OrdersPage() {
   return (
     <div className="flex-1 text-white p-8 font-inter overflow-y-auto">
       <div className="relative z-10 max-w-4xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
           <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} /> Historial de Órdenes
         </h1>
 
@@ -162,7 +162,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="sm:col-span-2 md:col-span-1">
                     <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">USDT Recibido</span>
-                    <span className="font-bold text-green-400 text-base">
+                    <span className="font-bold text-emerald-400 to-teal-300 text-base">
                       {order.finalUsdt.toFixed(2)} USDT
                     </span>
                   </div>
@@ -173,7 +173,7 @@ export default function OrdersPage() {
                       e.stopPropagation();
                       handleOpenChatModal(order);
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 ml-auto"
+                    className="px-4 py-2 bg-yellow-400 hover:bg-yellow-300 text-white rounded-lg font-semibold flex items-center justify-center gap-2 ml-auto"
                   >
                     Abrir Chat <MessageSquareText size={18} />
                   </button>

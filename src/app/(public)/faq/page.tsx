@@ -7,27 +7,27 @@ const FaqPage = () => {
     {
       question: '¿Qué es TuCapi y cómo funciona?',
       answer:
-        'TuCapi es tu plataforma P2P segura y eficiente para intercambiar PayPal por USDT y/o Bolívares (BS). Conectamos directamente a usuarios verificados para realizar transacciones rápidas y sin complicaciones, eliminando intermediarios innecesarios.',
+        'TuCapi es tu plataforma P2P segura y eficiente para intercambiar PayPal por USDT y/o Bolívares (BS) y pronto otras monedas fiat. Tus transacciones son directamente con nosotros, por eso son rápidas y sin complicaciones, eliminando intermediarios innecesarios.',
     },
     {
       question: '¿Es seguro usar TuCapi?',
       answer:
-        'Absolutamente. La seguridad es nuestra principal prioridad. Implementamos rigurosos procesos de verificación de usuarios y sistemas de encriptación avanzados para proteger cada transacción. Además, fomentamos una comunidad transparente y confiable.',
+        'Absolutamente. La seguridad es nuestra principal prioridad. Implementamos rigurosos procesos de verificación de usuarios  para proteger cada transacción. Además, estamos registrados en la MSB (FINTRAC) para fomentar una comunidad transparente y confiable.',
     },
     {
       question: '¿Qué monedas puedo intercambiar?',
       answer:
-        'Actualmente, TuCapi facilita el intercambio entre PayPal y USDT (Tether) en la red de tu preferencia, así como PayPal y Bolívares (BS). Estamos trabajando constantemente para expandir las opciones de divisas en el futuro.',
+        'Actualmente, TuCapi facilita el intercambio entre PayPal y USDT (Tether) en la red de tu preferencia, y/o Bolívares (BS). Estamos trabajando constantemente para expandir las opciones de metodos de pago y divisas en el futuro.',
     },
     {
       question: '¿Cuáles son las tarifas por usar TuCapi?',
       answer:
-        'TuCapi se esfuerza por ofrecer un servicio con tarifas competitivas. Generalmente, aplicamos una pequeña comisión por cada transacción exitosa. Los detalles específicos de las tarifas se muestran de forma transparente antes de confirmar cualquier intercambio.',
+        'TuCapi se esfuerza por ofrecer un servicio con tarifas competitivas. Los detalles específicos de las tarifas se muestran de forma transparente antes de confirmar cualquier intercambio.',
     },
     {
       question: '¿Cuánto tiempo tardan las transacciones?',
       answer:
-        'La mayoría de las transacciones en TuCapi se completan en cuestión de minutos. La velocidad puede variar ligeramente dependiendo de la respuesta del otro usuario y de las confirmaciones necesarias en las redes blockchain para USDT.',
+        'La mayoría de las transacciones en TuCapi se completan en cuestión de minutos. La velocidad puede variar ligeramente dependiendo de las confirmaciones necesarias en las redes blockchain para USDT o transacciones por completar, normalmente no demora mas de 30 minutos',
     },
     {
       question: '¿Qué pasa si tengo un problema con una transacción?',
@@ -49,7 +49,7 @@ const FaqPage = () => {
     {
       question: '¿Necesito verificar mi identidad?',
       answer:
-        'Sí, para garantizar la seguridad de nuestra comunidad y cumplir con las regulaciones, requerimos que todos los usuarios pasen por un proceso de verificación de identidad. Esto ayuda a prevenir fraudes y a mantener un entorno de intercambio confiable.',
+        'Sí, para garantizar la seguridad de nuestra comunidad y cumplir con las regulaciones ya que estamos registrados en MSB (FINTRAC), requerimos que todos los usuarios pasen por un proceso de verificación de identidad. Esto ayuda a prevenir fraudes y a mantener un entorno de intercambio confiable.',
     },
     {
       question: '¿Cómo contacto al soporte de TuCapi?',
