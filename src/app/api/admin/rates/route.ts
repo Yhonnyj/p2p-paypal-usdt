@@ -66,15 +66,25 @@ export async function POST(req: Request) {
     return NextResponse.json(newRate, { status: 201 });
   } catch (err: unknown) {
     console.error("Error al crear tasa:", err);
-    if (err instanceof Error && "code" in err && (err as any).code === "P2002") {
+
+    if (
+      err instanceof Error &&
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      typeof (err as { code: unknown }).code === "string" &&
+      (err as { code: string }).code === "P2002"
+    ) {
       return NextResponse.json({ error: "Esa moneda ya existe" }, { status: 409 });
     }
+
     if (err instanceof Error) {
       return NextResponse.json(
         { error: err.message || "Error del servidor" },
         { status: 500 }
       );
     }
+
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }

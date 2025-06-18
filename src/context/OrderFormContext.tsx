@@ -88,8 +88,16 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       displayAlert("Completa el correo PayPal.");
       return;
     }
+let recipientDetails: {
+  type?: string;
+  currency?: string;
+  wallet?: string;
+  network?: string;
+  bankName?: string;
+  phoneNumber?: string;
+  idNumber?: string;
+} = {};
 
-    let recipientDetails: Record<string, any> = {};
 
     if (selectedDestinationCurrency === "USDT") {
       if (!wallet) {

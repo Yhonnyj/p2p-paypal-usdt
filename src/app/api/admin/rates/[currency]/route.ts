@@ -55,6 +55,7 @@ export async function DELETE(
   context: { params: { currency: string } }
 ) {
   const { userId } = await auth();
+
   if (userId !== ADMIN_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -69,15 +70,28 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Error al eliminar tasa:", err);
-    if (err instanceof Error && "code" in err && (err as any).code === "P2025") {
-      return NextResponse.json({ error: "La moneda no existe." }, { status: 404 });
+
+    if (
+      err instanceof Error &&
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      typeof (err as { code: unknown }).code === "string" &&
+      (err as { code: string }).code === "P2025"
+    ) {
+      return NextResponse.json(
+        { error: "La moneda no existe." },
+        { status: 404 }
+      );
     }
+
     if (err instanceof Error) {
       return NextResponse.json(
         { error: err.message || "No se pudo eliminar la moneda" },
         { status: 500 }
       );
     }
+
     return NextResponse.json(
       { error: "No se pudo eliminar la moneda" },
       { status: 500 }
