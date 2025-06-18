@@ -1,8 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pusherServer } from "@/lib/pusher"; // 👈 IMPORTANTE
 
-const ADMIN_CLERK_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // ← tu userId admin
+const ADMIN_CLERK_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
 
 export async function GET() {
   const { userId } = await auth();
@@ -34,15 +35,20 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const { feePercent, rate, bsRate } = body; // 👈 incluimos bsRate
+    const { feePercent, rate, bsRate } = body;
 
     const updated = await prisma.appConfig.update({
       where: { id: 1 },
       data: {
         feePercent: parseFloat(feePercent),
         rate: parseFloat(rate),
-        bsRate: parseFloat(bsRate), // 👈 lo agregamos aquí también
+        bsRate: parseFloat(bsRate),
       },
+    });
+
+    // 🔔 Emitir evento de configuración actualizada
+    await pusherServer.trigger("app-config", "config-updated", {
+      feePercent: updated.feePercent,
     });
 
     return NextResponse.json(updated);

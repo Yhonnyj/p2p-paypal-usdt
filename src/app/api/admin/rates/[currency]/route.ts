@@ -1,11 +1,9 @@
-// src/app/api/admin/rates/[currency]/route.ts
-// Esta ruta es EXCLUSIVA para que el ADMINISTRADOR gestione (PATCH, DELETE) tasas de cambio específicas.
-
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { pusherServer } from "@/lib/pusher";
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // ¡IMPORTANTE: Reemplaza esto con TU ID de administrador de Clerk!
+const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Reemplaza con tu ID real
 
 export async function PATCH(
   req: Request,
@@ -30,17 +28,27 @@ export async function PATCH(
       data: { rate },
     });
 
+    // 🔔 Notificar a todos los clientes conectados
+    const allRates = await prisma.exchangeRate.findMany();
+    await pusherServer.trigger("exchange-rates", "rates-updated", {
+      rates: allRates,
+    });
+
     return NextResponse.json(updated);
-  } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
+  } catch (err: unknown) {
     console.error("Error actualizando tasa:", err);
-    // Realizamos una comprobación de tipo para acceder a propiedades de 'err' de forma segura
     if (err instanceof Error) {
-        return NextResponse.json({ error: err.message || "Moneda no encontrada o error del servidor" }, { status: 500 });
+      return NextResponse.json(
+        { error: err.message || "Moneda no encontrada o error del servidor" },
+        { status: 500 }
+      );
     }
-    return NextResponse.json({ error: "Moneda no encontrada o error del servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Moneda no encontrada o error del servidor" },
+      { status: 500 }
+    );
   }
 }
-
 
 export async function DELETE(
   req: Request,
@@ -59,16 +67,20 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: unknown) { // FIX: Cambiado de 'any' a 'unknown'
+  } catch (err: unknown) {
     console.error("Error al eliminar tasa:", err);
-    // FIX: Añadida la directiva para deshabilitar el error de 'any' en esta línea específica.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (err instanceof Error && 'code' in err && (err as any).code === 'P2025') { // Prisma NotFoundError
+    if (err instanceof Error && "code" in err && (err as any).code === "P2025") {
       return NextResponse.json({ error: "La moneda no existe." }, { status: 404 });
     }
     if (err instanceof Error) {
-        return NextResponse.json({ error: err.message || "No se pudo eliminar la moneda" }, { status: 500 });
+      return NextResponse.json(
+        { error: err.message || "No se pudo eliminar la moneda" },
+        { status: 500 }
+      );
     }
-    return NextResponse.json({ error: "No se pudo eliminar la moneda" }, { status: 500 });
+    return NextResponse.json(
+      { error: "No se pudo eliminar la moneda" },
+      { status: 500 }
+    );
   }
 }
