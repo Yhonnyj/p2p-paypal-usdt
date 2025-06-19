@@ -79,25 +79,25 @@ export default function WalletPage() {
           <input
             type="email"
             placeholder="Correo PayPal"
-            className="w-full p-2 rounded bg-gray-800 text-white"
+            className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             value={details.email || ""}
             onChange={(e) => setDetails({ email: e.target.value })}
           />
         );
       case "PagoMovil":
         return (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <input
               type="text"
               placeholder="Teléfono"
-              className="w-full p-2 rounded bg-gray-800 text-white"
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               value={details.phone || ""}
               onChange={(e) => setDetails({ ...details, phone: e.target.value })}
             />
             <input
               type="text"
               placeholder="Cédula"
-              className="w-full p-2 rounded bg-gray-800 text-white"
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               value={details.id || ""}
               onChange={(e) => setDetails({ ...details, id: e.target.value })}
             />
@@ -105,16 +105,16 @@ export default function WalletPage() {
         );
       case "USDT":
         return (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <input
               type="text"
-              placeholder="Wallet Address"
-              className="w-full p-2 rounded bg-gray-800 text-white"
+              placeholder="Dirección de Wallet"
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               value={details.wallet || ""}
               onChange={(e) => setDetails({ ...details, wallet: e.target.value })}
             />
             <select
-              className="w-full p-2 rounded bg-gray-800 text-white"
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               value={details.network || "TRC20"}
               onChange={(e) => setDetails({ ...details, network: e.target.value })}
             >
@@ -133,28 +133,30 @@ export default function WalletPage() {
   return (
     <div className="p-6 text-white">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold">Mi Wallet</h2>
+        <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+          Mi Wallet
+        </h2>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg transition-transform duration-200 hover:scale-105"
         >
           <Plus className="inline-block mr-1" /> Agregar método
         </button>
       </div>
 
       {loading ? (
-        <p>Cargando...</p>
+        <p className="text-gray-400">Cargando...</p>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-6">
           {paymentMethods.map((method) => (
-            <div key={method.id} className="bg-gray-800 p-4 rounded-xl shadow relative">
-              <h3 className="text-lg font-semibold mb-2">{method.type}</h3>
+            <div key={method.id} className="bg-gray-900 p-5 rounded-2xl shadow-xl border border-gray-700 relative">
+              <h3 className="text-xl font-bold text-emerald-400 mb-2">{method.type}</h3>
               {renderMethodDetails(method.type, method.details)}
               <button
                 onClick={() => handleDelete(method.id)}
-                className="absolute top-3 right-3 text-red-400 hover:text-red-600"
+                className="absolute top-3 right-3 text-red-500 hover:text-red-700"
               >
-                <Trash2 size={20} />
+                <Trash2 size={22} />
               </button>
             </div>
           ))}
@@ -162,33 +164,33 @@ export default function WalletPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 p-6 rounded-xl max-w-md w-full space-y-4 border border-gray-700">
-            <h2 className="text-xl font-bold">Agregar Método</h2>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-8 rounded-2xl max-w-md w-full space-y-5 border border-gray-700">
+            <h2 className="text-2xl font-bold text-emerald-400">Agregar Método</h2>
             <select
               value={type}
               onChange={(e) => {
                 setType(e.target.value);
                 setDetails({});
               }}
-              className="w-full p-2 rounded bg-gray-800 text-white"
+              className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="PayPal">PayPal</option>
               <option value="PagoMovil">Pago Móvil</option>
               <option value="USDT">USDT</option>
             </select>
             {renderDetailsForm()}
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-700 text-white rounded-lg"
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-semibold rounded-lg shadow-md transition"
               >
                 {submitting ? "Guardando..." : "Guardar"}
               </button>

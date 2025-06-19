@@ -198,7 +198,7 @@ export default function DashboardPage() {
               onClick={() => {
                 router.push('/dashboard/neworder'); // Actual redirection
               }}
-              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all duration-300 px-8 py-3 rounded-xl text-white font-bold text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+              className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-8 py-3 rounded-xl text-white font-bold text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
             >
               Crear Nueva Orden
             </button>

@@ -116,11 +116,17 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  }, []);
+
+useEffect(() => {
+  if (
+    typeof window !== "undefined" &&
+    'Notification' in window &&
+    Notification.permission !== "granted"
+  ) {
+    Notification.requestPermission().catch(() => {});
+  }
+}, []);
+
 
   useEffect(() => {
     if (!isOpen) {
@@ -143,27 +149,37 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
     });
 
     const channel = pusher.subscribe(`order-${orderId}`);
-    channel.bind("new-message", (data: Message) => {
-      setMessages((prev) => {
-        const exists = prev.some((m) => m.id === data.id);
-        if (exists) return prev;
+channel.bind("new-message", (data: Message) => {
+  setMessages((prev) => {
+    const exists = prev.some((m) => m.id === data.id);
+    if (exists) return prev;
 
-        if (data.sender.email !== currentUserEmail) {
-          audioRef.current?.play().catch(() => {});
-          if (!windowFocusedRef.current && Notification.permission === "granted") {
-            new Notification("Nuevo mensaje de TuCapi", {
-              body: data.content || "Se ha enviado una imagen.",
-              icon: '/tu-capi-logo.png'
-            });
-          }
+    if (data.sender.email !== currentUserEmail) {
+      audioRef.current?.play().catch(() => {});
 
-          setHighlightedId(data.id);
-          setTimeout(() => setHighlightedId(null), 3000);
+      if (
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted" &&
+        !windowFocusedRef.current
+      ) {
+        try {
+          new Notification("Nuevo mensaje de TuCapi", {
+            body: data.content || "Se ha enviado una imagen.",
+            icon: '/tu-capi-logo.png'
+          });
+        } catch (e) {
+          console.warn("No se pudo mostrar notificación:", e);
         }
+      }
 
-        return [...prev, data];
-      });
-    });
+      setHighlightedId(data.id);
+      setTimeout(() => setHighlightedId(null), 3000);
+    }
+
+    return [...prev, data];
+  });
+});
+
 
     return () => {
       pusher.unsubscribe(`order-${orderId}`);
@@ -625,11 +641,11 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
               onClick={() => setFullScreenImageUrl(null)}
             >
               <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="relative max-w-full max-h-full"
+  initial={{ scale: 0.9, y: 50 }}
+  animate={{ scale: 1, y: 0 }}
+  exit={{ scale: 0.9, y: 50 }}
+  transition={{ duration: 0.3, ease: "easeOut" }}
+  className="bg-gray-900 rounded-none md:rounded-2xl p-0 md:p-6 w-full max-w-5xl h-full md:h-[95vh] flex flex-col md:flex-row shadow-2xl border border-gray-700 relative overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Image
