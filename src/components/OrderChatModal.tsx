@@ -6,10 +6,8 @@ import { useUser } from "@clerk/nextjs";
 import Pusher from "pusher-js";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from 'next/image';
-import {
-  ArrowLeft, Paperclip, Send, Info, Wallet,
-  CreditCard, Banknote, FileText, CheckCircle2, PhoneCall, User as UserIcon, CircleX, X, Loader2
-} from 'lucide-react';
+import {ArrowLeft, Paperclip, Send, Info, Copy, CheckCircle2, Clock, 
+XCircle, ShieldUser,  User as CircleX, X, Loader2} from 'lucide-react';
 import { toast } from 'react-toastify';
 
 // --- ACTUALIZADO: Tipo de Mensaje para incluir imágenes y sender.id ---
@@ -305,6 +303,17 @@ channel.bind("new-message", (data: Message) => {
       ? (orderData.amount / orderData.finalUsdt)
       : null;
 
+      const handleCopy = (text: string) => {
+  try {
+    navigator.clipboard.writeText(text);
+    toast.success("Copiado");
+  } catch (err) {
+    toast.error("No se pudo copiar.");
+    console.error("Copy error:", err);
+  }
+};
+
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fiatDetails: any = null;
     if (orderData?.to !== "USDT" && orderData?.wallet) {
@@ -314,6 +323,8 @@ channel.bind("new-message", (data: Message) => {
         console.error("Error parsing FIAT wallet details:", e);
       }
     }
+    const isAdminView = orderData?.user?.email !== currentUserEmail;
+
 
     if (!orderData) {
       return (
@@ -330,10 +341,10 @@ channel.bind("new-message", (data: Message) => {
         {/* Header de Detalles de Orden para Desktop y Overlay Móvil */}
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700"> {/* Usar mb-4 pb-2 para coincidir con el chat */}
           {/* Botón de volver para Desktop (oculto en el overlay móvil) */}
-          <button onClick={onClose} className="hidden md:block text-gray-400 hover:text-green-400 p-2 rounded-full transition-colors">
+          <button onClick={onClose} className="hidden md:block text-gray-400 hover:text-emerald-400 p-2 rounded-full transition-colors">
             <ArrowLeft size={24} />
           </button>
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 flex-1 text-center md:text-left ml-4 md:ml-0">Detalles de Orden</h2> {/* Alineación de texto y margen para coincidir */}
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white flex-1 text-center md:text-left ml-4 md:ml-0">Detalles de Orden</h2> {/* Alineación de texto y margen para coincidir */}
           {/* Botón X para cerrar overlay móvil (visible solo en el overlay móvil) */}
           <button
             onClick={() => setShowOrderDetailsMobile(false)}
@@ -347,24 +358,53 @@ channel.bind("new-message", (data: Message) => {
         {/* Sección de estado de la orden */}
         <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-100">Orden de {orderData.user?.fullName || orderData.user?.email}</h3>
+            <h3 className="text-xl font-semibold text-gray-100">Orden de: {isAdminView ? orderData.user?.fullName ?? "Tu Capi" : "Tu Capi"}</h3>
             <span className="flex items-center gap-1 text-sm font-medium">
-              <CheckCircle2 size={20} className="text-green-500" />
-              ID: {orderData.id.substring(0, 8)}...
-            </span>
-          </div>
-          <p className="text-sm text-gray-400">Estado: <span className="font-medium text-green-400">{orderData.status === "COMPLETED" ? "Completada" : orderData.status === "PENDING" ? "Pendiente" : "Cancelada"}</span></p>
-        </div>
+              <ShieldUser size={20} className="text-emerald-500" />
+        
+</span>
+</div>
+<p className="text-sm text-gray-400 flex items-center gap-2">
+  Estado:{" "}
+  <span
+    className={`flex items-center gap-1 font-medium ${
+      orderData.status === "COMPLETED"
+        ? "text-emerald-500"
+        : orderData.status === "PENDING"
+        ? "text-yellow-400"
+        : "text-red-500"
+    }`}
+  >
+    {orderData.status === "COMPLETED" && (
+      <>
+        <CheckCircle2 size={16} /> Completada
+      </>
+    )}
+    {orderData.status === "PENDING" && (
+      <>
+        <Clock size={16} /> Pendiente
+      </>
+    )}
+    {orderData.status === "CANCELLED" && (
+      <>
+        <XCircle size={16} /> Cancelada
+      </>
+    )}
+  </span>
+</p>
+</div>
+
+
 
         {/* Detalles de montos */}
         <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-300">Recibiste:</span>
-            <span className="text-green-400 font-bold text-lg">${orderData.finalUsd.toFixed(2)} USDT</span>
+            <span className="text-white font-bold text-lg">${orderData.finalUsd.toFixed(2)} USDT</span>
           </div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-300">Enviaste:</span>
-            <span className="text-yellow-400 font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
+            <span className="text-white font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
           </div>
           {pricePerUsdt && (
             <div className="flex justify-between items-center text-sm text-gray-400">
@@ -372,56 +412,76 @@ channel.bind("new-message", (data: Message) => {
             </div>
           )}
         </div>
+{/* Sección Información Adicional */}
+<div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
+  <div className="w-full flex justify-between items-center p-4 text-gray-100 font-semibold rounded-t-xl">
+    Datos de Pago
+  </div>
+  <div className="px-4 pb-4 border-t border-gray-800 space-y-2">
+  
+    <p className="text-gray-400 text-sm flex items-center gap-2">
+    Orden:
+      <span className="font-mono text-xs text-gray-300 select-all">{orderData.id}</span>
+      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.id)} />
+    </p>
 
-        {/* Sección Información Adicional */}
-        <div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
-          <div className="w-full flex justify-between items-center p-4 text-gray-100 font-semibold rounded-t-xl">
-             Datos de Pago
-          </div>
-          <div className="px-4 pb-4 border-t border-gray-800">
-            <p className="text-gray-400 text-sm mt-2 flex items-center gap-2">
-              <Info size={16} />Orden ID: <span className="font-mono text-xs text-gray-300 select-all">{orderData.id}</span>
+    <p className="text-gray-400 text-sm flex items-center gap-2">
+    Metodo:
+      <span className="font-medium text-gray-300">{orderData.paypalEmail}</span>
+      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.paypalEmail)} />
+    </p>
+
+    <p className="text-gray-400 text-sm flex items-center gap-2">
+    Destino:
+      <span className="font-medium text-gray-300">{orderData.to}</span>
+      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.to)} />
+    </p>
+
+    {orderData.to.includes("USDT") ? (
+      <p className="text-gray-400 text-sm flex items-center gap-2">
+      Wallet USDT:
+        <span className="font-medium text-gray-300 break-all">{orderData.wallet}</span>
+        <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.wallet)} />
+      </p>
+    ) : (
+      fiatDetails && (
+        <>
+          <p className="text-gray-400 text-sm flex items-center gap-2">
+          Banco:
+            <span className="font-medium text-gray-300">{fiatDetails.bankName}</span>
+            <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.bankName)} />
+          </p>
+          {fiatDetails.phoneNumber && (
+            <p className="text-gray-400 text-sm flex items-center gap-2">
+             Teléfono:
+              <span className="font-medium text-gray-300">{fiatDetails.phoneNumber}</span>
+              <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.phoneNumber)} />
             </p>
-            <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-              <CreditCard size={16} />Metodo: <span className="font-medium text-gray-300">{orderData.paypalEmail}</span>
+          )}
+          {fiatDetails.idNumber && (
+            <p className="text-gray-400 text-sm flex items-center gap-2">
+             Cédula:
+              <span className="font-medium text-gray-300">{fiatDetails.idNumber}</span>
+              <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.idNumber)} />
             </p>
-            <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-              <Wallet size={16} />Destino: <span className="font-medium text-gray-300">{orderData.to}</span>
-            </p>
-            {orderData.to.includes("USDT") ? (
-              <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-                <Wallet size={16} />Wallet USDT: <span className="font-medium text-gray-300 break-all">{orderData.wallet}</span>
-              </p>
-            ) : (
-              fiatDetails && (
-                <>
-                  <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-                    <Banknote size={16} />Banco: <span className="font-medium text-gray-300">{fiatDetails.bankName}</span>
-                  </p>
-                  {fiatDetails.phoneNumber && (
-                    <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-                      <PhoneCall size={16} />Teléfono: <span className="font-medium text-gray-300">{fiatDetails.phoneNumber}</span>
-                    </p>
-                  )}
-                  {fiatDetails.idNumber && (
-                    <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-                      <UserIcon size={16} />Cédula/ID: <span className="font-medium text-gray-300">{fiatDetails.idNumber}</span>
-                    </p>
-                  )}
-                </>
-              )
-            )}
-            <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-              <FileText size={16} />Plataforma: <span className="font-medium text-gray-300">{orderData.platform}</span>
-            </p>
-          </div>
-        </div>
+          )}
+        </>
+      )
+    )}
+
+    <p className="text-gray-400 text-sm flex items-center gap-2">
+    Plataforma:
+      <span className="font-medium text-gray-300">{orderData.platform}</span>
+      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.platform)} />
+    </p>
+  </div>
+</div>
 
         {/* Botón Volver al inicio para móvil (dentro del overlay de detalles) y desktop (fuera del overlay) */}
         <div className="mt-auto pt-4 text-center block md:hidden">
           <button
             onClick={() => { setShowOrderDetailsMobile(false); onClose(); }}
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-bold shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform active:scale-95"
+            className="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-xl font-bold shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform active:scale-95"
           >
             Volver al inicio
           </button>
@@ -429,7 +489,7 @@ channel.bind("new-message", (data: Message) => {
         <div className="mt-auto pt-4 text-center hidden md:block">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-bold shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform active:scale-95"
+            className="w-full py-3 bg-gradient-to-r from-emerald-400 to-teal-300 text-white rounded-xl font-bold shadow-lg hover:from-green-700 hover:to-yellow-600 transition-all duration-300 transform active:scale-95"
           >
             Volver
           </button>
@@ -484,7 +544,7 @@ channel.bind("new-message", (data: Message) => {
               <button onClick={onClose} className="text-gray-400 hover:text-green-400 p-1 rounded-full md:hidden">
                 <ArrowLeft size={24} />
               </button>
-              <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-500 flex-1 text-center md:text-left ml-4 md:ml-0">Chat de Orden</h2>
+              <h2 className="text-2xl font-bold text-white flex-1 text-center md:text-left ml-4 md:ml-0">Chat de Orden</h2>
               {/* Botón Info para mobile (abre overlay de detalles) */}
               <button
                 onClick={() => setShowOrderDetailsMobile(true)}
@@ -528,11 +588,11 @@ channel.bind("new-message", (data: Message) => {
                       }
                       className={`p-3 rounded-xl shadow-md transition-colors duration-200 max-w-[85%] ${
                         isCurrentUser
-                          ? "bg-blue-600 text-white ml-auto"
+                          ? "bg-emerald-500 to-teal-400 text-white ml-auto"
                           : "bg-gray-700 text-gray-100 mr-auto"
                       }`}
                     >
-                      <p className={`text-xs font-medium mb-1 ${isCurrentUser ? 'text-blue-200' : 'text-green-300'}`}>
+                      <p className={`text-xs font-medium mb-1 ${isCurrentUser ? 'text-white' : 'text-green-300'}`}>
                         {isCurrentUser ? "Tú" : msg.sender.fullName || msg.sender.email}
                       </p>
                       {msg.content && <p className="text-base text-gray-100">{msg.content}</p>}
@@ -597,10 +657,10 @@ channel.bind("new-message", (data: Message) => {
                     }
                   }}
                   disabled={uploadingImage || sendingMessage}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-green-500 pr-10 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-teal-400 pr-10 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 {/* Botón para seleccionar archivo */}
-                <label htmlFor="file-input" className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-green-400 transition-colors cursor-pointer"
+                <label htmlFor="file-input" className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-teal-400 transition-colors cursor-pointer"
                        aria-disabled={uploadingImage || sendingMessage}
                 >
                   <Paperclip size={20} />
@@ -617,7 +677,7 @@ channel.bind("new-message", (data: Message) => {
               <button
                 onClick={handleSendMessage}
                 disabled={uploadingImage || sendingMessage || (!newMessage.trim() && !selectedFile)}
-                className="bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl flex-shrink-0 shadow-lg transition-all duration-200 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-emerald-500 hover:bg-teal-400  text-white p-3 rounded-xl flex-shrink-0 shadow-lg transition-all duration-200 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Enviar mensaje"
               >
                 {uploadingImage || sendingMessage ? (

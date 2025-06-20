@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import UserSidebar from "@/components/UserSidebar";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default async function DashboardLayout({
   children,
@@ -36,6 +38,9 @@ export default async function DashboardLayout({
           {children}
         </main>
       </div>
+
+      {/* Toast para notificaciones */}
+      <ToastContainer position="top-right" autoClose={2000} />
     </div>
   );
 }
