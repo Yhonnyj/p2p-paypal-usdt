@@ -556,7 +556,7 @@ channel.bind("new-message", (data: Message) => {
             </div>
 
             {/* Área de mensajes */}
-            <div className="flex-1 overflow-y-auto space-y-3 px-2 py-2 bg-gray-900 rounded-lg border border-gray-800 shadow-inner custom-scrollbar-thumb">
+            <div className="flex-1 overflow-y-auto space-y-3 px-2 py-2 bg-gray-900 rounded-lg border border-gray-800 shadow-inner custom-scrollbar-thumb max-h-[60vh] md:max-h-none"> 
               {fetchingMessages ? (
                 <div className="flex flex-col justify-center items-center h-full text-gray-400">
                   <Loader2 className="animate-spin text-green-500 mb-2" size={32} />
