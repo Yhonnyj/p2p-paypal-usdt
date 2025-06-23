@@ -1,9 +1,20 @@
 'use client';
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { SignIn } from "@clerk/nextjs";
 import { motion } from 'framer-motion';
 
 export default function SignInPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const pathname = window.location.pathname;
+    if (pathname.includes("/sign-in/factor-one")) {
+      router.replace("/dashboard");
+    }
+  }, []);
+
   const signInFormVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: {
