@@ -34,7 +34,7 @@ export default function DestinationSelector({ onReset }: Props) {
             className="rounded-full object-contain"
             onError={(e) => {
               const img = e.currentTarget as HTMLImageElement;
-              img.src = "/images/placeholder.png";
+              img.src = "/images/bs.png";
             }}
           />
         </div>

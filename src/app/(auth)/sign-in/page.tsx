@@ -48,6 +48,8 @@ export default function SignInPage() {
           className="w-full max-w-md rounded-xl"
         >
           <SignIn
+            path="/sign-in"
+            routing="path"
             afterSignInUrl="/dashboard"
             appearance={{
               elements: {
@@ -56,7 +58,7 @@ export default function SignInPage() {
                 headerSubtitle: "text-gray-400",
                 formFieldInput: "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
                 formButtonPrimary: "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
-                footer: "hidden", // Oculta ‘Development mode’
+                footer: "hidden",
                 socialButtonsBlockButton: "bg-gray-800 text-white",
                 dividerLine: "bg-gray-700",
               },
