@@ -48,8 +48,9 @@ export default function SignInPage() {
           className="w-full max-w-md rounded-xl"
         >
           <SignIn
-            path="/sign-in"
             routing="path"
+            path="/sign-in"
+            redirectUrl="/dashboard"
             afterSignInUrl="/dashboard"
             appearance={{
               elements: {
