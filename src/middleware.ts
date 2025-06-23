@@ -6,9 +6,6 @@ export default clerkMiddleware(clerkMiddlewareConfig);
 
 export const config = {
   matcher: [
-    // Protege todo EXCEPTO rutas admin y archivos estáticos
-    '/((?!.*\\.[\\w]+$|_next|admin|sign-in|sign-up).*)',
-    '/',
-    '/(api|trpc)(.*)',
+    "/((?!_next|sign-in|sign-up|admin|.*\\..*).*)",
   ],
 };
