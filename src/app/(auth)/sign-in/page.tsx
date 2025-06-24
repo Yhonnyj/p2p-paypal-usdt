@@ -47,29 +47,31 @@ export default function SignInPage() {
           variants={signInFormVariants}
           className="w-full max-w-md rounded-xl"
         >
-          <SignIn
-            routing="path"
-            path="/sign-in"
-            afterSignInUrl="/dashboard"
-            afterSignUpUrl="/dashboard"
-            appearance={{
-              elements: {
-                card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                formFieldInput: "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
-                formButtonPrimary: "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
-                footer: "hidden",
-                socialButtonsBlockButton: "bg-gray-800 text-white",
-                dividerLine: "bg-gray-700",
-              },
-              variables: {
-                colorPrimary: "#10b981",
-                colorBackground: "transparent",
-                colorText: "#ffffff",
-              },
-            }}
-          />
+     <SignIn
+  routing="path"
+  path="/sign-in"
+  afterSignInUrl="/dashboard"
+  afterSignUpUrl="/dashboard"
+  redirectUrl="/dashboard" // ✅ ESTA LÍNEA FALTABA
+  appearance={{
+    elements: {
+      card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
+      headerTitle: "hidden",
+      headerSubtitle: "hidden",
+      formFieldInput: "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
+      formButtonPrimary: "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
+      footer: "hidden",
+      socialButtonsBlockButton: "bg-gray-800 text-white",
+      dividerLine: "bg-gray-700",
+    },
+    variables: {
+      colorPrimary: "#10b981",
+      colorBackground: "transparent",
+      colorText: "#ffffff",
+    },
+  }}
+/>
+
         </motion.div>
       </section>
     </main>
