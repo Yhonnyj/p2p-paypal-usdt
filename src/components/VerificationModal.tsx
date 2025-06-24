@@ -32,6 +32,7 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
       const res = await fetch("/api/verifications", {
         method: "POST",
         body: formData,
+        credentials: "include", // 👈 Esto es CLAVE para que Clerk pase la sesión
       });
 
       const data = await res.json();
