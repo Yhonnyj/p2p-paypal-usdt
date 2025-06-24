@@ -1,19 +1,9 @@
 'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { SignIn } from "@clerk/nextjs";
 import { motion } from 'framer-motion';
 
 export default function SignInPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (window.location.pathname.includes("/sign-in/factor-one")) {
-      router.replace("/dashboard");
-    }
-  }, []);
-
   const signInFormVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: {
@@ -60,8 +50,8 @@ export default function SignInPage() {
           <SignIn
             routing="path"
             path="/sign-in"
-            redirectUrl="/dashboard"
             afterSignInUrl="/dashboard"
+            afterSignUpUrl="/dashboard"
             appearance={{
               elements: {
                 card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
