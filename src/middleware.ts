@@ -6,6 +6,6 @@ export default clerkMiddleware(clerkMiddlewareConfig);
 
 export const config = {
   matcher: [
-    "/((?!_next|sign-in|sign-up|admin|.*\\..*).*)",
+    "/((?!_next|sign-in/factor-one|sign-in|sign-up|admin|.*\\..*).*)",
   ],
 };
