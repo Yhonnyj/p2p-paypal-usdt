@@ -5,18 +5,29 @@ import { useUser } from "@clerk/nextjs";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import VerificationStatusBadge from "@/components/VerificationStatusBadge";
-import { ShieldCheck, CircleAlert, CircleX, Loader2, DollarSign, Wallet, Repeat2,CheckCircle, XCircle, User as UserIcon } from "lucide-react";
-import { pusherClient } from "@/lib/pusher"; // Asegúrate de tener este import
+import {
+  ShieldCheck,
+  CircleAlert,
+  CircleX,
+  Loader2,
+  DollarSign,
+  Wallet,
+  Repeat2,
+  CheckCircle,
+  XCircle,
+  User as UserIcon,
+} from "lucide-react";
+import { pusherClient } from "@/lib/pusher";
 
 // Dynamically import VerificationModal and UserProfile
 const VerificationModal = dynamic(() => import("@/components/VerificationModal"), {
   ssr: false,
-  loading: () => <div className="text-gray-400">Cargando modal de verificación...</div>
+  loading: () => <div className="text-gray-400">Cargando modal de verificación...</div>,
 });
 
 const UserProfile = dynamic(() => import("@clerk/nextjs").then(mod => mod.UserProfile), {
   ssr: false,
-  loading: () => <div className="text-gray-400">Cargando perfil de usuario...</div>
+  loading: () => <div className="text-gray-400">Cargando perfil de usuario...</div>,
 });
 
 type VerificationStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED" | "LOADING";
@@ -24,16 +35,22 @@ type VerificationStatus = "NONE" | "PENDING" | "APPROVED" | "REJECTED" | "LOADIN
 export default function DashboardPage() {
   const { user } = useUser();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false); // For VerificationModal
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false); // For UserProfile modal
+  const [isOpen, setIsOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("LOADING");
 
-  // State for custom alert/modal (kept for other alerts)
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [alertType, setAlertType] = useState<'success' | 'error'>('error');
+  const [alertType, setAlertType] = useState<"success" | "error">("error");
 
-    useEffect(() => {
+  // ✅ FIX: redirigir desde /sign-in/factor-one si ya hay sesión activa
+  useEffect(() => {
+    if (user && window.location.pathname === "/sign-in/factor-one") {
+      router.replace("/dashboard");
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (!user?.id) return;
 
     const fetchStatus = async () => {
@@ -52,7 +69,7 @@ export default function DashboardPage() {
       }
     };
 
-    fetchStatus(); // llamado inicial
+    fetchStatus();
 
     const channelName = `user-${user.id}-verification`;
     pusherClient.subscribe(channelName);
@@ -70,11 +87,8 @@ export default function DashboardPage() {
     };
   }, [user?.id]);
 
-
-  // FIX: Se añade el comentario para deshabilitar la advertencia de ESLint 'no-unused-vars'.
-  // La función displayAlert sí se usa en el componente.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const displayAlert = (message: string, type: 'success' | 'error' = 'error') => {
+  const displayAlert = (message: string, type: "success" | "error" = "error") => {
     setAlertMessage(message);
     setAlertType(type);
     setShowAlert(true);
