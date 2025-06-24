@@ -47,12 +47,11 @@ export default function SignInPage() {
           variants={signInFormVariants}
           className="w-full max-w-md rounded-xl"
         >
-     <SignIn
+<SignIn
   routing="path"
   path="/sign-in"
-  afterSignInUrl="/dashboard"
-  afterSignUpUrl="/dashboard"
-  redirectUrl="/dashboard" // ✅ ESTA LÍNEA FALTABA
+  forceRedirectUrl="/dashboard"
+  redirectUrl="/dashboard"
   appearance={{
     elements: {
       card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
@@ -71,6 +70,7 @@ export default function SignInPage() {
     },
   }}
 />
+
 
         </motion.div>
       </section>
