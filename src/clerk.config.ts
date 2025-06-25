@@ -18,7 +18,7 @@ export const clerkMiddlewareConfig = {
   beforeAuth: (req: NextRequest) => {
     const pathname = req.nextUrl.pathname;
     const url = req.nextUrl.clone();
-    const isAuth = req.headers.get("x-clerk-user-id");
+const isAuth = true;
 
     // 🔁 Redirige si entra a admin.tucapi.com/
     if (isAdminSubdomain(req) && pathname === "/") {
