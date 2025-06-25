@@ -13,7 +13,7 @@ export const clerkMiddlewareConfig = {
   signUpUrl: "/sign-up",
   afterSignInUrl: "/dashboard",
   afterSignUpUrl: "/dashboard",
-  publicRoutes: ["/", "/sign-in", "/sign-up", "/admin/login"],
+  publicRoutes: ["/sign-in", "/sign-up", "/admin/login"], // ✅ FIX: quitamos "/"
 
   beforeAuth: (req: NextRequest) => {
     const pathname = req.nextUrl.pathname;
