@@ -5,15 +5,15 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  
+  title: "TuCapi",
   description: "Tu plataforma privada de cambio",
-
-    title: "TuCapi",
+  manifest: "/manifest.json",
+  themeColor: "#10B981", // color de status bar en Android
   icons: {
-    icon: "/favicon.ico", // usa tu ícono personalizado
+    icon: "/icon-192x192.png",
+    apple: "/icon-192x192.png",
   },
 };
-
 
 export default function RootLayout({
   children,
@@ -24,6 +24,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="es">
         <head>
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="theme-color" content="#10B981" />
+          <link rel="apple-touch-icon" href="/icon-192x192.png" />
+          <link rel="icon" href="/icon-192x192.png" />
           <script
             src="https://cdn.getdidit.com/verify.js"
             defer
@@ -34,4 +38,3 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
-
