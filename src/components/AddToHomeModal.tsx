@@ -14,7 +14,7 @@ type BeforeInstallPromptEvent = Event & {
 const isIos = (): boolean =>
   typeof window !== "undefined" &&
   /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()) &&
-  !(navigator as any).standalone;
+!("standalone" in navigator && (navigator as Navigator & { standalone: boolean }).standalone);
 
 const isAndroid = (): boolean =>
   typeof window !== "undefined" &&
