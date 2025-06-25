@@ -15,7 +15,7 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Asegúrate de que este ID sea correcto para tu administrador
+const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Asegúrate de que este ID sea correcto para tu administrador
 
 // --- ACTUALIZADO: Tipo de Mensaje para incluir imágenes ---
 // Este tipo representa la estructura completa del mensaje tal como se almacenará
