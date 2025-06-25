@@ -53,7 +53,7 @@ export default function AdminSidebar() {
         className="text-center py-6 bg-gray-900 border-b border-gray-800 drop-shadow-lg flex flex-col items-center"
       >
         <Image
-          src="/tu-capi-logo.png" // Ruta para el logo de admin (puedes usar el mismo que el de usuario si es adecuado)
+          src="/tu-capi-logo2.png" // Ruta para el logo de admin (puedes usar el mismo que el de usuario si es adecuado)
           alt="Admin Logo"
           width={80} // Ajusta el tamaño del logo si es necesario
           height={80}
