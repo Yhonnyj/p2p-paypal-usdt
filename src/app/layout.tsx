@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import AddToHomeModal from "@/components/AddToHomeModal"; // ✅ Componente de instalación
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,17 +24,22 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="es">
-        <head>
-          <link rel="manifest" href="/manifest.json" />
-          <meta name="theme-color" content="#10B981" />
-          <link rel="apple-touch-icon" href="/icon-192x192.png" />
-          <link rel="icon" href="/icon-192x192.png" />
-          <script
-            src="https://cdn.getdidit.com/verify.js"
-            defer
-          ></script>
-        </head>
-        <body className={inter.className}>{children}</body>
+       <head>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#10B981" />
+  <link rel="apple-touch-icon" href="/icon-192x192.png" />
+  <link rel="icon" href="/icon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512-maskable.png" />
+  <script
+    src="https://cdn.getdidit.com/verify.js"
+    defer
+  ></script>
+</head>
+
+        <body className={inter.className}>
+          <AddToHomeModal /> {/* ✅ Botón de instalación */}
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );
