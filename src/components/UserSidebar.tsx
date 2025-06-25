@@ -23,7 +23,7 @@ import {
 const links = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Inicio", functional: true },
   { href: "/dashboard/orders", icon: Clock, label: "Mis Ordenes", functional: true },
-  { href: "/dashboard/wallet", icon: Wallet, label: "Mis Cuentas", functional: true }, // No funcional (Próximamente)
+  { href: "/dashboard/wallet", icon: Wallet, label: "Mis Cuentas", functional: false }, // No funcional (Próximamente)
   { href: "/dashboard/refers", icon: Banknote, label: "Referidos", functional: false }, // No funcional (Próximamente)
 ];
 

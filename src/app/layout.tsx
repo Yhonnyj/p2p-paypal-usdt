@@ -1,7 +1,8 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import AddToHomeModal from "@/components/AddToHomeModal"; // ✅ Componente de instalación
+import AddToHomeModal from "@/components/AddToHomeModal";
+import SplashScreen from "@/components/SplashScreen"; // ✅ NUEVO
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -9,7 +10,7 @@ export const metadata = {
   title: "TuCapi",
   description: "Tu plataforma privada de cambio",
   manifest: "/manifest.json",
-  themeColor: "#10B981", // color de status bar en Android
+  themeColor: "#10B981",
   icons: {
     icon: "/icon-192x192.png",
     apple: "/icon-192x192.png",
@@ -24,21 +25,24 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="es">
-       <head>
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#10B981" />
-  <link rel="apple-touch-icon" href="/icon-192x192.png" />
-  <link rel="icon" href="/icon-192x192.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512-maskable.png" />
-  <script
-    src="https://cdn.getdidit.com/verify.js"
-    defer
-  ></script>
-</head>
-
+        <head>
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="theme-color" content="#10B981" />
+          <link rel="apple-touch-icon" href="/icon-192x192.png" />
+          <link rel="icon" href="/icon-192x192.png" />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="512x512"
+            href="/icon-512x512-maskable.png"
+          />
+          <script src="https://cdn.getdidit.com/verify.js" defer></script>
+        </head>
         <body className={inter.className}>
-          <AddToHomeModal /> {/* ✅ Botón de instalación */}
-          {children}
+          <SplashScreen>
+            <AddToHomeModal />
+            {children}
+          </SplashScreen>
         </body>
       </html>
     </ClerkProvider>
