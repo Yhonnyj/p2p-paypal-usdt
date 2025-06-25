@@ -2,7 +2,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AddToHomeModal from "@/components/AddToHomeModal";
-import SplashScreen from "@/components/SplashScreen"; // ✅ NUEVO
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,10 +38,8 @@ export default function RootLayout({
           <script src="https://cdn.getdidit.com/verify.js" defer></script>
         </head>
         <body className={inter.className}>
-          <SplashScreen>
             <AddToHomeModal />
             {children}
-          </SplashScreen>
         </body>
       </html>
     </ClerkProvider>
