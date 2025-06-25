@@ -4,7 +4,7 @@ import { resend } from "@/lib/resend";
 import { pusherServer } from "@/lib/pusher"; // ✅ NUEVO
 import { NextResponse } from "next/server";
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
+const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
 
 export async function PATCH(req: Request, context: { params: { id: string } }) {
   const { userId } = await auth();
@@ -45,7 +45,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
       `;
 
     await resend.emails.send({
-      from: "TuCapi <Verificaciones.noreply@managerp2p.com>",
+      from: "TuCapi <Verificaciones.noreply@tucapi.com>",
       to: verification.user.email,
       subject,
       html,

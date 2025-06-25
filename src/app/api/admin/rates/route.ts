@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher"; // ✅ Asegúrate de tener esto bien
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Reemplaza por tu ID si es distinto
+const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Reemplaza por tu ID si es distinto
 
 export async function GET() {
   const { userId } = await auth();

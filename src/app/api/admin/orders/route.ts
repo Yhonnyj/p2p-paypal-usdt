@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const ADMIN_CLERK_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Asegúrate de que este ID sea correcto.
+const ADMIN_CLERK_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Asegúrate de que este ID sea correcto.
 
 export async function GET() {
   const { userId } = await auth();

@@ -100,7 +100,7 @@ export async function POST(req: Request) {
 
     // ✅ Notificar por email
 await resend.emails.send({
-  from: "Nueva verificacion por aprobar <noreply@managerp2p.com>",
+  from: "Nueva verificacion por aprobar <Verifications@tucapi.com>",
   to: "info@caibo.ca",
   subject: `🔐 Nueva verificación de ${user.fullName || user.email}`,
   html: `

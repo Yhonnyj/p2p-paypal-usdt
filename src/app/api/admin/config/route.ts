@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher"; // 👈 IMPORTANTE
 
-const ADMIN_CLERK_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
+const ADMIN_CLERK_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
 
 export async function GET() {
   const { userId } = await auth();

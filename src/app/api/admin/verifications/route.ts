@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Reemplaza por tu ID real de admin
+const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Reemplaza por tu ID real de admin
 
 export async function GET() {
   const { userId } = await auth();

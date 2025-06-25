@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher";
 import { resend } from "@/lib/resend";
 
-const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID ?? "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS";
+const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID ?? "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
 
 export async function PATCH(
   req: NextRequest,
@@ -40,7 +40,7 @@ export async function PATCH(
    // Enviar email al cliente si se completó la orden
 if (normalizedStatus === "COMPLETED" && updatedOrder.user.email) {
   await resend.emails.send({
-    from: "TuCapi te informa que la orden fue completada. <ordenes.noreply@managerp2p.com>",
+    from: "TuCapi te informa que la orden fue completada. <ordenes.noreply@tucapi.com>",
     to: updatedOrder.user.email,
     subject: "✅ Tu orden ha sido completada",
     html: `

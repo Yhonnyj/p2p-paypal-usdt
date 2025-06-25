@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher";
 
-const ADMIN_ID = "user_2y8MDKMBaoV4ar3YzC3oZIP9jxS"; // Reemplaza con tu ID real
+const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Reemplaza con tu ID real
 
 export async function PATCH(
   req: Request,
