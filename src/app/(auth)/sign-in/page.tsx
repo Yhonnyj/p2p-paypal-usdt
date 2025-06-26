@@ -1,9 +1,29 @@
-'use client';
+"use client";
 
 import { SignIn } from "@clerk/nextjs";
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+const ADMIN_CLERK_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // 👈 tu ID real
 
 export default function SignInPage() {
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (user) {
+      if (user.id === ADMIN_CLERK_ID) {
+        router.replace("/admin/orders");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+  }, [isLoaded, user, router]);
+
   const signInFormVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: {
@@ -16,7 +36,6 @@ export default function SignInPage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
-      {/* Fondo premium animado */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0" />
       <div className="absolute top-0 left-0 w-80 h-80 bg-emerald-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob z-0" />
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0" />
@@ -47,31 +66,31 @@ export default function SignInPage() {
           variants={signInFormVariants}
           className="w-full max-w-md rounded-xl"
         >
-<SignIn
-  routing="path"
-  path="/sign-in"
-  forceRedirectUrl="/dashboard"
-  redirectUrl="/dashboard"
-  appearance={{
-    elements: {
-      card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
-      headerTitle: "hidden",
-      headerSubtitle: "hidden",
-      formFieldInput: "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
-      formButtonPrimary: "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
-      footer: "hidden",
-      socialButtonsBlockButton: "bg-gray-800 text-white",
-      dividerLine: "bg-gray-700",
-    },
-    variables: {
-      colorPrimary: "#10b981",
-      colorBackground: "transparent",
-      colorText: "#ffffff",
-    },
-  }}
-/>
-
-
+          <SignIn
+            routing="path"
+            path="/sign-in"
+            forceRedirectUrl="/dashboard"
+            redirectUrl="/dashboard"
+            appearance={{
+              elements: {
+                card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
+                headerTitle: "hidden",
+                headerSubtitle: "hidden",
+                formFieldInput:
+                  "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
+                formButtonPrimary:
+                  "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
+                footer: "hidden",
+                socialButtonsBlockButton: "bg-gray-800 text-white",
+                dividerLine: "bg-gray-700",
+              },
+              variables: {
+                colorPrimary: "#10b981",
+                colorBackground: "transparent",
+                colorText: "#ffffff",
+              },
+            }}
+          />
         </motion.div>
       </section>
     </main>
