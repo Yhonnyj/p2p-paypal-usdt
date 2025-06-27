@@ -25,11 +25,11 @@ const getStatusDisplay = (status: OrderStatus) => {
 
 export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Props) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-gray-800 shadow-inner bg-gray-900/60 backdrop-blur-sm">
+    <div className="overflow-x-auto rounded-2xl border border-gray-800 shadow-inner bg-gray-950 bg-[radial-gradient(circle_at_top_left,#10B981,transparent),radial-gradient(circle_at_bottom_right,#6366F1,transparent)] backdrop-blur-sm">
       <table className="min-w-full text-sm text-left">
         <thead>
           <tr className="text-gray-300 bg-gray-800/70 uppercase tracking-wider text-xs">
-            <th className="px-4 py-3 whitespace-nowrap">ID</th>
+            <th className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">ID</th>
             <th className="px-4 py-3">Usuario</th>
             <th className="px-4 py-3 hidden lg:table-cell">PayPal</th>
             <th className="px-4 py-3 text-right hidden sm:table-cell">Monto</th>
@@ -45,7 +45,7 @@ export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Prop
               onClick={() => onOpenChat(order)}
               className="cursor-pointer border-t border-gray-800 hover:bg-gray-800/40 transition-all"
             >
-              <td className="px-4 py-4 font-mono text-xs text-gray-400 truncate w-[90px]">
+              <td className="px-4 py-4 font-mono text-xs text-gray-400 truncate w-[90px] hidden sm:table-cell">
                 {order.id.substring(0, 8)}...
               </td>
 
@@ -66,11 +66,9 @@ export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Prop
                   : `${order.finalUsd.toFixed(2)} ${order.to}`}
               </td>
 
-              {/* Estado visible en todas las pantallas */}
               <td className="px-4 py-4">
                 <div className="flex flex-col md:flex-row md:items-center gap-2">
                   {getStatusDisplay(order.status)}
-
                   <select
                     value={order.status}
                     onClick={(e) => e.stopPropagation()}
