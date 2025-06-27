@@ -166,17 +166,26 @@ export default function AdminDashboardPage() {
     fetchConfig();
   }, []);
 
-  return (
-    <div className="min-h-screen px-6 py-10 bg-gray-950 text-white">
-      <h1 className="text-4xl font-bold mb-10 text-center text-green-400">
-        🚀 Panel de Administración General
-      </h1>
+return (
+  <div className="relative min-h-screen px-6 py-10 bg-gray-950 text-white overflow-hidden">
+    {/* Fondo degradado animado */}
+    <div
+      className="absolute inset-0 z-0 opacity-10 animate-pulse-light pointer-events-none"
+      style={{
+        background:
+          'radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
+      }}
+    />
 
-      {/* Rates Management Section */}
-      <div className="mb-12">
-        <h2 className="text-3xl font-bold mb-6 text-green-400 border-b border-gray-700 pb-3">
-          💱 Gestión de Tasas de Cambio
-        </h2>
+    <h1 className="text-4xl font-bold mb-10 text-center text-green-400">
+      🚀 Panel de Administración General
+    </h1>
+
+    {/* Rates Management Section */}
+    <div className="mb-12">
+      <h2 className="text-3xl font-bold mb-6 text-green-400 border-b border-gray-700 pb-3">
+        💱 Gestión de Tasas de Cambio
+      </h2>
 
         <div className="space-y-4">
           {rates.map((rate) => (

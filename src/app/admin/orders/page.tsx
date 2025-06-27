@@ -114,15 +114,14 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 px-4 sm:px-6 md:px-8 py-6 font-inter relative">
-      {/* Fondo premium */}
-      <div
-        className="absolute inset-0 -z-10 opacity-10"
-        style={{
-          background:
-            "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
-        }}
-      />
+  <div className="relative min-h-screen text-gray-100 px-4 sm:px-6 md:px-8 py-6 font-inter overflow-hidden bg-gray-950">
+    {/* Fondo premium degradado animado */}
+    <div className="absolute inset-0 z-0 opacity-[0.08] animate-pulse-light pointer-events-none"
+      style={{
+        background:
+          'radial-gradient(circle at top left, #10B981 20%, transparent), radial-gradient(circle at bottom right, #6366F1 20%, transparent)',
+      }}
+    />
 
       {/* Título */}
       <div className="max-w-7xl mx-auto mb-8">
