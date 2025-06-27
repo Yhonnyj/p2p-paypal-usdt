@@ -29,39 +29,48 @@ export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Prop
       <table className="min-w-full text-sm text-left">
         <thead>
           <tr className="text-gray-300 bg-gray-800/70 uppercase tracking-wider text-xs">
-            <th className="px-4 sm:px-6 py-4 rounded-tl-2xl whitespace-nowrap">ID</th>
-            <th className="px-4 sm:px-6 py-4">Usuario</th>
-            <th className="px-4 sm:px-6 py-4">PayPal</th>
-            <th className="px-4 sm:px-6 py-4 text-right">Monto</th>
-            <th className="px-4 sm:px-6 py-4 text-right">Recibe</th>
-            <th className="px-4 sm:px-6 py-4">Estado</th>
-            <th className="px-4 sm:px-6 py-4 rounded-tr-2xl">Fecha</th>
+            <th className="px-4 py-3 whitespace-nowrap">ID</th>
+            <th className="px-4 py-3">Usuario</th>
+            <th className="px-4 py-3 hidden lg:table-cell">PayPal</th>
+            <th className="px-4 py-3 text-right hidden sm:table-cell">Monto</th>
+            <th className="px-4 py-3 text-right hidden sm:table-cell">Recibe</th>
+            <th className="px-4 py-3">Estado</th>
+            <th className="px-4 py-3">Fecha</th>
           </tr>
         </thead>
         <tbody>
-          {orders.map((order, index) => (
+          {orders.map((order) => (
             <tr
               key={order.id}
               onClick={() => onOpenChat(order)}
-              className={`transition-all duration-150 cursor-pointer border-t border-gray-800 ${
-                index % 2 === 0 ? "bg-gray-900/40" : "bg-gray-900/30"
-              } hover:bg-gray-800/50`}
+              className="cursor-pointer border-t border-gray-800 hover:bg-gray-800/40 transition-all"
             >
-              <td className="px-4 sm:px-6 py-4 font-mono text-xs text-gray-400 truncate w-[100px] sm:w-[120px]">
+              <td className="px-4 py-4 font-mono text-xs text-gray-400 truncate w-[90px]">
                 {order.id.substring(0, 8)}...
               </td>
-              <td className="px-4 sm:px-6 py-4">
-                <div className="font-semibold text-gray-200 truncate max-w-[160px]">{order.user?.fullName || "—"}</div>
-                <div className="text-gray-400 text-xs truncate max-w-[180px]">{order.user?.email || "—"}</div>
+
+              <td className="px-4 py-4">
+                <div className="font-semibold text-gray-200 max-w-[120px] truncate">{order.user?.fullName || "—"}</div>
+                <div className="text-xs text-gray-400 truncate">{order.user?.email || "—"}</div>
               </td>
-              <td className="px-4 sm:px-6 py-4 text-gray-300 truncate max-w-[180px]">{order.paypalEmail}</td>
-              <td className="px-4 sm:px-6 py-4 text-right font-bold text-blue-400">${order.amount.toFixed(2)}</td>
-              <td className="px-4 sm:px-6 py-4 text-right font-bold text-green-400">
-                {order.finalUsdt ? `${order.finalUsdt.toFixed(2)} USDT` : `${order.finalUsd.toFixed(2)} ${order.to}`}
+
+              <td className="px-4 py-4 hidden lg:table-cell text-gray-300 truncate">{order.paypalEmail}</td>
+
+              <td className="px-4 py-4 text-right hidden sm:table-cell font-bold text-blue-400">
+                ${order.amount.toFixed(2)}
               </td>
-              <td className="px-4 sm:px-6 py-4">
-                <div className="flex items-center gap-2">
+
+              <td className="px-4 py-4 text-right hidden sm:table-cell font-bold text-green-400">
+                {order.finalUsdt
+                  ? `${order.finalUsdt.toFixed(2)} USDT`
+                  : `${order.finalUsd.toFixed(2)} ${order.to}`}
+              </td>
+
+              {/* Estado visible en todas las pantallas */}
+              <td className="px-4 py-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
                   {getStatusDisplay(order.status)}
+
                   <select
                     value={order.status}
                     onClick={(e) => e.stopPropagation()}
@@ -74,13 +83,14 @@ export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Prop
                   </select>
                 </div>
               </td>
-              <td className="px-4 sm:px-6 py-4 text-xs text-gray-400">
+
+              <td className="px-4 py-4 text-xs text-gray-400 whitespace-nowrap">
                 <div>{new Date(order.createdAt).toLocaleDateString()}</div>
                 <div className="flex items-center gap-2">
-                  {new Date(order.createdAt).toLocaleTimeString()}
+                  {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   <button
                     onClick={(e) => { e.stopPropagation(); onOpenChat(order); }}
-                    className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-full shadow-md transition-all"
+                    className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-full shadow-md transition"
                     title="Abrir chat"
                   >
                     <MessageSquareText className="w-4 h-4 text-white" />

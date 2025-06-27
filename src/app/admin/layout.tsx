@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import Sidebar from "./Sidebar"; // Asegúrate de que Sidebar es el export default
+import Sidebar from "./Sidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -23,25 +23,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [user, isLoaded, router]);
 
   return (
-    <div className="flex min-h-screen bg-black text-white relative overflow-x-hidden">
-      {!hideSidebar && (
-        <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      )}
+    <div className="relative min-h-screen bg-gray-950 text-white overflow-x-hidden font-inter">
+      {/* Fondo degradado animado */}
+      <div
+        className="absolute inset-0 z-0 opacity-10 animate-pulse-light"
+        style={{
+          background:
+            "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
+        }}
+      />
 
-      <main className="flex-1 p-4 md:p-6">
+      {/* Contenedor principal sobre fondo */}
+      <div className="relative z-10 flex min-h-screen">
         {!hideSidebar && (
-          <div className="md:hidden mb-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="text-white bg-gray-800 px-4 py-2 rounded shadow hover:bg-gray-700"
-            >
-              Menú
-            </button>
-          </div>
+          <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
         )}
 
-        {children}
-      </main>
+        <main className="flex-1 p-4 md:p-6">
+          {!hideSidebar && (
+            <div className="md:hidden mb-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="text-white bg-gray-800 px-4 py-2 rounded shadow hover:bg-gray-700"
+              >
+                Menú
+              </button>
+            </div>
+          )}
+
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
