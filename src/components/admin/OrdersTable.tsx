@@ -25,17 +25,17 @@ const getStatusDisplay = (status: OrderStatus) => {
 
 export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Props) {
   return (
-    <div className="overflow-x-auto rounded-2xl shadow-2xl border border-gray-800 bg-gray-900">
+    <div className="overflow-x-auto rounded-2xl border border-gray-800 shadow-inner bg-gray-900/60 backdrop-blur-sm">
       <table className="min-w-full text-sm text-left">
         <thead>
-          <tr className="text-gray-300 bg-gray-800 uppercase tracking-wider">
-            <th className="px-6 py-4 rounded-tl-2xl">ID</th>
-            <th className="px-6 py-4">Usuario</th>
-            <th className="px-6 py-4">PayPal</th>
-            <th className="px-6 py-4 text-right">Monto</th>
-            <th className="px-6 py-4 text-right">Recibe</th>
-            <th className="px-6 py-4">Estado</th>
-            <th className="px-6 py-4 rounded-tr-2xl">Fecha</th>
+          <tr className="text-gray-300 bg-gray-800/70 uppercase tracking-wider text-xs">
+            <th className="px-4 sm:px-6 py-4 rounded-tl-2xl whitespace-nowrap">ID</th>
+            <th className="px-4 sm:px-6 py-4">Usuario</th>
+            <th className="px-4 sm:px-6 py-4">PayPal</th>
+            <th className="px-4 sm:px-6 py-4 text-right">Monto</th>
+            <th className="px-4 sm:px-6 py-4 text-right">Recibe</th>
+            <th className="px-4 sm:px-6 py-4">Estado</th>
+            <th className="px-4 sm:px-6 py-4 rounded-tr-2xl">Fecha</th>
           </tr>
         </thead>
         <tbody>
@@ -43,21 +43,23 @@ export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Prop
             <tr
               key={order.id}
               onClick={() => onOpenChat(order)}
-              className={`transition-all duration-150 ease-in-out cursor-pointer border-t border-gray-800 ${
-                index % 2 === 0 ? "bg-gray-900" : "bg-gray-850"
-              } hover:bg-gray-800/60`}
+              className={`transition-all duration-150 cursor-pointer border-t border-gray-800 ${
+                index % 2 === 0 ? "bg-gray-900/40" : "bg-gray-900/30"
+              } hover:bg-gray-800/50`}
             >
-              <td className="px-6 py-4 font-mono text-xs text-gray-400 truncate w-[120px]">{order.id.substring(0, 8)}...</td>
-              <td className="px-6 py-4">
+              <td className="px-4 sm:px-6 py-4 font-mono text-xs text-gray-400 truncate w-[100px] sm:w-[120px]">
+                {order.id.substring(0, 8)}...
+              </td>
+              <td className="px-4 sm:px-6 py-4">
                 <div className="font-semibold text-gray-200 truncate max-w-[160px]">{order.user?.fullName || "—"}</div>
                 <div className="text-gray-400 text-xs truncate max-w-[180px]">{order.user?.email || "—"}</div>
               </td>
-              <td className="px-6 py-4 text-gray-300 truncate max-w-[180px]">{order.paypalEmail}</td>
-              <td className="px-6 py-4 text-right font-bold text-blue-400">${order.amount.toFixed(2)}</td>
-              <td className="px-6 py-4 text-right font-bold text-green-400">
+              <td className="px-4 sm:px-6 py-4 text-gray-300 truncate max-w-[180px]">{order.paypalEmail}</td>
+              <td className="px-4 sm:px-6 py-4 text-right font-bold text-blue-400">${order.amount.toFixed(2)}</td>
+              <td className="px-4 sm:px-6 py-4 text-right font-bold text-green-400">
                 {order.finalUsdt ? `${order.finalUsdt.toFixed(2)} USDT` : `${order.finalUsd.toFixed(2)} ${order.to}`}
               </td>
-              <td className="px-6 py-4">
+              <td className="px-4 sm:px-6 py-4">
                 <div className="flex items-center gap-2">
                   {getStatusDisplay(order.status)}
                   <select
@@ -72,7 +74,7 @@ export default function OrdersTable({ orders, onOpenChat, onStatusChange }: Prop
                   </select>
                 </div>
               </td>
-              <td className="px-6 py-4 text-xs text-gray-400">
+              <td className="px-4 sm:px-6 py-4 text-xs text-gray-400">
                 <div>{new Date(order.createdAt).toLocaleDateString()}</div>
                 <div className="flex items-center gap-2">
                   {new Date(order.createdAt).toLocaleTimeString()}

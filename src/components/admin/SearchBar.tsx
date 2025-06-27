@@ -1,5 +1,3 @@
-// components/admin/SearchBar.tsx
-
 "use client";
 
 interface Props {
@@ -15,7 +13,7 @@ export default function SearchBar({ value, onChange }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Buscar órdenes por nombre, email, PayPal o wallet..."
-        className="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 shadow-lg"
+        className="w-full px-5 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all duration-300 shadow-md focus:shadow-emerald-500/10"
       />
     </div>
   );

@@ -10,9 +10,7 @@ import SearchBar from "@/components/admin/SearchBar";
 import PaginationControls from "@/components/admin/PaginationControls";
 import { Loader2, CircleX } from "lucide-react";
 
-const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), {
-  ssr: false,
-});
+const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), { ssr: false });
 
 const PAGE_SIZE = 10;
 
@@ -116,18 +114,30 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-8 font-inter overflow-hidden">
-      <div className="absolute inset-0 z-0 opacity-10" style={{
-        background: 'radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
-      }} />
+    <div className="min-h-screen bg-gray-950 text-gray-100 px-4 sm:px-6 md:px-8 py-6 font-inter relative">
+      {/* Fondo premium */}
+      <div
+        className="absolute inset-0 -z-10 opacity-10"
+        style={{
+          background:
+            "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
+        }}
+      />
 
-      <div className="relative z-10 max-w-7xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg">
+      {/* Título */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg">
           Dashboard de Órdenes
         </h1>
+      </div>
 
+      {/* Barra de búsqueda */}
+      <div className="max-w-4xl mx-auto mb-6">
         <SearchBar value={search} onChange={setSearch} />
+      </div>
 
+      {/* Contenido principal */}
+      <div className="max-w-7xl mx-auto">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 text-lg">
             <Loader2 className="animate-spin mb-4" size={32} />
@@ -139,16 +149,21 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <>
-            <OrdersTable
-              orders={paginatedOrders}
-              onStatusChange={updateStatus}
-              onOpenChat={handleOpenChat}
-            />
-            <PaginationControls page={page} setPage={setPage} totalPages={totalPages} />
+            <div className="overflow-x-auto rounded-xl shadow-inner shadow-black/10 border border-gray-800 bg-gray-900/40 backdrop-blur-md">
+              <OrdersTable
+                orders={paginatedOrders}
+                onStatusChange={updateStatus}
+                onOpenChat={handleOpenChat}
+              />
+            </div>
+            <div className="mt-6 flex justify-center">
+              <PaginationControls page={page} setPage={setPage} totalPages={totalPages} />
+            </div>
           </>
         )}
       </div>
 
+      {/* Modal de chat */}
       {isChatOpen && selectedOrderId && (
         <OrderChatModal
           orderId={selectedOrderId}
