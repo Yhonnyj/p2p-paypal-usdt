@@ -1,11 +1,28 @@
 'use client';
 
-import { SignIn } from "@clerk/nextjs";
+import { SignIn, useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const ADMIN_CLERK_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // 👈 tu ID real
 
 export default function SignInPage() {
+  const router = useRouter();
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (user) {
+      if (user.id === ADMIN_CLERK_ID) {
+        router.replace("/admin/orders");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+  }, [isLoaded, user, router]);
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0" />
