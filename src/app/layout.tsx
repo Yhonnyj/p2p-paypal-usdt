@@ -2,6 +2,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AddToHomeModal from "@/components/AddToHomeModal";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // 👈 AÑADIDO
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,10 +31,9 @@ export const metadata = {
     title: "TuCapi | Plataforma P2P para latinos",
     description:
       "Convierte PayPal a USDT o fiat en segundos. Alternativa a El Dorado App. 100% regulada.",
-    creator: "@tucapi", // cámbialo si tienes un Twitter
+    creator: "@tucapi",
   },
 };
-
 
 export default function RootLayout({
   children,
@@ -44,6 +44,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="es">
         <head>
+          <GoogleAnalytics /> {/* 👈 INYECTADO AQUÍ */}
           <link rel="manifest" href="/manifest.json" />
           <meta name="theme-color" content="#10B981" />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
@@ -57,8 +58,8 @@ export default function RootLayout({
           <script src="https://cdn.getdidit.com/verify.js" defer></script>
         </head>
         <body className={inter.className}>
-            <AddToHomeModal />
-            {children}
+          <AddToHomeModal />
+          {children}
         </body>
       </html>
     </ClerkProvider>
