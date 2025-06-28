@@ -76,6 +76,7 @@ export default async function Home() {
         ))}
       </section>
 
+
       <section className="w-full text-center bg-gradient-to-r from-emerald-600 to-teal-500 text-white p-16 rounded-xl shadow-2xl max-w-4xl mb-12 relative z-10">
         <h2 className="text-4xl md:text-5xl font-extrabold mb-5 leading-tight animate-fadeInUp">
           ¡Tu Cambio perfecto, comienza aquí!
@@ -99,6 +100,10 @@ export default async function Home() {
           <a href="/terms" className="underline hover:text-emerald-400 transition-colors">Términos y Condiciones</a>
           <span>|</span>
           <a href="/privacy" className="underline hover:text-emerald-400 transition-colors">Política de Privacidad</a>
+        </div>
+        {/* Información de regulación */}
+        <div className="mt-6 text-sm text-gray-400">
+          <p>Caibo INC, figura registrada ante FINTRAC (MSB) bajo el número M23238298 desde el 4 de agosto de 2023, habilitada para ofrecer servicios de cambio de divisas tradicionales y operaciones con monedas virtuales. Nuestra actividad se encuentra enmarcada dentro de la normativa vigente en materia de prevención de lavado de activos y financiamiento del terrorismo.</p>
         </div>
       </footer>
     </main>

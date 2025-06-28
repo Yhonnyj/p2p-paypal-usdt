@@ -9,6 +9,13 @@ const FaqPage = () => {
       answer:
         'TuCapi es tu plataforma P2P segura y eficiente para intercambiar PayPal por USDT y/o Bolívares (BS) y pronto otras monedas fiat. Tus transacciones son directamente con nosotros, por eso son rápidas y sin complicaciones, eliminando intermediarios innecesarios.',
     },
+
+      {
+    question: '¿Por qué nació TuCapi?',
+    answer:
+      'TuCapi nace como una solución confiable para la comunidad latina tras el cierre de plataformas reconocidas como LocalBitcoins y El Dorado App. Luego de años operando como comerciantes verificados, decidimos crear nuestra propia plataforma profesional y regulada para seguir ofreciendo intercambios seguros, rápidos y con atención directa, especialmente a quienes dependen de PayPal como medio de pago.',
+  },
+
     {
       question: '¿Es seguro usar TuCapi?',
       answer:

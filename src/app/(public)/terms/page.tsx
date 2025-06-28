@@ -10,17 +10,17 @@ export default function TermsPage() {
         <p className="text-gray-400">Última actualización: 15 Junio 2025</p>
 
         <p>
-          Bienvenido a <strong>Tu Capi</strong>, una plataforma operada por <strong>Caibo INC</strong>, registrada como Money Services Business (MSB) bajo FINTRAC en Canadá. Al acceder y utilizar nuestros servicios, usted acepta quedar vinculado por los presentes Términos y Condiciones.
+          Bienvenido a <strong>Tu Capi</strong>, una plataforma operada por <strong>Caibo INC</strong>, registrada como Money Services Business (MSB) bajo FINTRAC. Al acceder y utilizar nuestros servicios, usted acepta quedar vinculado por los presentes Términos y Condiciones.
         </p>
 
         <h2 className="text-2xl font-semibold text-teal-300">1. Objeto del Servicio</h2>
         <p>
-          Tu Capi ofrece una solución simple y rápida para el intercambio de fondos desde PayPal a criptomonedas (como USDT) o monedas fiduciarias (como Bolívares). El servicio es <strong>P2P no custodial</strong>, es decir:
+          Tu Capi ofrece una solución simple y rápida para el intercambio de fondos desde plataformas de pago de terceros (como PAYPAL) a criptomonedas (como USDT) o monedas fiduciarias (como Bolívares). El servicio es <strong>P2P no custodial</strong>, es decir:
         </p>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
           <li>No almacenamos fondos ni criptomonedas.</li>
           <li>No ofrecemos wallets internas.</li>
-          <li>Las criptomonedas se envían directamente a las direcciones que usted proporcione.</li>
+          <li>Las criptomonedas o moneda fiat se envían directamente a las direcciones que el cliente proporcione.</li>
         </ul>
 
         <h2 className="text-2xl font-semibold text-teal-300">2. Registro y Verificación</h2>
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <li>Completar exitosamente nuestro proceso de verificación de identidad (KYC).</li>
         </ul>
         <p>
-          El KYC es obligatorio como parte de nuestro cumplimiento ante FINTRAC (MSB Canadá). Nos reservamos el derecho de rechazar usuarios que no cumplan con los requisitos de verificación.
+          El KYC es obligatorio como parte de nuestro cumplimiento ante FINTRAC (MSB). Nos reservamos el derecho de rechazar usuarios que no cumplan con los requisitos de verificación.
         </p>
 
         <h2 className="text-2xl font-semibold text-teal-300">3. Comisiones y Cotizaciones</h2>
@@ -44,11 +44,11 @@ export default function TermsPage() {
         <h2 className="text-2xl font-semibold text-teal-300">4. Responsabilidad del Usuario</h2>
         <p>Usted es responsable de proporcionar:</p>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
-          <li>Su correo PayPal correctamente.</li>
-          <li>La dirección de wallet cripto correcta.</li>
+          <li>Su correo o datos de pagos correctamente.</li>
+          <li>La dirección de billetera o informacion a donde recibir los fondos correctos.</li>
         </ul>
         <p>
-          <strong>Tu Capi no se hace responsable</strong> por pérdidas derivadas de direcciones mal ingresadas o datos incorrectos. Una vez enviado el monto acordado a la dirección proporcionada, la transacción se considera completada y no reembolsable.
+          <strong>Tu Capi no se hace responsable</strong> por pérdidas derivadas de direcciones mal ingresadas o datos incorrectos. Una vez enviado el monto acordado a la dirección proporcionada, la transacción se considera completada y no reembolsable, por tal razon no puede hacer algun reclamo.
         </p>
 
         <h2 className="text-2xl font-semibold text-teal-300">5. Soporte</h2>
@@ -76,7 +76,6 @@ export default function TermsPage() {
           Nos reservamos el derecho de modificar estos Términos y Condiciones en cualquier momento. Le recomendamos revisarlos periódicamente.
         </p>
 
-       
         <h2 className="text-2xl font-semibold text-teal-300">8. Política contra Disputas y Reversiones</h2>
         <p>
           Cualquier intento de reversar pagos (chargebacks), abrir disputas o realizar contracargos en plataformas como PayPal, luego de haber recibido los fondos en cripto o fiat, será considerado un intento de fraude.
@@ -94,12 +93,17 @@ export default function TermsPage() {
           Todas las transacciones son auditadas y registradas con evidencia verificable de entrega (hash on-chain, recibos, capturas de pantalla, y comunicaciones). <strong>Intentar realizar una reversión tras recibir los fondos constituye un delito de estafa.</strong>
         </p>
 
-
-         <h2 className="text-2xl font-semibold text-teal-300">9. Ley Aplicable</h2>
+        <h2 className="text-2xl font-semibold text-teal-300">9. Ley Aplicable</h2>
         <p>
           Estos Términos se rigen por las leyes de <strong>Canadá</strong>, provincia de <strong>Ontario</strong>. Cualquier disputa será resuelta por los tribunales de dicha jurisdicción.
         </p>
+      </div>
 
+      {/* Información de regulación */}
+      <div className="max-w-3xl mx-auto mt-10 text-sm text-gray-400 border-t border-gray-700 pt-6">
+        <p>
+          Caibo INC, figura registrada ante FINTRAC (MSB) bajo el número M23238298 desde el 4 de agosto de 2023, habilitada para ofrecer servicios de cambio de divisas tradicionales y operaciones con monedas virtuales. Nuestra actividad se encuentra enmarcada dentro de la normativa vigente en materia de prevención de lavado de activos y financiamiento del terrorismo.
+        </p>
       </div>
     </main>
   );

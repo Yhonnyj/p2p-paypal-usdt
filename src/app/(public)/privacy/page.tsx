@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
         <p className="text-gray-400">Última actualización: 15 Junio 2025</p>
 
         <p>
-          En <strong>Tu Capi</strong>, operado por <strong>Caibo INC</strong> desde Canadá, nos comprometemos a proteger la privacidad de nuestros usuarios y la seguridad de sus datos personales. Esta Política de Privacidad explica cómo recopilamos, usamos y protegemos tu información.
+          En <strong>Tu Capi</strong>, operado por <strong>Caibo INC</strong>, nos comprometemos a proteger la privacidad de nuestros usuarios y la seguridad de sus datos personales. Esta Política de Privacidad explica cómo recopilamos, usamos y protegemos tu información.
         </p>
 
         <h2 className="text-2xl font-semibold text-teal-300">1. Información que Recopilamos</h2>
@@ -26,12 +26,12 @@ export default function PrivacyPolicyPage() {
 
         <h2 className="text-2xl font-semibold text-teal-300">2. Uso de la Información</h2>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
-          <li>Verificar tu identidad (KYC) según normativa de FINTRAC (Canadá).</li>
+          <li>Verificar tu identidad (KYC) según normativa de FINTRAC (MSB).</li>
           <li>Procesar las transacciones y garantizar su correcto cumplimiento.</li>
           <li>Ofrecer soporte en caso de incidencias.</li>
           <li>Cumplir con requerimientos legales y prevenir actividades ilícitas.</li>
         </ul>
-        <p>Nunca venderemos ni compartiremos tu información personal con terceros con fines comerciales, ya que está protegida por las leyes canadienses de compartimiento de información.</p>
+        <p>Nunca venderemos ni compartiremos tu información personal con terceros con fines comerciales, ya que está protegida por las leyes de compartimiento de información.</p>
 
         <h2 className="text-2xl font-semibold text-teal-300">3. Conservación de Datos</h2>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
@@ -48,9 +48,9 @@ export default function PrivacyPolicyPage() {
         <h2 className="text-2xl font-semibold text-teal-300">5. Terceros</h2>
         <p>Podemos utilizar servicios de terceros como:</p>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
-          <li>Clerk: para autenticación segura.</li>
-          <li>Pusher: para notificaciones en tiempo real.</li>
-          <li>Cloudinary: para almacenar imágenes/documentos.</li>
+          <li>Para autenticación segura.</li>
+          <li>Para notificaciones en tiempo real.</li>
+          <li>Para almacenar imágenes/documentos.</li>
           <li>Proveedores de KYC (si aplica).</li>
         </ul>
         <p>Todos cumplen normativas internacionales de protección de datos.</p>
@@ -89,6 +89,13 @@ export default function PrivacyPolicyPage() {
           <li>Correo: <a href="mailto:soporte@tucapi.com" className="text-emerald-400 underline">soporte@tucapi.com</a></li>
           <li>Formulario disponible en el sitio web</li>
         </ul>
+
+        {/* Información de regulación */}
+        <div className="mt-10 text-sm text-gray-400 border-t border-gray-700 pt-6">
+          <p>
+            Caibo INC, figura registrada ante FINTRAC (MSB) bajo el número M23238298 desde el 4 de agosto de 2023, habilitada para ofrecer servicios de cambio de divisas tradicionales y operaciones con monedas virtuales. Nuestra actividad se encuentra enmarcada dentro de la normativa vigente en materia de prevención de lavado de activos y financiamiento del terrorismo.
+          </p>
+        </div>
       </div>
     </main>
   );
