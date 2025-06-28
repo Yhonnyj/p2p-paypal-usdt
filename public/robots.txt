@@ -1,4 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
 
 Sitemap: https://tucapi.com/sitemap.xml
