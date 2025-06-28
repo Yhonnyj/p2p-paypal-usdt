@@ -6,15 +6,34 @@ import AddToHomeModal from "@/components/AddToHomeModal";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "TuCapi",
-  description: "Tu plataforma privada de cambio",
+  title: "TuCapi | Cambia PayPal a USDT o Moneda fiat como Bolívares al instante",
+  description:
+    "Convierte PayPal a USDT o Moneda fiat comoBolívares con rapidez, seguridad y atención directa. Plataforma P2P regulada pensada para la comunidad latina.",
+  keywords:
+    "paypal a usdt, paypal a bolívares, cambiar paypal, el dorado alternativa, p2p regulado, crypto venezuela",
   manifest: "/manifest.json",
   themeColor: "#10B981",
   icons: {
     icon: "/icon-192x192.png",
     apple: "/icon-192x192.png",
   },
+  openGraph: {
+    title: "TuCapi | Tu dinero directo a tu wallet",
+    description:
+      "Plataforma P2P regulada para convertir PayPal en cripto o moneda local. Rápida, segura y confiable.",
+    url: "https://tucapi.com",
+    type: "website",
+    siteName: "TuCapi",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TuCapi | Plataforma P2P para latinos",
+    description:
+      "Convierte PayPal a USDT o fiat en segundos. Alternativa a El Dorado App. 100% regulada.",
+    creator: "@tucapi", // cámbialo si tienes un Twitter
+  },
 };
+
 
 export default function RootLayout({
   children,
