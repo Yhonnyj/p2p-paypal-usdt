@@ -1,5 +1,3 @@
-// src/app/api/orders/[orderId]/confirm-payment/route.ts
-
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
@@ -26,7 +24,19 @@ export async function POST(
     return NextResponse.json({ error: "Orden no válida o no autorizada" }, { status: 403 });
   }
 
-  // Crear mensaje en DB
+  // ⚠️ Verificar si ya existe un mensaje de confirmación
+  const existingMessage = await prisma.message.findFirst({
+    where: {
+      orderId,
+      content: "🟡 El cliente indicó que ya realizó el pago en PayPal.",
+    },
+  });
+
+  if (existingMessage) {
+    return NextResponse.json({ success: true, alreadyConfirmed: true });
+  }
+
+  // ✅ Crear mensaje en la DB
   const message = await prisma.message.create({
     data: {
       orderId,
@@ -38,7 +48,7 @@ export async function POST(
     },
   });
 
-  // Emitir por Pusher
+  // ✅ Emitir por Pusher
   await pusherServer.trigger(`order-${orderId}`, "new-message", {
     id: message.id,
     content: message.content,

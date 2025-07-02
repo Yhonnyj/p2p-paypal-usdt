@@ -69,6 +69,7 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const windowFocusedRef = useRef(true);
+const [hasClicked, setHasClicked] = useState(false);
 
   // Helper function to format date - MEJORA DE UX
   const formatMessageDate = (dateString: string) => {
@@ -88,20 +89,23 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
     }
   };
 
-  const fetchMessages = useCallback(async () => {
-    setFetchingMessages(true);
-    try {
-      const res = await fetch(`/api/orders/${orderId}/messages`);
-      if (!res.ok) throw new Error('Failed to fetch messages');
-      const data = await res.json();
-      setMessages(data);
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      toast.error("Error al cargar mensajes.");
-    } finally {
-      setFetchingMessages(false);
-    }
-  }, [orderId]);
+const fetchMessages = useCallback(async () => {
+  setFetchingMessages(true);
+  try {
+    const res = await fetch(`/api/orders/${orderId}/messages`);
+    if (!res.ok) throw new Error('Failed to fetch messages');
+
+    const { messages } = await res.json();
+    setMessages(messages);
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    toast.error("Error al cargar mensajes.");
+  } finally {
+    setFetchingMessages(false);
+  }
+}, [orderId]);
+
+
 
   useEffect(() => {
     const handleFocus = () => (windowFocusedRef.current = true);
@@ -621,26 +625,27 @@ channel.bind("new-message", (data: Message) => {
               )}
               <div ref={bottomRef} />
             </div>
-
 {(() => {
   const isSameEmail =
     currentUserEmail &&
     orderData?.user?.email &&
     currentUserEmail.toLowerCase().trim() === orderData.user.email.toLowerCase().trim();
 
-  console.log("📬 currentUserEmail:", currentUserEmail);
-  console.log("📦 orderData.user.email:", orderData?.user?.email);
-  console.log("✅ Coinciden (mostrar botón):", isSameEmail);
-
-  return (
+  const shouldShowButton =
     currentUserEmail &&
     orderData?.user?.email &&
     orderData?.id &&
-    isSameEmail && (
+    orderData?.status === "PENDING" &&
+    isSameEmail &&
+    !hasClicked;
+
+  return (
+    shouldShowButton && (
       <div className="mt-4 text-center">
         <button
           onClick={async () => {
             try {
+              setHasClicked(true); // ✅ Oculta el botón al hacer clic
               const res = await fetch(`/api/orders/${orderData.id}/confirm-payment`, {
                 method: "POST",
               });
@@ -648,11 +653,13 @@ channel.bind("new-message", (data: Message) => {
               const data = await res.json();
 
               if (!res.ok) {
+                setHasClicked(false); // Vuelve a mostrar si hubo error
                 alert(data.error || "Error al confirmar el pago");
               } else {
-                alert("Pago confirmado. Esperando verificación de TuCapi.");
+                alert("✅ Pago confirmado. Esperando verificación de TuCapi.");
               }
             } catch (error) {
+              setHasClicked(false);
               console.error("❌ Error al confirmar pago:", error);
               alert("Ocurrió un error inesperado.");
             }
@@ -665,6 +672,7 @@ channel.bind("new-message", (data: Message) => {
     )
   );
 })()}
+
 
 
 
