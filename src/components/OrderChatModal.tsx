@@ -622,7 +622,10 @@ channel.bind("new-message", (data: Message) => {
               <div ref={bottomRef} />
             </div>
 
-{currentUserEmail && orderData?.user?.email && orderData?.id && currentUserEmail === orderData.user.email && (
+{currentUserEmail &&
+ orderData?.user?.email &&
+ orderData?.id &&
+ currentUserEmail === orderData.user.email && (
   <div className="mt-4 text-center">
     <button
       onClick={async () => {
@@ -636,18 +639,20 @@ channel.bind("new-message", (data: Message) => {
           if (!res.ok) {
             alert(data.error || "Error al confirmar el pago");
           } else {
-            alert("Pago confirmado. Esperando verificación de TuCapi.");
+            alert("✅ Pago confirmado. Esperando verificación de TuCapi.");
           }
         } catch (error) {
           console.error("❌ Error al confirmar pago:", error);
+          alert("Ocurrió un error inesperado.");
         }
       }}
-      className="inline-block px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg"
+      className="inline-block mt-2 px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg shadow-md transition duration-150"
     >
       He pagado
     </button>
   </div>
 )}
+
 
 
 
