@@ -1,4 +1,3 @@
-// components/Navbar.tsx
 'use client'; // Esto es importante para componentes interactivos en Next.js App Router
 
 import Link from 'next/link';
@@ -11,25 +10,26 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-900 bg-opacity-80 backdrop-blur-md z-50 shadow-lg py-4">
       <div className="container mx-auto px-6 flex justify-between items-center">
-  {/* Logo de la marca */}
-  <Link href="/" passHref legacyBehavior>
-    <a className="flex items-center space-x-3 group">
-      <Image
-        src="/tu-capi-logo2.png" // Logo del capibara
-        alt="Logo TuCapi"
-        width={60}
-        height={60}
-        className="rounded-full border border-emerald-500 transform group-hover:scale-110 transition-transform duration-200"
-      />
-      <Image
-        src="/tu-capi-letras.png" // Logo tipográfico, asegúrate que esté en /public
-        alt="TuCapi Letras"
-        width={120}
-        height={40}
-        className="transform group-hover:scale-105 transition-transform duration-200"
-      />
-    </a>
-  </Link>
+        {/* Logo de la marca */}
+        <Link href="/" passHref legacyBehavior>
+          <a className="flex items-center space-x-3 group">
+            <Image
+              src="/tu-capi-logo2.png"
+              alt="Logo TuCapi"
+              width={60}
+              height={60}
+              className="rounded-full border border-emerald-500 transform group-hover:scale-110 transition-transform duration-200"
+            />
+            <Image
+              src="/tu-capi-letras.png"
+              alt="TuCapi Letras"
+              width={120}
+              height={40}
+              className="transform group-hover:scale-105 transition-transform duration-200"
+            />
+          </a>
+        </Link>
+
         {/* Menú de navegación principal (escritorio) */}
         <div className="hidden md:flex space-x-8 items-center">
           <Link href="/" passHref legacyBehavior>
@@ -50,6 +50,14 @@ export default function Navbar() {
               <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-emerald-400 group-hover:w-full transition-all duration-300 ease-out"></span>
             </a>
           </Link>
+
+          {/* Redes Sociales (escritorio) */}
+          <a href="https://www.instagram.com/tucapi.app/" target="_blank" rel="noopener noreferrer">
+            <Image src="/instagram-icon.png" alt="Instagram" width={24} height={24} className="hover:scale-110 transition-transform" />
+          </a>
+          <a href="https://x.com/TuCapiApp" target="_blank" rel="noopener noreferrer">
+            <Image src="/x-icon.png" alt="X" width={24} height={24} className="hover:scale-110 transition-transform" />
+          </a>
         </div>
 
         {/* Botones de acción (escritorio) */}
@@ -73,7 +81,7 @@ export default function Navbar() {
             className="text-gray-300 focus:outline-none focus:text-emerald-300"
             aria-label="Toggle menu"
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
               ) : (
@@ -97,6 +105,17 @@ export default function Navbar() {
             <Link href="/contact" passHref legacyBehavior>
               <a onClick={() => setIsOpen(false)} className="block text-gray-300 hover:text-emerald-300 transition-colors duration-200 text-lg font-medium">Contacto</a>
             </Link>
+
+            {/* Redes sociales (móvil) */}
+            <div className="flex gap-4 pt-2">
+              <a href="https://www.instagram.com/tucapi.app/" target="_blank" rel="noopener noreferrer">
+                <Image src="/instagram-icon.png" alt="Instagram" width={24} height={24} className="hover:scale-110 transition-transform" />
+              </a>
+              <a href="https://x.com/TuCapiApp" target="_blank" rel="noopener noreferrer">
+                <Image src="/x-icon.png" alt="X" width={24} height={24} className="hover:scale-110 transition-transform" />
+              </a>
+            </div>
+
             <div className="pt-4 border-t border-gray-700">
               <Link href="/sign-in" passHref legacyBehavior>
                 <a onClick={() => setIsOpen(false)} className="block w-full text-center px-6 py-3 rounded-full bg-gray-800 text-emerald-300 border border-emerald-600 font-semibold mb-2 transition-all duration-300 ease-out-quart hover:bg-emerald-600 hover:text-white">
