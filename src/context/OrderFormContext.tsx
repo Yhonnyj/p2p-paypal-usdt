@@ -47,6 +47,7 @@ interface OrderFormContextProps {
 const OrderFormContext = createContext<OrderFormContextProps | undefined>(undefined);
 
 export function OrderFormProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter(); // ✅ MOVIDO AQUÍ
   const [monto, setMonto] = useState(100);
   const [paypalEmail, setPaypalEmail] = useState("");
   const [network, setNetwork] = useState("TRC20");
@@ -63,15 +64,17 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<AlertType>("error");
 
-  const rate = selectedDestinationCurrency === "USDT"
-    ? (exchangeRates.find(r => r.currency === "USD")?.rate ?? 1)
-    : (exchangeRates.find(r => r.currency === selectedDestinationCurrency)?.rate ?? null);
+  const rate =
+    selectedDestinationCurrency === "USDT"
+      ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
+      : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
 
-  const montoRecibido = feePercent !== null && rate !== null
-    ? (selectedDestinationCurrency === "USDT"
-      ? monto * (1 - feePercent / 100)
-      : monto * (1 - feePercent / 100) * rate)
-    : 0;
+  const montoRecibido =
+    feePercent !== null && rate !== null
+      ? selectedDestinationCurrency === "USDT"
+        ? monto * (1 - feePercent / 100)
+        : monto * (1 - feePercent / 100) * rate
+      : 0;
 
   const displayAlert = (message: string, type: AlertType = "error") => {
     setAlertMessage(message);
@@ -89,16 +92,16 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       displayAlert("Completa el correo PayPal.");
       return;
     }
-let recipientDetails: {
-  type?: string;
-  currency?: string;
-  wallet?: string;
-  network?: string;
-  bankName?: string;
-  phoneNumber?: string;
-  idNumber?: string;
-} = {};
 
+    let recipientDetails: {
+      type?: string;
+      currency?: string;
+      wallet?: string;
+      network?: string;
+      bankName?: string;
+      phoneNumber?: string;
+      idNumber?: string;
+    } = {};
 
     if (selectedDestinationCurrency === "USDT") {
       if (!wallet) {
@@ -150,15 +153,14 @@ let recipientDetails: {
         body: JSON.stringify(payload),
       });
 
-    const router = useRouter();
-    const data = await res.json();
-if (res.ok) {
-  router.push(`/dashboard/orders?chat=open&id=${data.id}`);
-  return;
-} else {
-  displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
-}
+      const data = await res.json();
 
+      if (res.ok) {
+        router.push(`/dashboard/orders?chat=open&id=${data.id}`);
+        return;
+      } else {
+        displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
+      }
     } catch (err) {
       console.error("❌ Error al crear orden:", err);
       displayAlert("Error al crear la orden.");
