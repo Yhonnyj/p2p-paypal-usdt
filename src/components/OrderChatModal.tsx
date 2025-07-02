@@ -622,6 +622,36 @@ channel.bind("new-message", (data: Message) => {
               <div ref={bottomRef} />
             </div>
 
+{currentUserEmail === orderData?.user.email && orderData?.id && (
+  <div className="mt-4 text-center">
+    <button
+      onClick={async () => {
+        try {
+          const res = await fetch(`/api/orders/${orderData.id}/confirm-payment`, {
+            method: "POST",
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.error || "Error al confirmar el pago");
+          } else {
+            alert("Pago confirmado. Esperando verificación de TuCapi.");
+          }
+        } catch (error) {
+          console.error("❌ Error al confirmar pago:", error);
+        }
+      }}
+      className="inline-block px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg"
+    >
+      He pagado
+    </button>
+  </div>
+)}
+
+
+
+
             {/* --- Área de previsualización de archivo con animación --- */}
             <AnimatePresence>
               {filePreview && (

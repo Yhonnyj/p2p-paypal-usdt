@@ -102,7 +102,7 @@ export async function POST(req: Request) {
 // ✅ Mensaje automático desde el bot
 await prisma.message.create({
   data: {
-    content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda Un operador ser asignado pronto.",
+    content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda un operador sera asignadp pronto.",
     senderId: "cmclws6rl0000vh38t04argqp", // ID del bot
     orderId: order.id,
   },
@@ -111,7 +111,7 @@ await prisma.message.create({
 // ✅ Emitir mensaje del bot por Pusher
 await pusherServer.trigger(`order-${order.id}`, "new-message", {
   id: "auto-message-" + Date.now(),
-  content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda Un operador ser asignado pronto.",
+  content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda un operador sera asignado pronto.",
   createdAt: new Date().toISOString(),
   imageUrl: null,
   sender: {
