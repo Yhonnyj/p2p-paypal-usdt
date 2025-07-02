@@ -639,13 +639,20 @@ channel.bind("new-message", (data: Message) => {
     isSameEmail &&
     !hasClicked;
 
+  // 🔍 Logs para ver por qué no se muestra
+  console.log("📬 currentUserEmail:", currentUserEmail);
+  console.log("📦 orderData.user.email:", orderData?.user?.email);
+  console.log("🔁 isSameEmail:", isSameEmail);
+  console.log("📄 Estado de la orden:", orderData?.status);
+  console.log("👀 Mostrar botón:", shouldShowButton);
+
   return (
     shouldShowButton && (
       <div className="mt-4 text-center">
         <button
           onClick={async () => {
             try {
-              setHasClicked(true); // ✅ Oculta el botón al hacer clic
+              setHasClicked(true);
               const res = await fetch(`/api/orders/${orderData.id}/confirm-payment`, {
                 method: "POST",
               });
@@ -653,7 +660,7 @@ channel.bind("new-message", (data: Message) => {
               const data = await res.json();
 
               if (!res.ok) {
-                setHasClicked(false); // Vuelve a mostrar si hubo error
+                setHasClicked(false);
                 alert(data.error || "Error al confirmar el pago");
               } else {
                 alert("✅ Pago confirmado. Esperando verificación de TuCapi.");
@@ -672,7 +679,6 @@ channel.bind("new-message", (data: Message) => {
     )
   );
 })()}
-
 
 
 
