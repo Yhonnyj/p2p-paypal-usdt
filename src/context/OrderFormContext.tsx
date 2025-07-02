@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { pusherClient } from "@/lib/pusher";
+import { useRouter } from "next/navigation";
 
 export type AlertType = "success" | "error";
 
@@ -149,21 +150,15 @@ let recipientDetails: {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        displayAlert("✅ Orden creada exitosamente.", "success");
-        setMonto(100);
-        setPaypalEmail("");
-        setWallet("");
-        setNetwork("TRC20");
-        setBankName("");
-        setBsPhoneNumber("");
-        setBsIdNumber("");
-        setSelectedDestinationCurrency("USDT");
-        setSelectedPlatform("PayPal");
-      } else {
-        displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
-      }
+    const router = useRouter();
+    const data = await res.json();
+if (res.ok) {
+  router.push(`/dashboard/orders?chat=open&id=${data.id}`);
+  return;
+} else {
+  displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
+}
+
     } catch (err) {
       console.error("❌ Error al crear orden:", err);
       displayAlert("Error al crear la orden.");

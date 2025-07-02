@@ -41,24 +41,32 @@ const statusIcons = {
 };
 
 export default function OrdersPage() {
-  console.log("🔁 Render OrdersPage");
-
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
 
   useEffect(() => {
-    console.log("🟢 useEffect ejecutado en OrdersPage");
-
     const fetchOrders = async () => {
-      console.log("📡 Llamando /api/orders desde useEffect");
       try {
         const res = await fetch("/api/orders");
-        const data = await res.json();
+        const data: Order[] = await res.json();
+
         if (res.ok) {
-          console.log("✅ Órdenes cargadas correctamente");
           setOrders(data);
+
+          const params = new URLSearchParams(window.location.search);
+          const chat = params.get("chat");
+          const id = params.get("id");
+
+          if (chat === "open" && id) {
+            const matchedOrder = data.find((o) => o.id === id);
+            if (matchedOrder) {
+              setChatOrderId(matchedOrder.id);
+              setSelectedOrderDetails(matchedOrder);
+              window.history.replaceState(null, "", "/dashboard/orders");
+            }
+          }
         } else {
           console.error("❌ Error cargando órdenes:", data);
         }
@@ -78,12 +86,10 @@ export default function OrdersPage() {
     const channel = pusher.subscribe("orders-channel");
 
     channel.bind("order-created", (newOrder: Order) => {
-      console.log("📥 Nueva orden recibida vía Pusher:", newOrder);
       setOrders((prev) => [newOrder, ...prev]);
     });
 
     channel.bind("order-updated", (updatedOrder: Order) => {
-      console.log("🔄 Orden actualizada vía Pusher:", updatedOrder);
       setOrders((prev) =>
         prev.map((order) =>
           order.id === updatedOrder.id ? { ...order, status: updatedOrder.status } : order
@@ -92,7 +98,6 @@ export default function OrdersPage() {
     });
 
     return () => {
-      console.log("🔌 Desuscribiendo de Pusher");
       channel.unbind_all();
       channel.unsubscribe();
       pusher.disconnect();
@@ -183,6 +188,7 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+
 
       {chatOrderId && selectedOrderDetails && (
         <OrderChatModal
