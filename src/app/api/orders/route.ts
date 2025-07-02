@@ -85,22 +85,46 @@ export async function POST(req: Request) {
       : 0;
 
     const order = await prisma.order.create({
-      data: {
-        user: { connect: { id: dbUser.id } },
-        platform,
-        amount,
-        finalUsd,
-        finalUsdt,
-        paypalEmail,
-        status: "PENDING",
-        to: orderDetails.to,
-        wallet: orderDetails.wallet,
-      },
-      include: { user: true },
-    });
+  data: {
+    user: { connect: { id: dbUser.id } },
+    platform,
+    amount,
+    finalUsd,
+    finalUsdt,
+    paypalEmail,
+    status: "PENDING",
+    to: orderDetails.to,
+    wallet: orderDetails.wallet,
+  },
+  include: { user: true },
+});
 
-    // ✅ Notificar vía Pusher
-    await pusherServer.trigger("orders-channel", "order-created", order);
+// ✅ Mensaje automático desde el bot
+await prisma.message.create({
+  data: {
+    content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda Un operador ser asignado pronto.",
+    senderId: "cmclws6rl0000vh38t04argqp", // ID del bot
+    orderId: order.id,
+  },
+});
+
+// ✅ Emitir mensaje del bot por Pusher
+await pusherServer.trigger(`order-${order.id}`, "new-message", {
+  id: "auto-message-" + Date.now(),
+  content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda Un operador ser asignado pronto.",
+  createdAt: new Date().toISOString(),
+  imageUrl: null,
+  sender: {
+    id: "cmclws6rl0000vh38t04argqp",
+    fullName: "Soporte Automático",
+    email: "bot@tucapi.com",
+  },
+  senderId: "cmclws6rl0000vh38t04argqp",
+  orderId: order.id,
+});
+
+// ✅ Notificar vía Pusher la creación de orden
+await pusherServer.trigger("orders-channel", "order-created", order);
 
     // Notificar por email
 await resend.emails.send({
