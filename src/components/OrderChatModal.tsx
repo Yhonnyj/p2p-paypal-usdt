@@ -622,7 +622,7 @@ channel.bind("new-message", (data: Message) => {
               <div ref={bottomRef} />
             </div>
 
-{currentUserEmail === orderData?.user.email && orderData?.id && (
+{currentUserEmail && orderData?.user?.email && orderData?.id && currentUserEmail === orderData.user.email && (
   <div className="mt-4 text-center">
     <button
       onClick={async () => {
@@ -648,6 +648,7 @@ channel.bind("new-message", (data: Message) => {
     </button>
   </div>
 )}
+
 
 
 
