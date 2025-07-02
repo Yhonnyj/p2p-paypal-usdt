@@ -622,36 +622,50 @@ channel.bind("new-message", (data: Message) => {
               <div ref={bottomRef} />
             </div>
 
-{currentUserEmail &&
- orderData?.user?.email &&
- orderData?.id &&
- currentUserEmail === orderData.user.email && (
-  <div className="mt-4 text-center">
-    <button
-      onClick={async () => {
-        try {
-          const res = await fetch(`/api/orders/${orderData.id}/confirm-payment`, {
-            method: "POST",
-          });
+{(() => {
+  const isSameEmail =
+    currentUserEmail &&
+    orderData?.user?.email &&
+    currentUserEmail.toLowerCase().trim() === orderData.user.email.toLowerCase().trim();
 
-          const data = await res.json();
+  console.log("📬 currentUserEmail:", currentUserEmail);
+  console.log("📦 orderData.user.email:", orderData?.user?.email);
+  console.log("✅ Coinciden (mostrar botón):", isSameEmail);
 
-          if (!res.ok) {
-            alert(data.error || "Error al confirmar el pago");
-          } else {
-            alert("✅ Pago confirmado. Esperando verificación de TuCapi.");
-          }
-        } catch (error) {
-          console.error("❌ Error al confirmar pago:", error);
-          alert("Ocurrió un error inesperado.");
-        }
-      }}
-      className="inline-block mt-2 px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg shadow-md transition duration-150"
-    >
-      He pagado
-    </button>
-  </div>
-)}
+  return (
+    currentUserEmail &&
+    orderData?.user?.email &&
+    orderData?.id &&
+    isSameEmail && (
+      <div className="mt-4 text-center">
+        <button
+          onClick={async () => {
+            try {
+              const res = await fetch(`/api/orders/${orderData.id}/confirm-payment`, {
+                method: "POST",
+              });
+
+              const data = await res.json();
+
+              if (!res.ok) {
+                alert(data.error || "Error al confirmar el pago");
+              } else {
+                alert("Pago confirmado. Esperando verificación de TuCapi.");
+              }
+            } catch (error) {
+              console.error("❌ Error al confirmar pago:", error);
+              alert("Ocurrió un error inesperado.");
+            }
+          }}
+          className="inline-block mt-2 px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg shadow-md transition duration-150"
+        >
+          He pagado
+        </button>
+      </div>
+    )
+  );
+})()}
+
 
 
 
