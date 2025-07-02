@@ -70,6 +70,8 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const windowFocusedRef = useRef(true);
 const [hasClicked, setHasClicked] = useState(false);
+const [clientEmail, setClientEmail] = useState<string | null>(null);
+
 
   // Helper function to format date - MEJORA DE UX
   const formatMessageDate = (dateString: string) => {
@@ -93,9 +95,15 @@ const fetchMessages = useCallback(async () => {
   setFetchingMessages(true);
   try {
     const res = await fetch(`/api/orders/${orderId}/messages`);
-    if (!res.ok) throw new Error('Failed to fetch messages');
+    if (!res.ok) throw new Error("Failed to fetch messages");
 
-    const { messages } = await res.json();
+    const { order, messages } = await res.json();
+
+    // ✅ Guardar email del cliente
+    if (order?.user?.email) {
+      setClientEmail(order.user.email);
+    }
+
     setMessages(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -627,17 +635,19 @@ channel.bind("new-message", (data: Message) => {
             </div>
 {(() => {
   const isSameEmail =
-    currentUserEmail &&
-    orderData?.user?.email &&
-    currentUserEmail.toLowerCase().trim() === orderData.user.email.toLowerCase().trim();
+  currentUserEmail &&
+  clientEmail &&
+  currentUserEmail.toLowerCase().trim() === clientEmail.toLowerCase().trim();
+
 
   const shouldShowButton =
-    currentUserEmail &&
-    orderData?.user?.email &&
-    orderData?.id &&
-    orderData?.status === "PENDING" &&
-    isSameEmail &&
-    !hasClicked;
+  currentUserEmail &&
+  clientEmail &&
+  orderData?.id &&
+  orderData?.status === "PENDING" &&
+  isSameEmail &&
+  !hasClicked;
+
 
   // 🔍 Logs para ver por qué no se muestra
   console.log("📬 currentUserEmail:", currentUserEmail);
