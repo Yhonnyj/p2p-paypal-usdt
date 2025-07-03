@@ -12,11 +12,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const res = await fetch('https://api.clerk.com/v1/client/sessions', {
+    const res = await fetch('https://api.clerk.com/v1/sign_in_attempts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY!}`,
       },
       body: JSON.stringify({
         identifier: email,
@@ -28,25 +28,16 @@ export async function POST(req: Request) {
 
     if (!res.ok) {
       const message = data?.errors?.[0]?.message || 'Error al iniciar sesión';
-
-      console.error('🔴 Clerk error:', message);
-      console.error('📄 Clerk response:', JSON.stringify(data));
-
       return NextResponse.json({ error: message }, { status: res.status });
     }
 
     return NextResponse.json({
-      sessionId: data.id,
+      sessionId: data.created_session_id,
       userId: data.user_id,
-      token: data.last_active_token?.jwt,
+      status: data.status,
     });
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('❌ Error en mobile login:', error.message);
-    } else {
-      console.error('❌ Error en mobile login:', String(error));
-    }
-
+  } catch (error: any) {
+    console.error('❌ Error en mobile login:', error?.message || error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
