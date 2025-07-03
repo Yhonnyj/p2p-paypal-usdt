@@ -28,6 +28,10 @@ export async function POST(req: Request) {
 
     if (!res.ok) {
       const message = data?.errors?.[0]?.message || 'Error al iniciar sesión';
+
+      console.error('🔴 Clerk error:', message);
+      console.error('📄 Clerk response:', JSON.stringify(data));
+
       return NextResponse.json({ error: message }, { status: res.status });
     }
 
@@ -38,9 +42,9 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Error en mobile login:', error.message);
+      console.error('❌ Error en mobile login:', error.message);
     } else {
-      console.error('Error en mobile login:', String(error));
+      console.error('❌ Error en mobile login:', String(error));
     }
 
     return NextResponse.json(
