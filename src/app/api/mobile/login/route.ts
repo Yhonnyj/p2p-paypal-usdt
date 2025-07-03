@@ -6,14 +6,17 @@ export async function POST(req: Request) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email y contraseña requeridos' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Email y contraseña requeridos' },
+        { status: 400 }
+      );
     }
 
     const res = await fetch('https://api.clerk.com/v1/client/sessions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`, // asegúrate de tener esta variable en tu .env
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
       },
       body: JSON.stringify({
         identifier: email,
@@ -31,10 +34,18 @@ export async function POST(req: Request) {
     return NextResponse.json({
       sessionId: data.id,
       userId: data.user_id,
-      token: data.last_active_token?.jwt, // opcional: token JWT si lo devuelven
+      token: data.last_active_token?.jwt,
     });
-  } catch (error: any) {
-    console.error('Error en mobile login:', error);
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error en mobile login:', error.message);
+    } else {
+      console.error('Error en mobile login:', String(error));
+    }
+
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    );
   }
 }
