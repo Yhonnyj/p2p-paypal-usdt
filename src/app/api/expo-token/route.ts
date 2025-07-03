@@ -22,7 +22,8 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    return new NextResponse("Error al guardar el token", { status: 500 });
-  }
+  } catch {
+  return new NextResponse("Error al guardar el token", { status: 500 });
+}
+
 }
