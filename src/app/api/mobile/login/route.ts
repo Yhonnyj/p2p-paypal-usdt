@@ -36,8 +36,9 @@ export async function POST(req: Request) {
       userId: data.user_id,
       status: data.status,
     });
-  } catch (error: any) {
-    console.error('❌ Error en mobile login:', error?.message || error);
+  } catch (error) {
+    const err = error as Error;
+    console.error('❌ Error en mobile login:', err.message);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
