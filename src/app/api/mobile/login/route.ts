@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Paso 1: Intentar iniciar sesión (sign_in_attempt)
+    // Paso 1: Iniciar intento de login
     const signInAttemptRes = await fetch('https://api.clerk.com/v1/sign_in_attempts', {
       method: 'POST',
       headers: {
@@ -32,9 +32,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: message }, { status: signInAttemptRes.status });
     }
 
-    const { created_session_id, user_id } = signInData;
+    const { created_session_id } = signInData;
 
-    // Paso 2: Crear sesión
+    // Paso 2: Crear sesión usando el session_id retornado
     const sessionRes = await fetch('https://api.clerk.com/v1/sessions', {
       method: 'POST',
       headers: {
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       sessionId: sessionData.id,
       userId: sessionData.user_id,
-      token: sessionData.last_active_token?.jwt, // puedes guardar este token si lo necesitas
+      token: sessionData.last_active_token?.jwt ?? null, // Puedes guardar este token si lo necesitas
     });
   } catch (error) {
     const err = error as Error;
