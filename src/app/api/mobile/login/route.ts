@@ -12,7 +12,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const res = await fetch('https://api.clerk.com/v1/sign_in_attempts', {
+    // Paso 1: Intentar iniciar sesión (sign_in_attempt)
+    const signInAttemptRes = await fetch('https://api.clerk.com/v1/sign_in_attempts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -24,17 +25,38 @@ export async function POST(req: Request) {
       }),
     });
 
-    const data = await res.json();
+    const signInData = await signInAttemptRes.json();
 
-    if (!res.ok) {
-      const message = data?.errors?.[0]?.message || 'Error al iniciar sesión';
-      return NextResponse.json({ error: message }, { status: res.status });
+    if (!signInAttemptRes.ok) {
+      const message = signInData?.errors?.[0]?.message || 'Credenciales inválidas';
+      return NextResponse.json({ error: message }, { status: signInAttemptRes.status });
+    }
+
+    const { created_session_id, user_id } = signInData;
+
+    // Paso 2: Crear sesión
+    const sessionRes = await fetch('https://api.clerk.com/v1/sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY!}`,
+      },
+      body: JSON.stringify({
+        session_id: created_session_id,
+      }),
+    });
+
+    const sessionData = await sessionRes.json();
+
+    if (!sessionRes.ok) {
+      const message = sessionData?.errors?.[0]?.message || 'Error al crear sesión';
+      return NextResponse.json({ error: message }, { status: sessionRes.status });
     }
 
     return NextResponse.json({
-      sessionId: data.created_session_id,
-      userId: data.user_id,
-      status: data.status,
+      sessionId: sessionData.id,
+      userId: sessionData.user_id,
+      token: sessionData.last_active_token?.jwt, // puedes guardar este token si lo necesitas
     });
   } catch (error) {
     const err = error as Error;
