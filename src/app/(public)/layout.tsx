@@ -1,6 +1,7 @@
-'use client';
+// app/(public)/layout.tsx
+'use client'; // Este layout debe ser un Client Component porque el Navbar lo es.
 
-import Navbar from '@/components/Navbar';
+import Navbar from '@/components/Navbar'; // Ajusta la ruta si es necesario (asumiendo components está un nivel arriba de app)
 
 export default function PublicLayout({
   children,
@@ -8,9 +9,11 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <Navbar />
-      <main className="pt-20 px-4 sm:px-6">{children}</main>
-    </div>
+    <>
+      <Navbar /> {/* <-- Aquí colocamos tu Navbar premium */}
+      <div className="pt-20"> {/* <-- Añade padding-top para evitar que el contenido quede bajo el Navbar fijo */}
+        {children}
+      </div>
+    </>
   );
 }

@@ -63,6 +63,7 @@ model User {
   messages      Message[]      @relation("UserMessages")
   verifications Verification[]
   paymentMethods PaymentMethod[]
+  expoPushToken  String? 
 }
 
 enum OrderStatus {
