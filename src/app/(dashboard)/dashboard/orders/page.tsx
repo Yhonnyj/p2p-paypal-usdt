@@ -5,7 +5,7 @@ import {
   Loader2,
   CheckCircle,
   Clock,
-  XCircle,
+  CircleX,
   MessageSquareText,
   Hourglass,
   Ban,
@@ -46,7 +46,7 @@ const statusColors = {
 const statusIcons = {
   PENDING: <Clock className="w-5 h-5 animate-pulse" />,
   COMPLETED: <CheckCircle className="w-5 h-5" />,
-  CANCELLED: <XCircle className="w-5 h-5" />,
+  CANCELLED: <CircleX className="w-5 h-5" />,
 };
 
 export default function OrdersPage() {
@@ -125,18 +125,22 @@ export default function OrdersPage() {
           Historial de Órdenes
         </h1>
 
-        {/* 📊 Resumen de estados */}
-        <div className="flex justify-center gap-4 mb-6 text-sm sm:text-base text-gray-300 font-medium">
-          <div className="flex items-center gap-2 bg-gray-800/70 border border-gray-700 px-3 py-2 rounded-lg">
-            <Hourglass className="w-4 h-4 text-yellow-400" /> {summary.PENDING} pendientes
-          </div>
-          <div className="flex items-center gap-2 bg-gray-800/70 border border-gray-700 px-3 py-2 rounded-lg">
-            <CheckCircle className="w-4 h-4 text-green-400" /> {summary.COMPLETED} completadas
-          </div>
-          <div className="flex items-center gap-2 bg-gray-800/70 border border-gray-700 px-3 py-2 rounded-lg">
-            <Ban className="w-4 h-4 text-red-400" /> {summary.CANCELLED} canceladas
-          </div>
-        </div>
+     {/* Resumen de órdenes */}
+<div className="flex flex-wrap justify-center gap-4 mb-6">
+  <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
+    <Clock className="text-yellow-400 w-4 h-4" />
+    <span>{orders.filter((o) => o.status === "PENDING").length} pendientes</span>
+  </div>
+  <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
+    <CheckCircle className="text-green-400 w-4 h-4" />
+    <span>{orders.filter((o) => o.status === "COMPLETED").length} completadas</span>
+  </div>
+  <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
+    <CircleX className="text-red-400 w-4 h-4" />
+    <span>{orders.filter((o) => o.status === "CANCELLED").length} canceladas</span>
+  </div>
+</div>
+
 
         {/* Filtro por estado */}
         <div className="mb-6 text-center">
