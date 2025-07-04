@@ -1,6 +1,16 @@
 "use client";
 
-import { Zap, Loader2, CheckCircle, Clock, XCircle, MessageSquareText } from "lucide-react";
+import {
+  Zap,
+  Loader2,
+  CheckCircle,
+  Clock,
+  XCircle,
+  MessageSquareText,
+  ListChecks,
+  Hourglass,
+  Ban,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Pusher from "pusher-js";
@@ -102,12 +112,32 @@ export default function OrdersPage() {
     setSelectedOrderDetails(order);
   };
 
+  const summary = {
+    PENDING: orders.filter((o) => o.status === "PENDING").length,
+    COMPLETED: orders.filter((o) => o.status === "COMPLETED").length,
+    CANCELLED: orders.filter((o) => o.status === "CANCELLED").length,
+  };
+
   return (
     <div className="flex-1 text-white p-8 font-inter overflow-y-auto">
       <div className="relative z-10 max-w-4xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
-          <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} /> Historial de Órdenes
+          <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} />
+          Historial de Órdenes
         </h1>
+
+        {/* 📊 Resumen de estados */}
+        <div className="flex justify-center gap-4 mb-6 text-sm sm:text-base text-gray-300 font-medium">
+          <div className="flex items-center gap-2 bg-gray-800/70 border border-gray-700 px-3 py-2 rounded-lg">
+            <Hourglass className="w-4 h-4 text-yellow-400" /> {summary.PENDING} pendientes
+          </div>
+          <div className="flex items-center gap-2 bg-gray-800/70 border border-gray-700 px-3 py-2 rounded-lg">
+            <CheckCircle className="w-4 h-4 text-green-400" /> {summary.COMPLETED} completadas
+          </div>
+          <div className="flex items-center gap-2 bg-gray-800/70 border border-gray-700 px-3 py-2 rounded-lg">
+            <Ban className="w-4 h-4 text-red-400" /> {summary.CANCELLED} canceladas
+          </div>
+        </div>
 
         {/* Filtro por estado */}
         <div className="mb-6 text-center">
