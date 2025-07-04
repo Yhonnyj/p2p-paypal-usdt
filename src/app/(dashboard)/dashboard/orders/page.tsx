@@ -109,35 +109,35 @@ export default function OrdersPage() {
     setSelectedOrderDetails(order);
   };
 
-  const summary = {
-    PENDING: orders.filter((o) => o.status === "PENDING").length,
-    COMPLETED: orders.filter((o) => o.status === "COMPLETED").length,
-    CANCELLED: orders.filter((o) => o.status === "CANCELLED").length,
-  };
+const summary = {
+  PENDING: orders.filter((o) => o.status === "PENDING").length,
+  COMPLETED: orders.filter((o) => o.status === "COMPLETED").length,
+  CANCELLED: orders.filter((o) => o.status === "CANCELLED").length,
+};
 
-  return (
-    <div className="flex-1 text-white p-8 font-inter overflow-y-auto">
-      <div className="relative z-10 max-w-4xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
-          <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} />
-          Historial de Órdenes
-        </h1>
+return (
+  <div className="flex-1 text-white p-8 font-inter overflow-y-auto">
+    <div className="relative z-10 max-w-4xl mx-auto">
+      <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
+        <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} />
+        Historial de Órdenes
+      </h1>
 
-     {/* Resumen de órdenes */}
-<div className="flex flex-wrap justify-center gap-4 mb-6">
-  <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
-    <Clock className="text-yellow-400 w-4 h-4" />
-    <span>{orders.filter((o) => o.status === "PENDING").length} pendientes</span>
-  </div>
-  <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
-    <CheckCircle className="text-green-400 w-4 h-4" />
-    <span>{orders.filter((o) => o.status === "COMPLETED").length} completadas</span>
-  </div>
-  <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
-    <CircleX className="text-red-400 w-4 h-4" />
-    <span>{orders.filter((o) => o.status === "CANCELLED").length} canceladas</span>
-  </div>
-</div>
+      {/* Resumen de órdenes */}
+      <div className="flex flex-wrap justify-center gap-4 mb-6">
+        <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
+          <Clock className="text-yellow-400 w-4 h-4" />
+          <span>{summary.PENDING} pendientes</span>
+        </div>
+        <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
+          <CheckCircle className="text-green-400 w-4 h-4" />
+          <span>{summary.COMPLETED} completadas</span>
+        </div>
+        <div className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-600 bg-gray-800 text-white text-sm min-w-[100px]">
+          <CircleX className="text-red-400 w-4 h-4" />
+          <span>{summary.CANCELLED} canceladas</span>
+        </div>
+      </div>
 
 
         {/* Filtro por estado */}
