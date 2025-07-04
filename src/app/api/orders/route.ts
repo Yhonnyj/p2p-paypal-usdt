@@ -1,12 +1,10 @@
-// src/app/api/orders/route.ts
-
 export const dynamic = "force-dynamic";
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { pusherServer } from "@/lib/pusher"; // ✅ Pusher
-import { resend } from "@/lib/resend"; // ✅ Este import es necesario
-
+import { pusherServer } from "@/lib/pusher";
+import { resend } from "@/lib/resend";
 
 interface RecipientDetails {
   type: "USDT" | "FIAT";
@@ -85,78 +83,71 @@ export async function POST(req: Request) {
       : 0;
 
     const order = await prisma.order.create({
-  data: {
-    user: { connect: { id: dbUser.id } },
-    platform,
-    amount,
-    finalUsd,
-    finalUsdt,
-    paypalEmail,
-    status: "PENDING",
-    to: orderDetails.to,
-    wallet: orderDetails.wallet,
-  },
-  include: { user: true },
-});
+      data: {
+        user: { connect: { id: dbUser.id } },
+        platform,
+        amount,
+        finalUsd,
+        finalUsdt,
+        paypalEmail,
+        status: "PENDING",
+        to: orderDetails.to,
+        wallet: orderDetails.wallet,
+      },
+      include: { user: true },
+    });
 
-// ✅ Mensaje automático desde el bot
-await prisma.message.create({
-  data: {
-    content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda un operador sera asignadp pronto.",
-    senderId: "cmclws6rl0000vh38t04argqp", // ID del bot
-    orderId: order.id,
-  },
-});
+    // ✅ Mensaje automático del bot
+    await prisma.message.create({
+      data: {
+        content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes alguna duda un operador será asignado pronto.",
+        senderId: "cmclws6rl0000vh38t04argqp",
+        orderId: order.id,
+      },
+    });
 
-// ✅ Emitir mensaje del bot por Pusher
-await pusherServer.trigger(`order-${order.id}`, "new-message", {
-  id: "auto-message-" + Date.now(),
-  content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes aguna duda un operador sera asignado pronto.",
-  createdAt: new Date().toISOString(),
-  imageUrl: null,
-  sender: {
-    id: "cmclws6rl0000vh38t04argqp",
-    fullName: "Soporte Automático",
-    email: "bot@tucapi.com",
-  },
-  senderId: "cmclws6rl0000vh38t04argqp",
-  orderId: order.id,
-});
+    await pusherServer.trigger(`order-${order.id}`, "new-message", {
+      id: "auto-message-" + Date.now(),
+      content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes alguna duda un operador será asignado pronto.",
+      createdAt: new Date().toISOString(),
+      imageUrl: null,
+      sender: {
+        id: "cmclws6rl0000vh38t04argqp",
+        fullName: "Soporte Automático",
+        email: "bot@tucapi.com",
+      },
+      senderId: "cmclws6rl0000vh38t04argqp",
+      orderId: order.id,
+    });
 
-// ✅ Notificar vía Pusher la creación de orden
-await pusherServer.trigger("orders-channel", "order-created", order);
+    await pusherServer.trigger("orders-channel", "order-created", order);
 
-    // Notificar por email
-await resend.emails.send({
-  from: "Neva Orden P2P en TuCapi <neworder@tucapi.com>", // Usa dominio verificado
-  to: "info@caibo.ca", // o múltiples destinatarios
-  subject: `🟢Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
-  html: `
-    <h2>Nueva orden recibida</h2>
-    <p><strong>Cliente:</strong> ${order.user.fullName || order.user.email}</p>
-    <p><strong>Plataforma:</strong> ${order.platform}</p>
-    <p><strong>Monto:</strong> $${order.amount.toFixed(2)}</p>
-    <p><strong>Destino:</strong> ${order.to}</p>
-    <p><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString("es-ES")}</p>
-  `
-});
-
+    await resend.emails.send({
+      from: "Nueva Orden P2P en TuCapi <neworder@tucapi.com>",
+      to: "info@caibo.ca",
+      subject: `🟢 Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
+      html: `
+        <h2>Nueva orden recibida</h2>
+        <p><strong>Cliente:</strong> ${order.user.fullName || order.user.email}</p>
+        <p><strong>Plataforma:</strong> ${order.platform}</p>
+        <p><strong>Monto:</strong> $${order.amount.toFixed(2)}</p>
+        <p><strong>Destino:</strong> ${order.to}</p>
+        <p><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString("es-ES")}</p>
+      `,
+    });
 
     return NextResponse.json(order, { status: 201 });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error creando orden:", error);
     if (error instanceof Error) {
-      if (error.name === "PrismaClientValidationError") {
-        return NextResponse.json({ error: "Error de validación en la base de datos" }, { status: 400 });
-      }
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
 
-// ✅ GET: Listar órdenes del usuario autenticado
-export async function GET() {
+// ✅ GET: Listar órdenes del usuario autenticado, con filtro opcional por estado
+export async function GET(req: Request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
@@ -164,13 +155,19 @@ export async function GET() {
     const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!dbUser) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status") as "PENDING" | "COMPLETED" | "CANCELLED" | null;
+
     const orders = await prisma.order.findMany({
-      where: { userId: dbUser.id },
+      where: {
+        userId: dbUser.id,
+        ...(status ? { status } : {}),
+      },
       orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(orders);
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error cargando órdenes:", error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

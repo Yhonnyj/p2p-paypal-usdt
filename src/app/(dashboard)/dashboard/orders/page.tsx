@@ -43,40 +43,29 @@ const statusIcons = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch("/api/orders");
-        const data: Order[] = await res.json();
-
-        if (res.ok) {
-          setOrders(data);
-
-          const params = new URLSearchParams(window.location.search);
-          const chat = params.get("chat");
-          const id = params.get("id");
-
-          if (chat === "open" && id) {
-            const matchedOrder = data.find((o) => o.id === id);
-            if (matchedOrder) {
-              setChatOrderId(matchedOrder.id);
-              setSelectedOrderDetails(matchedOrder);
-              window.history.replaceState(null, "", "/dashboard/orders");
-            }
-          }
-        } else {
-          console.error("❌ Error cargando órdenes:", data);
-        }
-      } catch (error) {
-        console.error("❌ Error general:", error);
-      } finally {
-        setLoading(false);
+  const fetchOrders = async (status?: OrderStatus | "ALL") => {
+    setLoading(true);
+    try {
+      const url = status && status !== "ALL" ? `/api/orders?status=${status}` : `/api/orders`;
+      const res = await fetch(url);
+      const data: Order[] = await res.json();
+      if (res.ok) {
+        setOrders(data);
+      } else {
+        console.error("❌ Error cargando órdenes:", data);
       }
-    };
+    } catch (error) {
+      console.error("❌ Error general:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchOrders();
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -104,6 +93,10 @@ export default function OrdersPage() {
     };
   }, []);
 
+  useEffect(() => {
+    fetchOrders(statusFilter);
+  }, [statusFilter]);
+
   const handleOpenChatModal = (order: Order) => {
     setChatOrderId(order.id);
     setSelectedOrderDetails(order);
@@ -112,9 +105,24 @@ export default function OrdersPage() {
   return (
     <div className="flex-1 text-white p-8 font-inter overflow-y-auto">
       <div className="relative z-10 max-w-4xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
           <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} /> Historial de Órdenes
         </h1>
+
+        {/* Filtro por estado */}
+        <div className="mb-6 text-center">
+          <label className="text-sm text-gray-400 mr-2 font-semibold">Filtrar por estado:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as OrderStatus | "ALL")}
+            className="bg-gray-800 border border-gray-600 text-white rounded-md px-4 py-2"
+          >
+            <option value="ALL">Todos</option>
+            <option value="PENDING">Pendientes</option>
+            <option value="COMPLETED">Completadas</option>
+            <option value="CANCELLED">Canceladas</option>
+          </select>
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center mt-20 p-8 bg-gray-800/70 backdrop-blur-md rounded-2xl border border-gray-700 shadow-xl animate-fade-in">
@@ -123,7 +131,7 @@ export default function OrdersPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center text-gray-300 text-lg mt-20 p-8 bg-gray-800/70 backdrop-blur-md rounded-2xl border border-gray-700 shadow-lg animate-fade-in">
-            <p className="mb-4">Aún no tienes órdenes registradas.</p>
+            <p className="mb-4">No hay órdenes registradas en este estado.</p>
             <p className="text-sm text-gray-400">¡Comienza una nueva transacción hoy mismo!</p>
           </div>
         ) : (
@@ -167,7 +175,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="sm:col-span-2 md:col-span-1">
                     <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">USDT Recibido</span>
-                    <span className="font-bold text-emerald-400 to-teal-300 text-base">
+                    <span className="font-bold text-emerald-400 text-base">
                       {order.finalUsdt.toFixed(2)} USDT
                     </span>
                   </div>
@@ -188,7 +196,6 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-
 
       {chatOrderId && selectedOrderDetails && (
         <OrderChatModal
