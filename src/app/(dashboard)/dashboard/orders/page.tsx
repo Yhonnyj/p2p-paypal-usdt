@@ -7,8 +7,6 @@ import {
   Clock,
   CircleX,
   MessageSquareText,
-  Hourglass,
-  Ban,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
