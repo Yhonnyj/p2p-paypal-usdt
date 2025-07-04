@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher";
 import { resend } from "@/lib/resend";
+import { sendPushNotification } from "@/lib/sendPushNotification";
+
 
 const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID ?? "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
 
@@ -33,6 +35,25 @@ export async function PATCH(
       data: { status: normalizedStatus },
       include: { user: true },
     });
+
+
+    const pushToken = updatedOrder.user.expoPushToken;
+
+if (pushToken) {
+  await sendPushNotification(
+    pushToken,
+    normalizedStatus === "COMPLETED"
+      ? "✅ Tu orden fue completada"
+      : normalizedStatus === "CANCELLED"
+      ? "❌ Tu orden fue cancelada"
+      : "📦 Estado de orden actualizado",
+    normalizedStatus === "COMPLETED"
+      ? "Gracias por usar TuCapi. Tu orden fue procesada exitosamente."
+      : normalizedStatus === "CANCELLED"
+      ? "Tu orden fue cancelada. Puedes crear una nueva cuando gustes."
+      : `El estado de tu orden cambió a ${normalizedStatus}.`
+  );
+}
 
     // Notificar por Pusher
     await pusherServer.trigger("orders-channel", "order-updated", updatedOrder);

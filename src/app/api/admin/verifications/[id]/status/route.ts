@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import { pusherServer } from "@/lib/pusher"; // ✅ NUEVO
 import { NextResponse } from "next/server";
+import { sendPushNotification } from "@/lib/sendPushNotification";
 
 const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
 
@@ -26,6 +27,8 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
     include: { user: true },
   });
 
+
+  
   // ✅ Notificar al cliente por correo
   if (verification.user.email) {
     const subject =
@@ -56,6 +59,22 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
   await pusherServer.trigger(`user-${verification.user.clerkId}-verification`, "verification-updated", {
   status: verification.status,
 });
+
+
+const pushToken = verification.user.expoPushToken;
+
+if (pushToken) {
+  await sendPushNotification(
+    pushToken,
+    status === "APPROVED"
+      ? "✅ Verificación aprobada"
+      : "❌ Verificación rechazada",
+    status === "APPROVED"
+      ? "Ahora puedes usar todos los servicios de TuCapi."
+      : "Revisa tus documentos y vuelve a intentarlo."
+  );
+}
+
 
 
 // ✅ Notificar al admin

@@ -5,6 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { resend } from "@/lib/resend"; // Asegúrate que esto esté al inicio
+import { sendPushNotification } from "@/lib/sendPushNotification";
+
 
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
@@ -110,6 +112,22 @@ await resend.emails.send({
     <p><strong>Fecha:</strong> ${new Date().toLocaleString("es-ES")}</p>
   `,
 });
+
+
+// ✅ Notificar al admin por Push si tiene token
+const adminUser = await prisma.user.findUnique({
+  where: { clerkId: process.env.ADMIN_CLERK_ID },
+  select: { expoPushToken: true },
+});
+
+if (adminUser?.expoPushToken) {
+  await sendPushNotification(
+    adminUser.expoPushToken,
+    "🔐 Nueva verificación recibida",
+    `${user.fullName || user.email} envió documentos para revisión.`
+  );
+}
+
 
     return NextResponse.json(verification);
   } catch (e) {
