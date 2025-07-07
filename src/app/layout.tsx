@@ -1,15 +1,17 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { esES } from "@clerk/localizations";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AddToHomeModal from "@/components/AddToHomeModal";
-import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // 👈 AÑADIDO
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import WhatsAppSupportButton from "@/components/WhatsAppSupportButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "TuCapi | Cambia PayPal a USDT o Moneda fiat como Bolívares al instante",
   description:
-    "Convierte PayPal a USDT o Moneda fiat comoBolívares con rapidez, seguridad y atención directa. Plataforma P2P regulada pensada para la comunidad latina.",
+    "Convierte PayPal a USDT o Moneda fiat como Bolívares con rapidez, seguridad y atención directa. Plataforma P2P regulada pensada para la comunidad latina.",
   keywords:
     "paypal a usdt, paypal a bolívares, cambiar paypal, el dorado alternativa, p2p regulado, crypto venezuela",
   manifest: "/manifest.json",
@@ -41,10 +43,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={esES}>
       <html lang="es">
         <head>
-          <GoogleAnalytics /> {/* 👈 INYECTADO AQUÍ */}
+          <GoogleAnalytics />
           <link rel="manifest" href="/manifest.json" />
           <meta name="theme-color" content="#10B981" />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
@@ -60,6 +62,7 @@ export default function RootLayout({
         <body className={inter.className}>
           <AddToHomeModal />
           {children}
+          <WhatsAppSupportButton />
         </body>
       </html>
     </ClerkProvider>
