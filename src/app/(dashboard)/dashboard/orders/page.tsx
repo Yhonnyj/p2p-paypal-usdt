@@ -11,6 +11,8 @@ import {
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Pusher from "pusher-js";
+import { useSearchParams } from "next/navigation";
+
 
 const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), {
   ssr: false,
@@ -72,42 +74,58 @@ export default function OrdersPage() {
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
+const searchParams = useSearchParams();
+const autoOpenChat = searchParams.get("chat") === "open";
+const autoOrderId = searchParams.get("id");
 
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
+useEffect(() => {
+  fetchOrders();
 
-    const channel = pusher.subscribe("orders-channel");
+  const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  });
 
-    channel.bind("order-created", (newOrder: Order) => {
-      setOrders((prev) => [newOrder, ...prev]);
-    });
+  const channel = pusher.subscribe("orders-channel");
 
-    channel.bind("order-updated", (updatedOrder: Order) => {
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === updatedOrder.id ? { ...order, status: updatedOrder.status } : order
-        )
-      );
-    });
+  channel.bind("order-created", (newOrder: Order) => {
+    setOrders((prev) => [newOrder, ...prev]);
+  });
 
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-      pusher.disconnect();
-    };
-  }, []);
+  channel.bind("order-updated", (updatedOrder: Order) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === updatedOrder.id ? { ...order, status: updatedOrder.status } : order
+      )
+    );
+  });
 
-  useEffect(() => {
-    fetchOrders(statusFilter);
-  }, [statusFilter]);
-
-  const handleOpenChatModal = (order: Order) => {
-    setChatOrderId(order.id);
-    setSelectedOrderDetails(order);
+  return () => {
+    channel.unbind_all();
+    channel.unsubscribe();
+    pusher.disconnect();
   };
+}, []);
+
+useEffect(() => {
+  fetchOrders(statusFilter);
+}, [statusFilter]);
+
+useEffect(() => {
+  if (autoOpenChat && autoOrderId && orders.length > 0) {
+    const order = orders.find((o) => o.id === autoOrderId);
+    if (order) {
+      setChatOrderId(order.id);
+      setSelectedOrderDetails(order);
+    }
+  }
+}, [autoOpenChat, autoOrderId, orders]);
+
+const handleOpenChatModal = (order: Order) => {
+  setChatOrderId(order.id);
+  setSelectedOrderDetails(order);
+};
+
+
 
 const summary = {
   PENDING: orders.filter((o) => o.status === "PENDING").length,
