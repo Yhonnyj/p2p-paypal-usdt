@@ -3,7 +3,6 @@
 import { Webhook } from "svix";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers"; // 👈 para leer cookie de referido
 
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
 
@@ -40,10 +39,6 @@ const referrerId = cookieHeader
   .split(";")
   .find((c) => c.trim().startsWith("referrerId="))
   ?.split("=")[1];
-
-
-
-      
 
       // ✅ Validar si ese referido realmente existe
       const validReferrer = referrerId
