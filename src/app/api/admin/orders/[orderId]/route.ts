@@ -22,20 +22,51 @@ export async function PATCH(
   }
 
   try {
-    const { status } = await req.json();
-    const normalizedStatus = status.toUpperCase();
-    console.log("🆕 Nuevo estado recibido:", normalizedStatus);
+  const { status } = await req.json();
+  const normalizedStatus = status.toUpperCase();
+  console.log("🆕 Nuevo estado recibido:", normalizedStatus);
 
-    if (!["PENDING", "COMPLETED", "CANCELLED"].includes(normalizedStatus)) {
-      return NextResponse.json({ error: "Estado inválido" }, { status: 400 });
-    }
+  if (!["PENDING", "COMPLETED", "CANCELLED"].includes(normalizedStatus)) {
+    return NextResponse.json({ error: "Estado inválido" }, { status: 400 });
+  }
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: { status: normalizedStatus },
-      include: { user: true },
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: normalizedStatus },
+    include: { user: true },
+  });
+
+  // ✅ Asignar $5 al referidor si aplica
+  if (normalizedStatus === "COMPLETED") {
+    const completedCount = await prisma.order.count({
+      where: {
+        userId: updatedOrder.userId,
+        status: "COMPLETED",
+      },
     });
 
+    if (completedCount === 1 && updatedOrder.user.referrerId) {
+      const yaPagado = await prisma.referralEarning.findFirst({
+        where: {
+          referredUserId: updatedOrder.userId,
+        },
+      });
+
+      if (!yaPagado) {
+        await prisma.referralEarning.create({
+          data: {
+            userId: updatedOrder.user.referrerId,
+            referredUserId: updatedOrder.userId,
+            amount: 5.0,
+          },
+        });
+        console.log("💸 Se otorgaron 5 USDT al referidor.");
+      }
+    }
+  }
+
+
+    
 
     const pushToken = updatedOrder.user.expoPushToken;
 

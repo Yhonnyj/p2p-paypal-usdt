@@ -3,6 +3,7 @@
 import { Webhook } from "svix";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers"; // 👈 para leer cookie de referido
 
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
 
@@ -33,10 +34,35 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Email no encontrado" }, { status: 400 });
       }
 
+     // Extraer manualmente la cookie del header
+const cookieHeader = req.headers.get("cookie") || "";
+const referrerId = cookieHeader
+  .split(";")
+  .find((c) => c.trim().startsWith("referrerId="))
+  ?.split("=")[1];
+
+
+
+      
+
+      // ✅ Validar si ese referido realmente existe
+      const validReferrer = referrerId
+        ? await prisma.user.findUnique({ where: { id: referrerId } })
+        : null;
+
       await prisma.user.upsert({
         where: { clerkId: id },
-        update: { email, fullName },
-        create: { clerkId: id, email, fullName },
+        update: {
+          email,
+          fullName,
+...(validReferrer && { referrerId })
+        },
+        create: {
+          clerkId: id,
+          email,
+          fullName,
+...(validReferrer && { referrerId })
+        },
       });
 
       return NextResponse.json({ message: "Usuario creado" }, { status: 200 });
@@ -44,7 +70,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Evento ignorado" }, { status: 200 });
   } catch (err) {
-    console.error("Error procesando webhook Clerk:", err);
+    console.error("❌ Error procesando webhook Clerk:", err);
     return NextResponse.json({ error: "Webhook inválido o fallo interno" }, { status: 400 });
   }
 }

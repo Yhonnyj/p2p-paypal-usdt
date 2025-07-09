@@ -55,16 +55,34 @@ model Message {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  clerkId       String         @unique
-  email         String         @unique
-  fullName      String? // ← campo opcional como lo tenías
-  orders        Order[]
-  messages      Message[]      @relation("UserMessages")
-  verifications Verification[]
-  paymentMethods PaymentMethod[]
-  expoPushToken  String? 
+  id              String         @id @default(cuid())
+  clerkId         String         @unique
+  email           String         @unique
+  fullName        String?
+  orders          Order[]
+  messages        Message[]      @relation("UserMessages")
+  verifications   Verification[]
+  paymentMethods  PaymentMethod[]
+  expoPushToken   String?
+
+  // 👇 Campos nuevos para referidos
+  referrerId      String?
+  referrer        User?          @relation("UserReferrals", fields: [referrerId], references: [id])
+  referrals       User[]         @relation("UserReferrals")
+  referralEarnings ReferralEarning[]
 }
+
+
+model ReferralEarning {
+  id             String   @id @default(cuid())
+  userId         String   // → el que gana la comisión
+  referredUserId String   // → el que generó la orden
+  amount         Float    @default(5.0)
+  createdAt      DateTime @default(now())
+
+  user           User     @relation(fields: [userId], references: [id])
+}
+
 
 enum OrderStatus {
   PENDING

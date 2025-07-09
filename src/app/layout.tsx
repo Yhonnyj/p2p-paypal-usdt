@@ -5,6 +5,7 @@ import "./globals.css";
 import AddToHomeModal from "@/components/AddToHomeModal";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import WhatsAppSupportButton from "@/components/WhatsAppSupportButton";
+import ReferralTracker from "@/components/ReferralTracker"; // 👈 NUEVO
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -60,6 +61,7 @@ export default function RootLayout({
           <script src="https://cdn.getdidit.com/verify.js" defer></script>
         </head>
         <body className={inter.className}>
+          <ReferralTracker /> {/* 👈 Este se encarga de guardar el referrer */}
           <AddToHomeModal />
           {children}
           <WhatsAppSupportButton />
