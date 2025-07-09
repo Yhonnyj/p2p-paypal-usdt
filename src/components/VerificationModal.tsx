@@ -83,16 +83,17 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
                 className="w-full h-auto object-cover"
               />
             </div>
-            <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow">
-              <Image
-                src="/ejemplo-documento.png"
-                alt="Ejemplo de documento"
-                width={192}
-                height={160}
-                unoptimized
-                className="w-full h-auto object-cover"
-              />
-            </div>
+         <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow bg-white p-1">
+  <Image
+    src="/ejemplo-documento.png"
+    alt="Ejemplo de documento"
+    width={192}
+    height={128}
+    unoptimized
+    className="w-full h-auto object-cover"
+  />
+</div>
+
           </div>
 
           <div className="space-y-4">
