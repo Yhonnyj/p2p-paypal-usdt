@@ -1,8 +1,14 @@
 'use client';
 
 import Image from 'next/image';
+import { useChatStore } from '@/store/chatStore'; // Asegúrate que la ruta sea correcta
 
 export default function WhatsAppSupportButton() {
+  const isChatModalOpen = useChatStore((s) => s.isChatModalOpen);
+
+  // Si el chat modal está abierto, no mostramos el botón de WhatsApp
+  if (isChatModalOpen) return null;
+
   const phoneNumber = '15068998648';
   const defaultMessage = 'Hola%2C%20necesito%20ayuda';
 

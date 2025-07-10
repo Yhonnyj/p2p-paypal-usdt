@@ -9,6 +9,8 @@ import Image from 'next/image';
 import {ArrowLeft, Paperclip, Send, Info, Copy, CheckCircle2, Clock, 
 XCircle, ShieldUser,  User as CircleX, X, Loader2} from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useChatStore } from '@/store/chatStore';
+
 
 // --- ACTUALIZADO: Tipo de Mensaje para incluir imágenes y sender.id ---
 type Message = {
@@ -52,6 +54,8 @@ type Props = {
 export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: Props) {
   const { user } = useUser();
   const currentUserEmail = user?.primaryEmailAddress?.emailAddress;
+  const setIsChatModalOpen = useChatStore((s) => s.setIsChatModalOpen);
+
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -201,6 +205,11 @@ channel.bind("new-message", (data: Message) => {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen, fetchingMessages, sendingMessage]);
+
+  useEffect(() => {
+  setIsChatModalOpen(isOpen);
+}, [isOpen]);
+
 
 
   const handleSendMessage = async () => {
