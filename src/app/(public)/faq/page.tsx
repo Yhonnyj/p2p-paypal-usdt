@@ -13,7 +13,7 @@ const FaqPage = () => {
       {
     question: '¿Por qué nació TuCapi?',
     answer:
-      'TuCapi nace como una solución confiable para la comunidad latina tras el cierre de plataformas reconocidas como LocalBitcoins y El Dorado App. Luego de años operando como comerciantes verificados, decidimos crear nuestra propia plataforma profesional y regulada para seguir ofreciendo intercambios seguros, rápidos y con atención directa, especialmente a quienes dependen de PayPal como medio de pago.',
+      'TuCapi nace como una solución confiable para la comunidad latina tras el cierre de plataformas reconocidas. Luego de años operando como comerciantes verificados, decidimos crear nuestra propia plataforma profesional y regulada para seguir ofreciendo intercambios seguros, rápidos y con atención directa, especialmente a quienes dependen de PayPal como medio de pago.',
   },
 
     {

@@ -7,7 +7,7 @@ export default function TermsPage() {
         <h1 className="text-4xl font-bold text-emerald-400">
           Términos y Condiciones de Uso
         </h1>
-        <p className="text-gray-400">Última actualización: 15 Junio 2025</p>
+        <p className="text-gray-400">Última actualización: Julio 2025</p>
 
         <p>
           Bienvenido a <strong>Tu Capi</strong>, una plataforma operada por <strong>Caibo INC</strong>, registrada como Money Services Business (MSB) bajo FINTRAC. Al acceder y utilizar nuestros servicios, usted acepta quedar vinculado por los presentes Términos y Condiciones.

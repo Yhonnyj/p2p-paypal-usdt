@@ -123,7 +123,7 @@ export async function POST(req: Request) {
     await pusherServer.trigger("orders-channel", "order-created", order);
 
     await resend.emails.send({
-      from: "Nueva Orden P2P en TuCapi <neworder@tucapi.com>",
+      from: "Nueva Orden P2P en TuCapi <notificaciones@tucapi.app>",
       to: "info@caibo.ca",
       subject: `🟢 Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
       html: `

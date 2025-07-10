@@ -92,9 +92,9 @@ if (pushToken) {
    // Enviar email al cliente si se completó la orden
 if (normalizedStatus === "COMPLETED" && updatedOrder.user.email) {
   await resend.emails.send({
-    from: "TuCapi te informa que la orden fue completada. <ordenes.noreply@tucapi.com>",
+    from: "Orden fue completada. <notificaciones@tucapi.app>",
     to: updatedOrder.user.email,
-    subject: "✅ Tu orden ha sido completada",
+    subject: "✅ TuCapi te informa que tu orden ha sido completada",
     html: `
       <h2>¡Gracias por tu pedido!</h2>
       <p>Tu orden en nuestra plataforma ha sido completada con éxito.</p>

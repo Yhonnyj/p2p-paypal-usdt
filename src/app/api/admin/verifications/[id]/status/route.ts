@@ -48,7 +48,7 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
       `;
 
     await resend.emails.send({
-      from: "TuCapi <Verificaciones.noreply@tucapi.com>",
+      from: "TuCapi <notificaciones@tucapi.app>",
       to: verification.user.email,
       subject,
       html,

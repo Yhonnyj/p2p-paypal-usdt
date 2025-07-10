@@ -699,12 +699,6 @@ channel.bind("new-message", (data: Message) => {
   );
 })()}
 
-
-
-
-
-
-
             {/* --- Área de previsualización de archivo con animación --- */}
             <AnimatePresence>
               {filePreview && (

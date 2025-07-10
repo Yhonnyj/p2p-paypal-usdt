@@ -9,7 +9,7 @@ export default function PrivacyPolicyPage() {
         <h1 className="text-4xl font-bold text-emerald-400 flex items-center gap-2">
           <Lock className="w-7 h-7 text-emerald-400" /> Política de Privacidad
         </h1>
-        <p className="text-gray-400">Última actualización: 15 Junio 2025</p>
+        <p className="text-gray-400">Última actualización: Julio 2025</p>
 
         <p>
           En <strong>Tu Capi</strong>, operado por <strong>Caibo INC</strong>, nos comprometemos a proteger la privacidad de nuestros usuarios y la seguridad de sus datos personales. Esta Política de Privacidad explica cómo recopilamos, usamos y protegemos tu información.
