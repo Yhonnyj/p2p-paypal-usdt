@@ -24,10 +24,17 @@ export default async function Home() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-      <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
-          Tu dinero directo a tu wallet.
-        </h1>
+    <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
+
+  {/* 🟡 Aviso nocturno */}
+  <div className="bg-yellow-900 text-yellow-100 text-sm md:text-base text-center py-3 px-4 mb-6 rounded-xl border border-yellow-700 shadow-md animate-fade-in">
+    ⚠️ Toda operación o verificación enviada después de las <strong>9:30 p.m. (hora de Venezuela)</strong> será revisada al siguiente día a partir de las <strong>9:00 a.m.</strong>
+ <strong>Gracias por su comprension</strong>
+  </div>
+
+  <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
+    Tu dinero directo a tu wallet.
+  </h1>
         <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
           Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> casi de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
         </p>
