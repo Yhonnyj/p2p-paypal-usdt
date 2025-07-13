@@ -34,11 +34,12 @@ export default function ManualUploadPage() {
       } else {
         toast.error(data.error || 'Error al subir documentos');
       }
-    } catch (err) {
-      toast.error('Error inesperado');
-    } finally {
-      setLoading(false);
-    }
+   } catch {
+  toast.error('Error inesperado');
+} finally {
+  setLoading(false);
+}
+
   };
 
   return (
