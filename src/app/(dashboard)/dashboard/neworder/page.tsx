@@ -53,6 +53,12 @@ function PedidoFormContent() {
               onChange={(e) => form.setMonto(Number(e.target.value))}
               className="w-full px-5 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white"
             />
+
+      <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow">
+  En TuCapi no hay sorpresas: <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span><br />
+  El monto que quieras cambiar, es el monto que tienes que enviar.
+</p>
+
           </div>
 
           <SummaryCard />

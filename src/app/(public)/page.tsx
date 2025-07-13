@@ -24,30 +24,36 @@ export default async function Home() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-    <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
-
+   <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
   <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
     Tu dinero directo a tu wallet.
   </h1>
-        <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
-          Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> casi de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
-        </p>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-6 mt-10">
-          <Link href="/sign-in" passHref legacyBehavior>
-            <a className="relative px-12 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
-              <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <span className="relative z-10">Iniciar Sesión</span>
-            </a>
-          </Link>
-          <Link href="/sign-up" passHref legacyBehavior>
-            <a className="relative px-12 py-4 rounded-full bg-gray-800 text-emerald-300 border border-emerald-600 font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
-              <span className="absolute inset-0 bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <span className="relative z-10 group-hover:text-white">Regístrate Ahora</span>
-            </a>
-          </Link>
-        </div>
-      </section>
+  <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
+    Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> casi de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
+  </p>
+
+  <p className="text-base sm:text-lg md:text-xl text-green-300 font-semibold mt-6 bg-gray-800/80 border border-green-600 px-6 py-5 rounded-2xl text-center shadow-xl max-w-3xl mx-auto leading-relaxed">
+  En TuCapi no hay sorpresas: <strong className="text-emerald-400">nosotros cubrimos las comisiones de PayPal.</strong><br className="hidden sm:block" />
+</p>
+
+
+  <div className="flex flex-col sm:flex-row justify-center gap-6 mt-10">
+    <Link href="/sign-in" passHref legacyBehavior>
+      <a className="relative px-12 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
+        <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+        <span className="relative z-10">Iniciar Sesión</span>
+      </a>
+    </Link>
+    <Link href="/sign-up" passHref legacyBehavior>
+      <a className="relative px-12 py-4 rounded-full bg-gray-800 text-emerald-300 border border-emerald-600 font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
+        <span className="absolute inset-0 bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+        <span className="relative z-10 group-hover:text-white">Regístrate Ahora</span>
+      </a>
+    </Link>
+  </div>
+</section>
+
 
       <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-12 mt-28 mb-24 px-4 relative z-10">
         {[
