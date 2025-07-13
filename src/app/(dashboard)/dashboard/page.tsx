@@ -152,13 +152,6 @@ export default function DashboardPage() {
       }}></div>
 
 
- {/* 🟡 Aviso nocturno */}
-  <div className="bg-yellow-900 text-yellow-100 text-sm md:text-base text-center py-3 px-4 mb-6 rounded-xl border border-yellow-700 shadow-md animate-fade-in">
-    ⚠️ Toda operación o verificación enviada después de las <strong>9:30 p.m. (hora de Venezuela)</strong> será revisada al siguiente día a partir de las <strong>9:00 a.m.</strong>    
-    
-  <strong>Gracias por su comprension</strong>
-  </div>
-
       <div className="relative z-10 max-w-4xl mx-auto">
         {/* Top bar for User Profile */}
         <div className="flex justify-between items-center mb-12 pt-4">

@@ -1,29 +1,57 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Dialog } from "@headlessui/react";
-import { X } from "lucide-react";
-import Image from "next/image";
+import { useEffect, useState } from 'react';
+import { Dialog } from '@headlessui/react';
+import { X, CheckCircle2 } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function VerificationModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<string | null>(null);
+  const [previewSelfie, setPreviewSelfie] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (documentFile) {
+      const url = URL.createObjectURL(documentFile);
+      setPreviewDoc(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewDoc(null);
+    }
+  }, [documentFile]);
+
+  useEffect(() => {
+    if (selfieFile) {
+      const url = URL.createObjectURL(selfieFile);
+      setPreviewSelfie(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewSelfie(null);
+    }
+  }, [selfieFile]);
 
   const handleSubmit = async () => {
     if (!documentFile || !selfieFile) {
-      setMessage("Debes subir ambos archivos");
+      toast.error("Debes subir ambos archivos");
       return;
     }
 
     if (!documentFile.type.startsWith("image/") || !selfieFile.type.startsWith("image/")) {
-      setMessage("Los archivos deben ser imágenes válidas");
+      toast.error("Los archivos deben ser imágenes válidas");
       return;
     }
 
     setSubmitting(true);
-    setMessage("");
     try {
       const formData = new FormData();
       formData.append("document", documentFile);
@@ -32,22 +60,25 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
       const res = await fetch("/api/verifications", {
         method: "POST",
         body: formData,
-        credentials: "include", // 👈 Esto es CLAVE para que Clerk pase la sesión
+        credentials: "include",
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setMessage(data.error || "Error al enviar verificación");
+        toast.error(data.error || "Error al enviar verificación");
       } else {
-        setMessage("✅ Verificación enviada correctamente");
-        setDocumentFile(null);
-        setSelfieFile(null);
+        toast.success("✅ Verificación enviada correctamente");
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          onClose();
+          setDocumentFile(null);
+          setSelfieFile(null);
+        }, 1500);
       }
-    } catch (err: unknown) { // CAMBIO AQUÍ: 'err: any' a 'err: unknown'
+    } catch (err: unknown) {
       console.error("Error en frontend verificación:", err);
-      // Puedes añadir una comprobación de tipo si necesitas acceder a propiedades específicas de 'err'
-      // Por ejemplo: if (err instanceof Error) { setMessage(err.message); }
-      setMessage("Error inesperado al enviar verificación");
+      toast.error("Error inesperado al enviar verificación");
     } finally {
       setSubmitting(false);
     }
@@ -56,82 +87,119 @@ export default function VerificationModal({ isOpen, onClose }: { isOpen: boolean
   return (
     <Dialog open={isOpen} onClose={onClose} className="fixed z-50 inset-0">
       <div className="flex items-center justify-center min-h-screen backdrop-blur bg-black/30 px-4">
-        <Dialog.Panel className="relative max-w-xl w-full bg-gray-900 text-white p-6 rounded-2xl shadow-xl border border-gray-700">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white"
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.25 }}
+            className="relative max-w-xl w-full bg-gray-900 text-white p-6 rounded-2xl shadow-xl border border-gray-700"
           >
-            <X size={20} />
-          </button>
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              aria-label="Cerrar"
+            >
+              <X size={20} />
+            </button>
 
-          <Dialog.Title className="text-2xl font-bold mb-4 text-green-400">
-            Verificación de Identidad
-          </Dialog.Title>
+            {showSuccess ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <CheckCircle2 size={64} className="text-green-500 mb-4" />
+                <p className="text-lg font-semibold text-green-400">Verificación enviada correctamente</p>
+              </div>
+            ) : (
+              <>
+                <Dialog.Title className="text-2xl font-bold mb-4 text-green-400">
+                  Verificación de Identidad
+                </Dialog.Title>
 
-          <p className="text-sm text-gray-300 mb-4">
-            Sube una selfie sosteniendo tu documento (Pasaporte o Cédula).
-          </p>
+                <p className="text-sm text-gray-300 mb-4">
+                  Sube una selfie sosteniendo tu documento (Pasaporte o Cédula).
+                </p>
 
-          <div className="mb-6 flex justify-center gap-4">
-            <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow">
-              <Image
-                src="/ejemplo-selfie.png"
-                alt="Ejemplo de selfie con documento"
-                width={192}
-                height={160}
-                unoptimized
-                className="w-full h-auto object-cover"
-              />
-            </div>
-         <div className="w-48 rounded-lg overflow-hidden border border-gray-700 shadow bg-white p-1">
-  <Image
-    src="/ejemplo-documento.png"
-    alt="Ejemplo de documento"
-    width={192}
-    height={128}
-    unoptimized
-    className="w-full h-auto object-cover"
-  />
-</div>
+                <div className="mb-6 flex flex-wrap gap-4 justify-center">
+                  <div className="relative w-40 h-28 rounded-lg overflow-hidden border border-gray-700 bg-gray-800 flex items-center justify-center">
+                    {!previewSelfie && (
+                      <span className="absolute top-1 left-1 text-xs bg-green-700 text-white px-1.5 py-0.5 rounded">
+                        Ejemplo
+                      </span>
+                    )}
+                    <img
+                      src={previewSelfie || "/ejemplo-selfie.png"}
+                      alt="Selfie subida"
+                      className="w-full h-full object-cover transition-opacity duration-300"
+                    />
+                    {previewSelfie && (
+                      <div className="absolute top-1 right-1 text-green-500 bg-black/70 p-1 rounded-full animate-bounce">
+                        <CheckCircle2 size={16} />
+                      </div>
+                    )}
+                  </div>
 
-          </div>
+                  <div className="relative w-40 h-28 rounded-lg overflow-hidden border border-gray-700 bg-gray-800 flex items-center justify-center">
+                    {!previewDoc && (
+                      <span className="absolute top-1 left-1 text-xs bg-green-700 text-white px-1.5 py-0.5 rounded">
+                        Ejemplo
+                      </span>
+                    )}
+                    <img
+                      src={previewDoc || "/ejemplo-documento.png"}
+                      alt="Documento subido"
+                      className="w-full h-full object-cover transition-opacity duration-300"
+                    />
+                    {previewDoc && (
+                      <div className="absolute top-1 right-1 text-green-500 bg-black/70 p-1 rounded-full animate-bounce">
+                        <CheckCircle2 size={16} />
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Documento de identidad
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
-                className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700"
-              />
-            </div>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="document" className="block text-sm text-gray-300 mb-1">
+                      Documento de identidad
+                    </label>
+                    <input
+                      id="document"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
+                      className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700"
+                    />
+                  </div>
 
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Selfie con documento en mano
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
-                className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700"
-              />
-            </div>
-          </div>
+                  <div>
+                    <label htmlFor="selfie" className="block text-sm text-gray-300 mb-1">
+                      Selfie con documento en mano
+                    </label>
+                    <input
+                      id="selfie"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
+                      className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700"
+                    />
+                  </div>
+                </div>
 
-          {message && <p className="mt-4 text-sm text-yellow-400">{message}</p>}
-
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
-          >
-            {submitting ? "Enviando..." : "Enviar verificación"}
-          </button>
-        </Dialog.Panel>
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50 flex items-center justify-center transition-transform duration-150 hover:scale-105 active:scale-95"
+                  aria-busy={submitting}
+                >
+                  {submitting ? (
+                    <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                  ) : (
+                    "Enviar verificación"
+                  )}
+                </button>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </Dialog>
   );

@@ -26,12 +26,6 @@ export default async function Home() {
 
     <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
 
-  {/* 🟡 Aviso nocturno */}
-  <div className="bg-yellow-900 text-yellow-100 text-sm md:text-base text-center py-3 px-4 mb-6 rounded-xl border border-yellow-700 shadow-md animate-fade-in">
-    ⚠️ Toda operación o verificación enviada después de las <strong>9:30 p.m. (hora de Venezuela)</strong> será revisada al siguiente día a partir de las <strong>9:00 a.m.</strong>
- <strong>Gracias por su comprension</strong>
-  </div>
-
   <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
     Tu dinero directo a tu wallet.
   </h1>
