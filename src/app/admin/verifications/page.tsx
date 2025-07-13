@@ -169,6 +169,18 @@ const fetchVerifications = async () => {
         animate="visible"
         className="relative z-10 max-w-7xl mx-auto"
       >
+
+       <div className="flex justify-end mb-6">
+  <a
+    href="/admin/manual-upload"
+    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow transition-all duration-200"
+  >
+    <FileText size={18} />
+    Subir documentos manualmente
+  </a>
+</div>
+
+
         {/* Título animado */}
         <motion.h1
           initial={{ opacity: 0, y: -20 }}

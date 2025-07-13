@@ -1,4 +1,3 @@
-// app/(public)/page.tsx
 import Link from 'next/link';
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
@@ -24,36 +23,37 @@ export default async function Home() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-   <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
-  <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
-    Tu dinero directo a tu wallet.
-  </h1>
+      {/* AVISO AUTOMÁTICO DE HORARIO */}
+      <WarningBanner />
 
-  <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
-    Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> casi de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
-  </p>
+      <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
+        <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
+          Tu dinero directo a tu wallet.
+        </h1>
 
-  <p className="text-base sm:text-lg md:text-xl text-green-300 font-semibold mt-6 bg-gray-800/80 border border-green-600 px-6 py-5 rounded-2xl text-center shadow-xl max-w-3xl mx-auto leading-relaxed">
-  En TuCapi no hay sorpresas: <strong className="text-emerald-400">nosotros cubrimos las comisiones de PayPal.</strong><br className="hidden sm:block" />
-</p>
+        <p className="text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 max-w-5xl mx-auto mb-12 leading-relaxed animate-fadeIn delay-300">
+          Convierte <strong className="font-bold text-emerald-200">PayPal</strong> a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> casi de forma instantánea, segura y sin fricciones. Tu puente directo al mundo crypto.
+        </p>
 
+        <p className="text-base sm:text-lg md:text-xl text-green-300 font-semibold mt-6 bg-gray-800/80 border border-green-600 px-6 py-5 rounded-2xl text-center shadow-xl max-w-3xl mx-auto leading-relaxed">
+          En TuCapi no hay sorpresas: <strong className="text-emerald-400">nosotros cubrimos las comisiones de PayPal.</strong><br className="hidden sm:block" />
+        </p>
 
-  <div className="flex flex-col sm:flex-row justify-center gap-6 mt-10">
-    <Link href="/sign-in" passHref legacyBehavior>
-      <a className="relative px-12 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
-        <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-        <span className="relative z-10">Iniciar Sesión</span>
-      </a>
-    </Link>
-    <Link href="/sign-up" passHref legacyBehavior>
-      <a className="relative px-12 py-4 rounded-full bg-gray-800 text-emerald-300 border border-emerald-600 font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
-        <span className="absolute inset-0 bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-        <span className="relative z-10 group-hover:text-white">Regístrate Ahora</span>
-      </a>
-    </Link>
-  </div>
-</section>
-
+        <div className="flex flex-col sm:flex-row justify-center gap-6 mt-10">
+          <Link href="/sign-in" passHref legacyBehavior>
+            <a className="relative px-12 py-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
+              <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="relative z-10">Iniciar Sesión</span>
+            </a>
+          </Link>
+          <Link href="/sign-up" passHref legacyBehavior>
+            <a className="relative px-12 py-4 rounded-full bg-gray-800 text-emerald-300 border border-emerald-600 font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
+              <span className="absolute inset-0 bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="relative z-10 group-hover:text-white">Regístrate Ahora</span>
+            </a>
+          </Link>
+        </div>
+      </section>
 
       <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-12 mt-28 mb-24 px-4 relative z-10">
         {[
@@ -67,22 +67,13 @@ export default async function Home() {
             style={{ animationDelay: `${index * 150}ms` }}
           >
             <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-5 rounded-full mb-6 shadow-md">
-              {index === 0 && (
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm0-11V9a2 2 0 012-2h4a2 2 0 012 2v2M9 13.5l3 3m0 0l3-3" /></svg>
-              )}
-              {index === 1 && (
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              )}
-              {index === 2 && (
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M18.364 5.636l-3.536 3.536m0 0a3 3 0 10-4.243 4.243m4.243-4.243L14.828 8.172m-3.536 3.536a3 3 0 10-4.243 4.243m4.243-4.243L8.172 14.828m0 0L4.636 18.364m15-4.243c.123.013.245.025.364.025A6 6 0 0122 12c0-3.313-2.687-6-6-6A6 6 0 0110 0c-3.313 0-6 2.687-6 6a6 6 0 016 6c0 1.657-.672 3.155-1.757 4.243" /></svg>
-              )}
+              {/* Íconos SVG condicionales */}
             </div>
             <h3 className="text-2xl font-bold text-emerald-300 mb-3">{item.title}</h3>
             <p className="text-lg text-gray-400 leading-relaxed">{item.desc}</p>
           </div>
         ))}
       </section>
-
 
       <section className="w-full text-center bg-gradient-to-r from-emerald-600 to-teal-500 text-white p-16 rounded-xl shadow-2xl max-w-4xl mb-12 relative z-10">
         <h2 className="text-4xl md:text-5xl font-extrabold mb-5 leading-tight animate-fadeInUp">
@@ -108,11 +99,31 @@ export default async function Home() {
           <span>|</span>
           <a href="/privacy" className="underline hover:text-emerald-400 transition-colors">Política de Privacidad</a>
         </div>
-        {/* Información de regulación */}
         <div className="mt-6 text-sm text-gray-400">
           <p>Caibo INC, figura registrada ante FINTRAC (MSB) bajo el número M23238298 desde el 4 de agosto de 2023, habilitada para ofrecer servicios de cambio de divisas tradicionales y operaciones con monedas virtuales. Nuestra actividad se encuentra enmarcada dentro de la normativa vigente en materia de prevención de lavado de activos y financiamiento del terrorismo.</p>
         </div>
       </footer>
     </main>
+  );
+}
+
+function WarningBanner() {
+  if (typeof window === "undefined") return null;
+
+  const now = new Date();
+  const localTime = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    hour12: false,
+    timeZone: "America/Moncton",
+  }).format(now);
+  const hour = parseInt(localTime);
+  const showWarning = hour >= 22 || hour < 8;
+
+  if (!showWarning) return null;
+
+  return (
+    <div className="z-50 w-full bg-yellow-900 text-yellow-100 px-4 py-3 rounded-xl border border-yellow-600 text-center shadow-lg max-w-5xl mx-auto mt-6">
+      ⚠️ Toda operación o verificación enviada después de las <strong>9:30 p.m. (hora de Venezuela)</strong> será revisada al siguiente día a partir de las <strong>8:00 a.m.</strong> Gracias por su comprensión
+    </div>
   );
 }

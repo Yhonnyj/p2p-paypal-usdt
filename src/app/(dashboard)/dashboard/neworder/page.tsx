@@ -2,13 +2,14 @@
 
 import { ArrowRight } from "lucide-react";
 import { useOrderForm } from "@/context/OrderFormContext";
-import { OrderFormProvider } from "@/context/OrderFormContext"; // Asegúrate de que el path sea correcto
+import { OrderFormProvider } from "@/context/OrderFormContext";
 import PlatformSelector from "@/components/neworders/PlatformSelector";
 import DestinationSelector from "@/components/neworders/DestinationSelector";
 import USDTFields from "@/components/neworders/USDTFields";
 import FiatFields from "@/components/neworders/FiatFields";
 import SummaryCard from "@/components/neworders/SummaryCard";
 import AlertModal from "@/components/neworders/AlertModal";
+import WarningBanner from "@/components/WarningBanner"; // ✅ importado
 
 function PedidoFormContent() {
   const form = useOrderForm();
@@ -24,7 +25,11 @@ function PedidoFormContent() {
   return (
     <div className="flex-1 text-white font-inter flex items-center justify-center">
       <div className="w-full max-w-xl rounded-3xl border border-gray-700 bg-gray-900/80 shadow-2xl backdrop-blur-xl p-8 relative overflow-hidden">
-        <h1 className="text-4xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
+
+        {/* ✅ Banner de advertencia horario */}
+        <WarningBanner />
+
+        <h1 className="text-4xl font-extrabold mb-8 mt-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">
           Nuevo Pedido
         </h1>
 
@@ -54,11 +59,10 @@ function PedidoFormContent() {
               className="w-full px-5 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white"
             />
 
-      <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow">
-  En TuCapi no hay sorpresas: <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span><br />
-  El monto que quieras cambiar, es el monto que tienes que enviar.
-</p>
-
+            <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow">
+              En TuCapi no hay sorpresas: <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span><br />
+              El monto que quieras cambiar, es el monto que tienes que enviar.
+            </p>
           </div>
 
           <SummaryCard />
