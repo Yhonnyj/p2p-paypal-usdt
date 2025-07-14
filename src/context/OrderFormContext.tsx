@@ -58,7 +58,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
   const [feePercent, setFeePercent] = useState<number | null>(null);
-  const [baseFeePercent, setBaseFeePercent] = useState<number | null>(null);
+  const [baseFeePercent] = useState<number | null>(null);
   const [finalCommission, setFinalCommission] = useState<number | null>(null);
   const [orderCount, setOrderCount] = useState<number | null>(null);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
