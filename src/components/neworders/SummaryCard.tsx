@@ -12,7 +12,6 @@ export default function SummaryCard() {
     orderCount,
   } = useOrderForm();
 
-  // Mostrar solo si hay cotización y fee
   if (feePercent === null || rate === null || orderCount === null) return null;
 
   const baseRate =
@@ -31,6 +30,17 @@ export default function SummaryCard() {
     ? Math.round(feePercent - commissionAplicada)
     : 0;
 
+  const currentOrderNumber = orderCount + 1;
+
+  let motivoDescuento = "";
+  if (currentOrderNumber === 1) {
+    motivoDescuento = "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!";
+  } else if (currentOrderNumber === 5) {
+    motivoDescuento = "🎉 ¡Obtuviste un 10% de descuento por tu quinta orden!";
+  } else if (currentOrderNumber >= 15) {
+    motivoDescuento = "⭐ ¡Gracias por tu fidelidad! Recibiste un 5% de descuento.";
+  }
+
   return (
     <div className="bg-gray-800/60 rounded-2xl p-6 text-base border border-gray-700 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-green-500/50 mt-8">
       <div className="flex justify-between mb-2">
@@ -39,7 +49,7 @@ export default function SummaryCard() {
           <div className="text-red-400 font-bold text-lg">{baseRate}</div>
           {descuento > 0 && (
             <div className="text-emerald-400 text-xs font-medium mt-1">
-              🎉 Tienes {descuento}% de descuento en esta operación.
+              Descuento aplicado: {descuento}%
             </div>
           )}
         </div>
@@ -60,10 +70,8 @@ export default function SummaryCard() {
         </span>
       </div>
 
-      {descuento > 0 && (
-        <p className="text-sm text-emerald-400 mt-3">
-          🎁 ¡Recibiste un {descuento}% de descuento especial por ser tu {orderCount === 0 ? "primera" : "nueva"} orden!
-        </p>
+      {motivoDescuento && (
+        <p className="text-sm text-emerald-400 mt-3">{motivoDescuento}</p>
       )}
     </div>
   );

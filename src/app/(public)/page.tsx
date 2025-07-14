@@ -1,8 +1,15 @@
 import Link from 'next/link';
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import WarningBanner from "@/components/WarningBanner";
 
 const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
+
+// ⬇️ Wrapper para permitir renderizado solo del lado del cliente
+const ClientOnly = ({ children }: { children: React.ReactNode }) => {
+  if (typeof window === "undefined") return null;
+  return <>{children}</>;
+};
 
 export default async function Home() {
   const { userId } = await auth();
@@ -23,8 +30,10 @@ export default async function Home() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-      {/* AVISO AUTOMÁTICO DE HORARIO */}
-      <WarningBanner />
+      {/* ✅ Banner solo cliente */}
+      <ClientOnly>
+        <WarningBanner />
+      </ClientOnly>
 
       <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
@@ -104,26 +113,5 @@ export default async function Home() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function WarningBanner() {
-  if (typeof window === "undefined") return null;
-
-  const now = new Date();
-  const localTime = new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    hour12: false,
-    timeZone: "America/Moncton",
-  }).format(now);
-  const hour = parseInt(localTime);
-  const showWarning = hour >= 22 || hour < 8;
-
-  if (!showWarning) return null;
-
-  return (
-    <div className="z-50 w-full bg-yellow-900 text-yellow-100 px-4 py-3 rounded-xl border border-yellow-600 text-center shadow-lg max-w-5xl mx-auto mt-6">
-      ⚠️ Toda operación o verificación enviada después de las <strong>9:30 p.m. (hora de Venezuela)</strong> será revisada al siguiente día a partir de las <strong>8:00 a.m.</strong> Gracias por su comprensión
-    </div>
   );
 }

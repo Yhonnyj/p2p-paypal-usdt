@@ -78,22 +78,24 @@ export async function POST(req: Request) {
 
 
 
-    const { feePercent, rate } = config;
+const { feePercent, rate } = config;
 
 // Calcular cuántas órdenes previas tiene el usuario
 const ordersCount = await prisma.order.count({ where: { userId: dbUser.id } });
 
-// Calcular multiplicador de descuento según nivel
+// La orden actual será la siguiente a las ya existentes
+const currentOrderNumber = ordersCount + 1;
+
+// Calcular multiplicador de descuento según el número de orden actual
 let discountMultiplier = 1;
 
-if (ordersCount === 0) {
+if (currentOrderNumber === 1) {
   discountMultiplier = 0.5; // 50% en la primera orden
-} else if (ordersCount === 4) {
+} else if (currentOrderNumber === 5) {
   discountMultiplier = 0.9; // 10% en la quinta orden
-} else if (ordersCount >= 14) {
-  discountMultiplier = 0.95; // 5% de descuento desde la 15 en adelante
+} else if (currentOrderNumber >= 15) {
+  discountMultiplier = 0.95; // 5% desde la 15 en adelante
 }
-
 
 const finalCommission = feePercent * discountMultiplier;
 
