@@ -76,11 +76,33 @@ export async function POST(req: Request) {
     const config = await prisma.appConfig.findUnique({ where: { id: 1 } });
     if (!config) return NextResponse.json({ error: "Configuración no encontrada" }, { status: 500 });
 
+
+
     const { feePercent, rate } = config;
-    const finalUsd = amount * (1 - feePercent / 100);
-    const finalUsdt = recipientDetails.type === "USDT"
-      ? finalUsd / ((rate && rate !== 0) ? rate : 1)
-      : 0;
+
+// Calcular cuántas órdenes previas tiene el usuario
+const ordersCount = await prisma.order.count({ where: { userId: dbUser.id } });
+
+// Calcular multiplicador de descuento según nivel
+let discountMultiplier = 1;
+
+if (ordersCount === 0) {
+  discountMultiplier = 0.5; // 50% en la primera orden
+} else if (ordersCount === 4) {
+  discountMultiplier = 0.9; // 10% en la quinta orden
+} else if (ordersCount >= 14) {
+  discountMultiplier = 0.95; // 5% de descuento desde la 15 en adelante
+}
+
+
+const finalCommission = feePercent * discountMultiplier;
+
+// Aplicar la comisión final al cálculo
+const finalUsd = amount * (1 - finalCommission / 100);
+const finalUsdt = recipientDetails.type === "USDT"
+  ? finalUsd / ((rate && rate !== 0) ? rate : 1)
+  : 0;
+
 
     const order = await prisma.order.create({
       data: {
@@ -93,6 +115,7 @@ export async function POST(req: Request) {
         status: "PENDING",
         to: orderDetails.to,
         wallet: orderDetails.wallet,
+        finalCommission,
       },
       include: { user: true },
     });

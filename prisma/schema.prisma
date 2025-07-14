@@ -30,6 +30,7 @@ model Order {
   amount    Float // Monto enviado por el usuario (USD)
   finalUsd  Float // Monto neto tras comisión (USD)
   finalUsdt Float // Monto en USDT entregado
+  finalCommission Float @default(0)
 
   paypalEmail String // Correo del cliente
   wallet      String // Wallet USDT o user ID de Binance Pay

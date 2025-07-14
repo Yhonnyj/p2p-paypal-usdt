@@ -23,6 +23,7 @@ interface OrderFormContextProps {
   loading: boolean;
   setLoading: (v: boolean) => void;
   feePercent: number | null;
+  finalCommission: number | null;
   exchangeRates: ExchangeRate[];
   selectedDestinationCurrency: string;
   setSelectedDestinationCurrency: (v: string) => void;
@@ -42,18 +43,24 @@ interface OrderFormContextProps {
   rate: number | null;
   montoRecibido: number;
   handleCrearOrden: () => Promise<void>;
+  baseFeePercent: number | null;
+  orderCount: number | null;
+
 }
 
 const OrderFormContext = createContext<OrderFormContextProps | undefined>(undefined);
 
 export function OrderFormProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter(); // ✅ MOVIDO AQUÍ
+  const router = useRouter();
   const [monto, setMonto] = useState(100);
   const [paypalEmail, setPaypalEmail] = useState("");
   const [network, setNetwork] = useState("TRC20");
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
   const [feePercent, setFeePercent] = useState<number | null>(null);
+  const [baseFeePercent, setBaseFeePercent] = useState<number | null>(null);
+  const [finalCommission, setFinalCommission] = useState<number | null>(null);
+  const [orderCount, setOrderCount] = useState<number | null>(null);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [selectedDestinationCurrency, setSelectedDestinationCurrency] = useState("USDT");
   const [selectedPlatform, setSelectedPlatform] = useState("PayPal");
@@ -69,11 +76,20 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
       : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
 
+  const dynamicCommission = (() => {
+    if (finalCommission !== null) return finalCommission;
+    if (feePercent === null || orderCount === null) return null;
+    if (orderCount === 0) return feePercent * 0.5;
+    if (orderCount <= 4) return feePercent * 0.7;
+    if (orderCount <= 9) return feePercent * 0.9;
+    return feePercent;
+  })();
+
   const montoRecibido =
-    feePercent !== null && rate !== null
+    dynamicCommission !== null && rate !== null
       ? selectedDestinationCurrency === "USDT"
-        ? monto * (1 - feePercent / 100)
-        : monto * (1 - feePercent / 100) * rate
+        ? monto * (1 - dynamicCommission / 100)
+        : monto * (1 - dynamicCommission / 100) * rate
       : 0;
 
   const displayAlert = (message: string, type: AlertType = "error") => {
@@ -84,7 +100,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
 
   const handleCrearOrden = async () => {
     if (selectedPlatform !== "PayPal") {
-      displayAlert("Solo PayPal está disponible.");
+      displayAlert("Solo PayPal est\u00e1 disponible.");
       return;
     }
 
@@ -108,43 +124,24 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         displayAlert("Completa la wallet USDT.");
         return;
       }
-
-      recipientDetails = {
-        type: "USDT",
-        currency: "USDT",
-        wallet,
-        network,
-      };
+      recipientDetails = { type: "USDT", currency: "USDT", wallet, network };
     } else {
       if (!bankName) {
         displayAlert("Completa el nombre del banco.");
         return;
       }
-
-      recipientDetails = {
-        type: "FIAT",
-        currency: selectedDestinationCurrency,
-        bankName,
-      };
-
+      recipientDetails = { type: "FIAT", currency: selectedDestinationCurrency, bankName };
       if (selectedDestinationCurrency === "BS") {
         if (!bsPhoneNumber || !bsIdNumber) {
-          displayAlert("Teléfono e ID requeridos para BS.");
+          displayAlert("Tel\u00e9fono e ID requeridos para BS.");
           return;
         }
-
         recipientDetails.phoneNumber = bsPhoneNumber;
         recipientDetails.idNumber = bsIdNumber;
       }
     }
 
-    const payload = {
-      platform: selectedPlatform,
-      amount: monto,
-      paypalEmail,
-      recipientDetails,
-    };
-
+    const payload = { platform: selectedPlatform, amount: monto, paypalEmail, recipientDetails };
     setLoading(true);
     try {
       const res = await fetch("/api/orders", {
@@ -152,17 +149,16 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = await res.json();
-
       if (res.ok) {
+        setFinalCommission(data.finalCommission ?? null);
         router.push(`/dashboard/orders?chat=open&id=${data.id}`);
         return;
       } else {
-        displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
+        displayAlert("Error: " + (data.error || "Algo sali\u00f3 mal."), "error");
       }
     } catch (err) {
-      console.error("❌ Error al crear orden:", err);
+      console.error("\u274c Error al crear orden:", err);
       displayAlert("Error al crear la orden.");
     } finally {
       setLoading(false);
@@ -174,30 +170,27 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       try {
         const configRes = await fetch("/api/config");
         const ratesRes = await fetch("/api/rates");
-
+        const orderCountRes = await fetch("/api/orders/count");
         const configData = await configRes.json();
         const ratesData = await ratesRes.json();
-
+        const orderCountData = await orderCountRes.json();
         if (configRes.ok) setFeePercent(configData.feePercent);
         if (ratesRes.ok) setExchangeRates(ratesData);
-        else displayAlert("Error al cargar tasas.");
+        if (orderCountRes.ok) setOrderCount(orderCountData.count);
+        else displayAlert("Error al obtener cantidad de \u00f3rdenes.");
       } catch {
-        displayAlert("Error de conexión.");
+        displayAlert("Error de conexi\u00f3n.");
       }
     };
-
     fetchData();
-
     const channel1 = pusherClient.subscribe("exchange-rates");
     channel1.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
       setExchangeRates(data.rates);
     });
-
     const channel2 = pusherClient.subscribe("app-config");
     channel2.bind("config-updated", (data: { feePercent: number }) => {
       setFeePercent(data.feePercent);
     });
-
     return () => {
       channel1.unbind_all();
       channel1.unsubscribe();
@@ -220,6 +213,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         loading,
         setLoading,
         feePercent,
+        finalCommission,
         exchangeRates,
         selectedDestinationCurrency,
         setSelectedDestinationCurrency,
@@ -239,6 +233,8 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         rate,
         montoRecibido,
         handleCrearOrden,
+        baseFeePercent,
+        orderCount,
       }}
     >
       {children}
