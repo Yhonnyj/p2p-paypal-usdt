@@ -14,27 +14,25 @@ export default function SummaryCard() {
 
   if (feePercent === null || rate === null || orderCount === null) return null;
 
+  const commissionAplicada =
+    finalCommission !== null && finalCommission !== undefined
+      ? finalCommission
+      : feePercent;
+
   const baseRate =
     selectedDestinationCurrency === "USDT"
       ? (1 + feePercent / 100).toFixed(2)
       : rate.toFixed(2);
-
-  const commissionAplicada = finalCommission ?? feePercent;
 
   const rateConDescuento =
     selectedDestinationCurrency === "USDT"
       ? (1 + commissionAplicada / 100).toFixed(2)
       : rate.toFixed(2);
 
-  const descuento = (() => {
-    if (
-      orderCount === null ||
-      feePercent === null ||
-      finalCommission === null
-    )
-      return 0;
-    return Math.round(feePercent - finalCommission);
-  })();
+  const descuento =
+    finalCommission !== null && finalCommission !== undefined
+      ? Math.round(feePercent - finalCommission)
+      : 0;
 
   const currentOrderNumber = orderCount + 1;
 
@@ -85,7 +83,7 @@ export default function SummaryCard() {
         </span>
       </div>
 
-      {motivoDescuento && (
+      {descuento > 0 && motivoDescuento && (
         <p className="text-sm text-emerald-400 mt-3">{motivoDescuento}</p>
       )}
     </div>
