@@ -76,27 +76,35 @@ export async function POST(req: Request) {
     const config = await prisma.appConfig.findUnique({ where: { id: 1 } });
     if (!config) return NextResponse.json({ error: "Configuración no encontrada" }, { status: 500 });
 
-    const { feePercent, rate } = config;
 
-    const ordersCount = await prisma.order.count({
-      where: { userId: dbUser.id },
-    });
 
-    let discountMultiplier = 1;
-    if (ordersCount === 0) {
-      discountMultiplier = 0.5; // Primera orden = 50%
-    } else if (ordersCount === 4) {
-      discountMultiplier = 0.9; // Quinta orden = 10%
-    } else if (ordersCount >= 14) {
-      discountMultiplier = 0.95; // Desde la 15 en adelante = 5%
-    }
+const { feePercent, rate } = config;
 
-    const finalCommission = feePercent * discountMultiplier;
+// Contar órdenes previas reales (NO incluir la que está por crearse)
+const ordersCount = await prisma.order.count({
+  where: { userId: dbUser.id },
+});
 
-    const finalUsd = amount * (1 - finalCommission / 100);
-    const finalUsdt = recipientDetails.type === "USDT"
-      ? finalUsd / ((rate && rate !== 0) ? rate : 1)
-      : 0;
+// Calcular multiplicador de descuento
+let discountMultiplier = 1;
+
+if (ordersCount === 0) {
+  discountMultiplier = 0.5; // Primera orden = 50%
+} else if (ordersCount === 4) {
+  discountMultiplier = 0.9; // Quinta orden = 10%
+} else if (ordersCount >= 14) {
+  discountMultiplier = 0.95; // Desde la 15 en adelante = 5%
+}
+
+// Calcular comisión final
+const finalCommission = feePercent * discountMultiplier;
+
+// Aplicar la comisión
+const finalUsd = amount * (1 - finalCommission / 100);
+const finalUsdt = recipientDetails.type === "USDT"
+  ? finalUsd / ((rate && rate !== 0) ? rate : 1)
+  : 0;
+
 
     const order = await prisma.order.create({
       data: {
@@ -114,6 +122,7 @@ export async function POST(req: Request) {
       include: { user: true },
     });
 
+    // ✅ Mensaje automático del bot
     await prisma.message.create({
       data: {
         content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes alguna duda un operador será asignado pronto.",
@@ -152,14 +161,39 @@ export async function POST(req: Request) {
       `,
     });
 
-    // ✅ Solo devolver lo necesario para el frontend
-    return NextResponse.json({
-      id: order.id,
-      finalCommission: order.finalCommission,
-    }, { status: 201 });
-
+    return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error("Error creando orden:", error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
+}
+
+// ✅ GET: Listar órdenes del usuario autenticado, con filtro opcional por estado
+export async function GET(req: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+    if (!dbUser) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status") as "PENDING" | "COMPLETED" | "CANCELLED" | null;
+
+    const orders = await prisma.order.findMany({
+      where: {
+        userId: dbUser.id,
+        ...(status ? { status } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(orders);
+  } catch (error) {
+    console.error("Error cargando órdenes:", error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
