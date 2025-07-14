@@ -26,19 +26,28 @@ export default function SummaryCard() {
       ? (1 + commissionAplicada / 100).toFixed(2)
       : rate.toFixed(2);
 
-  const descuento = feePercent > commissionAplicada
-    ? Math.round(feePercent - commissionAplicada)
-    : 0;
+  const descuento = (() => {
+    if (
+      orderCount === null ||
+      feePercent === null ||
+      finalCommission === null
+    )
+      return 0;
+    return Math.round(feePercent - finalCommission);
+  })();
 
   const currentOrderNumber = orderCount + 1;
 
   let motivoDescuento = "";
   if (currentOrderNumber === 1) {
-    motivoDescuento = "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!";
+    motivoDescuento =
+      "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!";
   } else if (currentOrderNumber === 5) {
-    motivoDescuento = "🎉 ¡Obtuviste un 10% de descuento por tu quinta orden!";
+    motivoDescuento =
+      "🎉 ¡Obtuviste un 10% de descuento por tu quinta orden!";
   } else if (currentOrderNumber >= 15) {
-    motivoDescuento = "⭐ ¡Gracias por tu fidelidad! Recibiste un 5% de descuento.";
+    motivoDescuento =
+      "⭐ ¡Gracias por tu fidelidad! Recibiste un 5% de descuento.";
   }
 
   return (
@@ -57,8 +66,12 @@ export default function SummaryCard() {
 
       {descuento > 0 && (
         <div className="flex justify-between mb-2">
-          <span className="text-emerald-400 font-medium">Cotización con descuento</span>
-          <span className="text-green-400 font-bold text-lg">{rateConDescuento}</span>
+          <span className="text-emerald-400 font-medium">
+            Cotización con descuento
+          </span>
+          <span className="text-green-400 font-bold text-lg">
+            {rateConDescuento}
+          </span>
         </div>
       )}
 
@@ -66,7 +79,9 @@ export default function SummaryCard() {
         <span className="text-gray-300 font-medium">Usted recibirá</span>
         <span className="text-green-400 text-2xl font-extrabold flex items-center gap-1">
           {montoRecibido.toFixed(2)}
-          <span className="text-xl font-semibold">{selectedDestinationCurrency}</span>
+          <span className="text-xl font-semibold">
+            {selectedDestinationCurrency}
+          </span>
         </span>
       </div>
 

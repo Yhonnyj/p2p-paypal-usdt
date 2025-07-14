@@ -30,10 +30,9 @@ export default async function Home() {
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-      {/* ✅ Banner solo cliente */}
-      <ClientOnly>
-        <WarningBanner />
-      </ClientOnly>
+     {/* ✅ Mostrar banner */}
+<WarningBanner />
+
 
       <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
