@@ -5,12 +5,6 @@ import WarningBanner from "@/components/WarningBanner";
 
 const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
 
-// ⬇️ Wrapper para permitir renderizado solo del lado del cliente
-const ClientOnly = ({ children }: { children: React.ReactNode }) => {
-  if (typeof window === "undefined") return null;
-  return <>{children}</>;
-};
-
 export default async function Home() {
   const { userId } = await auth();
 
@@ -24,15 +18,12 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
-      {/* Fondo con degradado y formas sutiles para un efecto premium */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0"></div>
       <div className="absolute top-0 left-0 w-80 h-80 bg-emerald-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob z-0"></div>
       <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
 
-     {/* ✅ Mostrar banner */}
-<WarningBanner />
-
+      <WarningBanner />
 
       <section className="text-center mb-20 relative z-10 p-4 max-w-6xl w-full pt-24 md:pt-32">
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
