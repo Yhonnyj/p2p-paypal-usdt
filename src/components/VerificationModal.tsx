@@ -40,6 +40,26 @@ export default function VerificationModal({
     }
   }, [selfieFile]);
 
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "verifications");
+    formData.append("folder", "verifications/documents");
+
+    const res = await fetch("https://api.cloudinary.com/v1_1/dgiy5onqs/image/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || "Error al subir a Cloudinary");
+    }
+
+    const data = await res.json();
+    return data.secure_url as string;
+  };
+
   const handleSubmit = async () => {
     if (!documentFile || !selfieFile) {
       toast.error("Debes subir ambos archivos");
@@ -47,71 +67,65 @@ export default function VerificationModal({
     }
 
     const maxSize = 5 * 1024 * 1024; // 5MB
-
-if (documentFile.size > maxSize || selfieFile.size > maxSize) {
-  toast.error("Uno de los archivos es demasiado grande (máx. 5MB)");
-  return;
-}
-
+    if (documentFile.size > maxSize || selfieFile.size > maxSize) {
+      toast.error("Uno de los archivos es demasiado grande (máx. 5MB)");
+      return;
+    }
 
     if (!documentFile.type.startsWith("image/") || !selfieFile.type.startsWith("image/")) {
       toast.error("Los archivos deben ser imágenes válidas");
       return;
     }
 
-   setSubmitting(true);
-try {
-  const formData = new FormData();
-  formData.append("document", documentFile);
-  formData.append("selfie", selfieFile);
+    setSubmitting(true);
+    try {
+      const [documentUrl, selfieUrl] = await Promise.all([
+        uploadToCloudinary(documentFile),
+        uploadToCloudinary(selfieFile),
+      ]);
 
-  const res = await fetch("/api/verifications", {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
+      const res = await fetch("/api/verifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentUrl, selfieUrl }),
+        credentials: "include",
+      });
 
-let data: unknown = null;
+      let data: unknown = null;
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        console.error("❌ Error al leer respuesta JSON:", jsonError);
+      }
 
-try {
-  data = await res.json();
-} catch (jsonError) {
-  console.error("❌ Error al leer respuesta JSON:", jsonError);
-}
+      if (!res.ok) {
+        const errorMsg =
+          typeof data === "object" &&
+          data !== null &&
+          "error" in data &&
+          typeof (data as { error: unknown }).error === "string"
+            ? (data as { error: string }).error
+            : `Error al enviar verificación (código ${res.status})`;
 
-// Validar respuesta de error
-if (!res.ok) {
-  const errorMsg =
-    typeof data === "object" &&
-    data !== null &&
-    "error" in data &&
-    typeof (data as { error: unknown }).error === "string"
-      ? (data as { error: string }).error
-      : `Error al enviar verificación (código ${res.status})`;
-
-  toast.error(errorMsg);
-} else {
-  toast.success("✅ Verificación enviada correctamente");
-  setShowSuccess(true);
-  setTimeout(() => {
-    setShowSuccess(false);
-    onClose();
-    setDocumentFile(null);
-    setSelfieFile(null);
-  }, 1500);
-}
-
-
-
-
-} catch (err: unknown) {
-  console.error("❌ Error inesperado en frontend:", err);
-  toast.error("Error inesperado al enviar verificación");
-} finally {
-  setSubmitting(false);
-}
-
+        toast.error(errorMsg);
+      } else {
+        toast.success("✅ Verificación enviada correctamente");
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          onClose();
+          setDocumentFile(null);
+          setSelfieFile(null);
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("❌ Error inesperado en frontend:", err);
+      toast.error("Error inesperado al enviar verificación");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="fixed z-50 inset-0">
