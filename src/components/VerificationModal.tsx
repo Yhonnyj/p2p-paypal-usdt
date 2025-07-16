@@ -66,11 +66,12 @@ export default function VerificationModal({
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (documentFile.size > maxSize || selfieFile.size > maxSize) {
-      toast.error("Uno de los archivos es demasiado grande (máx. 5MB)");
-      return;
-    }
+   const maxSize = 10 * 1024 * 1024; // 10MB
+if (documentFile.size > maxSize || selfieFile.size > maxSize) {
+  toast.error("Uno de los archivos es demasiado grande (máx. 10MB)");
+  return;
+}
+
 
     if (!documentFile.type.startsWith("image/") || !selfieFile.type.startsWith("image/")) {
       toast.error("Los archivos deben ser imágenes válidas");
