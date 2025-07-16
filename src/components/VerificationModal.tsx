@@ -71,28 +71,35 @@ try {
     credentials: "include",
   });
 
-  let data: any = null;
+let data: unknown = null;
 
-  try {
-    data = await res.json();
-  } catch (jsonError) {
-    console.error("❌ Error al leer respuesta JSON:", jsonError);
-  }
+try {
+  data = await res.json();
+} catch (jsonError) {
+  console.error("❌ Error al leer respuesta JSON:", jsonError);
+}
 
-  if (!res.ok) {
-    const errorMsg =
-      data?.error || `Error al enviar verificación (código ${res.status})`;
-    toast.error(errorMsg);
-  } else {
-    toast.success("✅ Verificación enviada correctamente");
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onClose();
-      setDocumentFile(null);
-      setSelfieFile(null);
-    }, 1500);
-  }
+if (!res.ok) {
+  const errorMsg =
+    typeof data === "object" &&
+    data !== null &&
+    "error" in data &&
+    typeof (data as any).error === "string"
+      ? (data as any).error
+      : `Error al enviar verificación (código ${res.status})`;
+
+  toast.error(errorMsg);
+} else {
+  toast.success("✅ Verificación enviada correctamente");
+  setShowSuccess(true);
+  setTimeout(() => {
+    setShowSuccess(false);
+    onClose();
+    setDocumentFile(null);
+    setSelfieFile(null);
+  }, 1500);
+}
+
 
 } catch (err: unknown) {
   console.error("❌ Error inesperado en frontend:", err);
