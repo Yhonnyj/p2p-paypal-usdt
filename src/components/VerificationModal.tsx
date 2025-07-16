@@ -79,13 +79,14 @@ try {
   console.error("❌ Error al leer respuesta JSON:", jsonError);
 }
 
+// Validar respuesta de error
 if (!res.ok) {
   const errorMsg =
     typeof data === "object" &&
     data !== null &&
     "error" in data &&
-    typeof (data as any).error === "string"
-      ? (data as any).error
+    typeof (data as { error: unknown }).error === "string"
+      ? (data as { error: string }).error
       : `Error al enviar verificación (código ${res.status})`;
 
   toast.error(errorMsg);
@@ -99,6 +100,8 @@ if (!res.ok) {
     setSelfieFile(null);
   }, 1500);
 }
+
+
 
 
 } catch (err: unknown) {
