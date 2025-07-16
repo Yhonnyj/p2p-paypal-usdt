@@ -20,8 +20,7 @@ export default function FiatFields() {
   if (selectedDestinationCurrency === "USDT") return null;
 
   return (
-    <div className="mt-6 space-y-6">
-      {/* Campo común: Nombre del banco */}
+    <div className="mt-6 w-full space-y-6">
       <div>
         <label className="text-sm text-gray-300 mb-1 block font-medium">Nombre del Banco</label>
         <input
@@ -33,7 +32,6 @@ export default function FiatFields() {
         />
       </div>
 
-      {/* Campos adicionales si la moneda es BS */}
       {selectedDestinationCurrency === "BS" && (
         <>
           <div>
@@ -59,7 +57,6 @@ export default function FiatFields() {
         </>
       )}
 
-      {/* Campos adicionales si la moneda es COP */}
       {selectedDestinationCurrency === "COP" && (
         <>
           <div>

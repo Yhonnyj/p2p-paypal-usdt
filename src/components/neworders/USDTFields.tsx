@@ -1,6 +1,9 @@
 "use client";
 
+import { Fragment } from "react";
 import Image from "next/image";
+import { Listbox, Transition } from "@headlessui/react";
+import { ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { useOrderForm } from "@/context/OrderFormContext";
 
 const networkOptions = [
@@ -21,41 +24,65 @@ export default function USDTFields() {
 
   if (selectedDestinationCurrency !== "USDT") return null;
 
-  const getNetworkImage = (networkValue: string) =>
-    networkOptions.find((opt) => opt.value === networkValue)?.img || "/images/placeholder.png";
+  const selected = networkOptions.find((n) => n.value === network);
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 w-full">
       <label className="text-sm text-gray-300 mb-2 block font-medium">
         Red para recibir USDT
       </label>
 
-      <div className="flex items-center gap-4 bg-gray-800 rounded-xl border border-gray-700 shadow-md">
-        <div className="p-2">
-          <Image
-            src={getNetworkImage(network)}
-            alt="Network Icon"
-            width={40}
-            height={40}
-            className="rounded-full object-contain"
-            onError={(e) => {
-              const img = e.currentTarget as HTMLImageElement;
-              img.src = "/images/placeholder.png";
-            }}
-          />
+      <Listbox value={network} onChange={(value) => setNetwork(value)}>
+        <div className="relative">
+          <Listbox.Button className="relative w-full cursor-pointer rounded-xl bg-gray-800 border border-gray-700 py-2 pl-3 pr-10 text-left shadow-md text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <span className="flex items-center gap-3">
+              <Image
+                src={selected?.img || "/images/placeholder.png"}
+                alt=""
+                width={40}
+                height={40}
+                className="h-7 w-7 rounded-full object-contain"
+              />
+              <span className="block truncate text-base">{selected?.label}</span>
+            </span>
+            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center pr-2">
+              <ChevronUpDownIcon className="h-5 w-5 text-white" aria-hidden="true" />
+            </span>
+          </Listbox.Button>
+
+          <Transition
+            as={Fragment}
+            leave="transition ease-in duration-100"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <Listbox.Options className="absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              {networkOptions.map((net) => (
+                <Listbox.Option
+                  key={net.value}
+                  value={net.value}
+                  className={({ active }) =>
+                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
+                      active ? "bg-emerald-700 text-white" : "text-gray-200"
+                    }`
+                  }
+                >
+                  <span className="flex items-center gap-3">
+                    <Image
+                      src={net.img}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="h-6 w-6 rounded-full object-contain"
+                    />
+                    <span className="block truncate text-sm">{net.label}</span>
+                  </span>
+                </Listbox.Option>
+              ))}
+            </Listbox.Options>
+          </Transition>
         </div>
-        <select
-          value={network}
-          onChange={(e) => setNetwork(e.target.value)}
-          className="flex-grow px-3 py-3 bg-transparent text-white text-lg focus:outline-none cursor-pointer"
-        >
-          {networkOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      </Listbox>
 
       <div className="mt-6">
         <label className="text-sm text-gray-300 mb-1 block font-medium">
