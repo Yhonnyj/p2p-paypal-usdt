@@ -46,42 +46,61 @@ export default function VerificationModal({
       return;
     }
 
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+if (documentFile.size > maxSize || selfieFile.size > maxSize) {
+  toast.error("Uno de los archivos es demasiado grande (máx. 5MB)");
+  return;
+}
+
+
     if (!documentFile.type.startsWith("image/") || !selfieFile.type.startsWith("image/")) {
       toast.error("Los archivos deben ser imágenes válidas");
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append("document", documentFile);
-      formData.append("selfie", selfieFile);
+   setSubmitting(true);
+try {
+  const formData = new FormData();
+  formData.append("document", documentFile);
+  formData.append("selfie", selfieFile);
 
-      const res = await fetch("/api/verifications", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+  const res = await fetch("/api/verifications", {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
 
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error || "Error al enviar verificación");
-      } else {
-        toast.success("✅ Verificación enviada correctamente");
-        setShowSuccess(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          onClose();
-          setDocumentFile(null);
-          setSelfieFile(null);
-        }, 1500);
-      }
-    } catch (err: unknown) {
-      console.error("Error en frontend verificación:", err);
-      toast.error("Error inesperado al enviar verificación");
-    } finally {
-      setSubmitting(false);
-    }
+  let data: any = null;
+
+  try {
+    data = await res.json();
+  } catch (jsonError) {
+    console.error("❌ Error al leer respuesta JSON:", jsonError);
+  }
+
+  if (!res.ok) {
+    const errorMsg =
+      data?.error || `Error al enviar verificación (código ${res.status})`;
+    toast.error(errorMsg);
+  } else {
+    toast.success("✅ Verificación enviada correctamente");
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      onClose();
+      setDocumentFile(null);
+      setSelfieFile(null);
+    }, 1500);
+  }
+
+} catch (err: unknown) {
+  console.error("❌ Error inesperado en frontend:", err);
+  toast.error("Error inesperado al enviar verificación");
+} finally {
+  setSubmitting(false);
+}
+
   };
 
   return (

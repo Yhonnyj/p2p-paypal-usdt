@@ -21,30 +21,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
-    // Extraer archivos del form
-    const formData = await req.formData();
-    const documentFile = formData.get("document") as File | null;
-    const selfieFile = formData.get("selfie") as File | null;
+// Extraer archivos del form
+const formData = await req.formData();
+const documentFile = formData.get("document") as File | null;
+const selfieFile = formData.get("selfie") as File | null;
 
-    if (!documentFile || !selfieFile) {
-      return NextResponse.json({ error: "Faltan archivos" }, { status: 400 });
-    }
+if (!documentFile || !selfieFile) {
+  return NextResponse.json({ error: "Faltan archivos" }, { status: 400 });
+}
 
-// Validar tamaño máximo de 5MB por archivo
+// Convertir archivos a ArrayBuffer para medir tamaño real
+const [documentBuffer, selfieBuffer] = await Promise.all([
+  documentFile.arrayBuffer(),
+  selfieFile.arrayBuffer(),
+]);
+
+// Validar tamaño máximo de 5MB por archivo (5 * 1024 * 1024 bytes)
 const maxSize = 5 * 1024 * 1024;
 
-if (documentFile.size > maxSize || selfieFile.size > maxSize) {
+if (documentBuffer.byteLength > maxSize || selfieBuffer.byteLength > maxSize) {
   return NextResponse.json(
     { error: "Uno de los archivos es demasiado grande (máx. 5MB)" },
     { status: 400 }
   );
 }
-
-
-    const [documentBuffer, selfieBuffer] = await Promise.all([
-      documentFile.arrayBuffer(),
-      selfieFile.arrayBuffer(),
-    ]);
 
     const documentBase64 = Buffer.from(documentBuffer).toString("base64");
     const selfieBase64 = Buffer.from(selfieBuffer).toString("base64");
