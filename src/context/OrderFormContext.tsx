@@ -35,6 +35,10 @@ interface OrderFormContextProps {
   setBsIdNumber: (v: string) => void;
   bankName: string;
   setBankName: (v: string) => void;
+  copAccountNumber: string;
+  setCopAccountNumber: (v: string) => void;
+  copAccountHolder: string;
+  setCopAccountHolder: (v: string) => void;
   showAlert: boolean;
   alertMessage: string;
   alertType: AlertType;
@@ -67,6 +71,8 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [bsPhoneNumber, setBsPhoneNumber] = useState("");
   const [bsIdNumber, setBsIdNumber] = useState("");
   const [bankName, setBankName] = useState("");
+  const [copAccountNumber, setCopAccountNumber] = useState("");
+  const [copAccountHolder, setCopAccountHolder] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<AlertType>("error");
@@ -117,6 +123,8 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       bankName?: string;
       phoneNumber?: string;
       idNumber?: string;
+      accountNumber?: string;
+      accountHolder?: string;
     } = {};
 
     if (selectedDestinationCurrency === "USDT") {
@@ -131,6 +139,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       recipientDetails = { type: "FIAT", currency: selectedDestinationCurrency, bankName };
+
       if (selectedDestinationCurrency === "BS") {
         if (!bsPhoneNumber || !bsIdNumber) {
           displayAlert("Tel\u00e9fono e ID requeridos para BS.");
@@ -138,6 +147,15 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         }
         recipientDetails.phoneNumber = bsPhoneNumber;
         recipientDetails.idNumber = bsIdNumber;
+      }
+
+      if (selectedDestinationCurrency === "COP") {
+        if (!copAccountNumber || !copAccountHolder) {
+          displayAlert("Número de cuenta y titular requeridos para COP.");
+          return;
+        }
+        recipientDetails.accountNumber = copAccountNumber;
+        recipientDetails.accountHolder = copAccountHolder;
       }
     }
 
@@ -225,6 +243,10 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         setBsIdNumber,
         bankName,
         setBankName,
+        copAccountNumber,
+        setCopAccountNumber,
+        copAccountHolder,
+        setCopAccountHolder,
         showAlert,
         alertMessage,
         alertType,
