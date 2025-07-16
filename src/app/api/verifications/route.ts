@@ -30,6 +30,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Faltan archivos" }, { status: 400 });
     }
 
+// Validar tamaño máximo de 5MB por archivo
+const maxSize = 5 * 1024 * 1024;
+
+if (documentFile.size > maxSize || selfieFile.size > maxSize) {
+  return NextResponse.json(
+    { error: "Uno de los archivos es demasiado grande (máx. 5MB)" },
+    { status: 400 }
+  );
+}
+
+
     const [documentBuffer, selfieBuffer] = await Promise.all([
       documentFile.arrayBuffer(),
       selfieFile.arrayBuffer(),
@@ -130,8 +141,18 @@ if (adminUser?.expoPushToken) {
 
 
     return NextResponse.json(verification);
-  } catch (e) {
-    console.error("Error inesperado al enviar verificación", e);
-    return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
-  }
+} catch (e) {
+  console.error("Error inesperado al enviar verificación:", {
+    message: (e as Error).message,
+    stack: (e as Error).stack,
+  });
+  return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
 }
+}
+
+// 👇 Configuración necesaria para que FormData funcione correctamente
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
