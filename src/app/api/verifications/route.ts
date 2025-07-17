@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { resend } from "@/lib/resend";
 import { sendPushNotification } from "@/lib/sendPushNotification";
 import { NextResponse } from "next/server";
+import { pusherServer } from "@/lib/pusher"; // ✅ Import agregado
 
 export async function POST(req: Request) {
   const { userId: clerkId } = await auth();
@@ -36,6 +37,13 @@ export async function POST(req: Request) {
         status: "PENDING",
       },
     });
+
+    // ✅ Emitir evento a Pusher para que el cliente vea "PENDING" en tiempo real
+    await pusherServer.trigger(
+      `user-${user.clerkId}-verification`,
+      "verification-updated",
+      { status: "PENDING" }
+    );
 
     // ✅ Enviar email al admin
     await resend.emails.send({

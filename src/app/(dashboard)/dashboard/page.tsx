@@ -113,7 +113,7 @@ export default function DashboardPage() {
   switch (verificationStatus) {
     case "APPROVED":
       statusIcon = <ShieldCheck size={28} />;
-      statusText = "Verificación Aprobada";
+      statusText = "¡Felicidades!";
       statusColor = "text-green-400";
       statusBg = "bg-green-900/20";
       break;
@@ -188,16 +188,16 @@ export default function DashboardPage() {
           <p className="text-gray-300 mb-6 leading-relaxed">
             {statusText}
             {verificationStatus === "NONE" && (
-              <>: Para poder realizar operaciones financieras completas en nuestra plataforma, es necesario que completes la verificación de tu identidad. Es un proceso rápido y seguro.</>
+              <>: Para poder realizar operaciones financieras completas en nuestra plataforma, es necesario que completes la verificación de tu identidad. Es un proceso rápido, menos de 1 minuto .</>
             )}
             {verificationStatus === "REJECTED" && (
-              <>: Tu verificación ha sido rechazada. Por favor, revisa los requisitos y vuelve a intentarlo o contacta a soporte.</>
+              <>: Tu verificación ha sido rechazada. Por favor, revisa tus documentos y vuelve a intentarlo o contacta a soporte.</>
             )}
             {verificationStatus === "PENDING" && (
               <>: Tu solicitud de verificación está siendo revisada. Te notificaremos una vez que el proceso haya finalizado. Agradecemos tu paciencia.</>
             )}
             {verificationStatus === "APPROVED" && (
-              <>: ¡Felicidades! Tu identidad ha sido verificada exitosamente. Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
+              <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
             )}
           </p>
           {(verificationStatus === "NONE" || verificationStatus === "REJECTED") && (
@@ -242,23 +242,38 @@ export default function DashboardPage() {
 
       <VerificationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
-      {/* Profile Modal */}
-      {isProfileModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-4xl h-[90vh] md:h-auto overflow-y-auto transform scale-95 opacity-0 animate-scale-up-fade-in relative flex flex-col">
-            <button
-              onClick={() => setIsProfileModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors duration-200 z-10"
-              aria-label="Cerrar perfil"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <div className="clerk-profile-container flex-grow overflow-y-auto p-0"> {/* Ensure no padding here */}
-                <UserProfile /> 
-            </div>
-          </div>
-        </div>
-      )}
+  {/* Profile Modal */}
+{isProfileModalOpen && (
+  <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
+    <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 w-[95vw] max-w-[95vw] md:max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 animate-scale-up-fade-in relative flex flex-col">
+      <button
+        onClick={() => setIsProfileModalOpen(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors duration-200 z-10"
+        aria-label="Cerrar perfil"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
+      <div className="clerk-profile-container flex-grow overflow-y-auto p-0 md:p-6">
+        <UserProfile />
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Custom Alert/Modal (for messages like "Redireccionando...") */}
       {showAlert && (
