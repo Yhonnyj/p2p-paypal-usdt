@@ -83,17 +83,18 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
       : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
   const dynamicCommission =
-    typeof finalCommission === "number"
-      ? finalCommission
-      : feePercent !== null && orderCount !== null
-        ? orderCount === 0
-          ? feePercent * 0.5
-          : orderCount <= 4
-            ? feePercent * 0.7
-            : orderCount <= 9
-              ? feePercent * 0.9
-              : feePercent
-        : null;
+  typeof finalCommission === "number"
+    ? finalCommission
+    : feePercent !== null && orderCount !== null
+      ? orderCount === 0
+        ? feePercent * 0.5
+        : orderCount === 4
+          ? feePercent * 0.82
+          : orderCount >= 14
+            ? feePercent * 0.90
+            : feePercent
+      : null;
+
 
   const montoRecibido =
     dynamicCommission !== null && rate !== null

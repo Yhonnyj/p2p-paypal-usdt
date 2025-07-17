@@ -91,10 +91,11 @@ let discountMultiplier = 1;
 if (ordersCount === 0) {
   discountMultiplier = 0.5; // Primera orden = 50%
 } else if (ordersCount === 4) {
-  discountMultiplier = 0.9; // Quinta orden = 10%
+  discountMultiplier = 0.82; // Quinta orden = 18%
 } else if (ordersCount >= 14) {
-  discountMultiplier = 0.95; // Desde la 15 en adelante = 5%
+  discountMultiplier = 0.90; // Desde la 15 en adelante = 10%
 }
+
 
 // Calcular comisión final
 const finalCommission = feePercent * discountMultiplier;
