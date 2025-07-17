@@ -5,19 +5,15 @@ import { useOrderForm } from "@/context/OrderFormContext";
 export default function SummaryCard() {
   const {
     feePercent,
-    finalCommission,
+    dynamicCommission,
     rate,
     selectedDestinationCurrency,
     montoRecibido,
     orderCount,
   } = useOrderForm();
 
-  if (feePercent === null || rate === null || orderCount === null) return null;
-
-  const commissionAplicada =
-    finalCommission !== null && finalCommission !== undefined
-      ? finalCommission
-      : feePercent;
+  if (feePercent === null || rate === null || orderCount === null || dynamicCommission === null)
+    return null;
 
   const baseRate =
     selectedDestinationCurrency === "USDT"
@@ -26,13 +22,10 @@ export default function SummaryCard() {
 
   const rateConDescuento =
     selectedDestinationCurrency === "USDT"
-      ? (1 + commissionAplicada / 100).toFixed(2)
+      ? (1 + dynamicCommission / 100).toFixed(2)
       : rate.toFixed(2);
 
-  const descuento =
-    finalCommission !== null && finalCommission !== undefined
-      ? Math.round(feePercent - finalCommission)
-      : 0;
+  const descuento = Math.round(feePercent - dynamicCommission);
 
   const currentOrderNumber = orderCount + 1;
 

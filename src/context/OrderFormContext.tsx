@@ -24,6 +24,7 @@ interface OrderFormContextProps {
   setLoading: (v: boolean) => void;
   feePercent: number | null;
   finalCommission: number | null;
+  dynamicCommission: number | null; // ✅ Agrega esto aquí
   exchangeRates: ExchangeRate[];
   selectedDestinationCurrency: string;
   setSelectedDestinationCurrency: (v: string) => void;
@@ -81,15 +82,18 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     selectedDestinationCurrency === "USDT"
       ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
       : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
-
-  const dynamicCommission = (() => {
-    if (finalCommission !== null) return finalCommission;
-    if (feePercent === null || orderCount === null) return null;
-    if (orderCount === 0) return feePercent * 0.5;
-    if (orderCount <= 4) return feePercent * 0.7;
-    if (orderCount <= 9) return feePercent * 0.9;
-    return feePercent;
-  })();
+  const dynamicCommission =
+    typeof finalCommission === "number"
+      ? finalCommission
+      : feePercent !== null && orderCount !== null
+        ? orderCount === 0
+          ? feePercent * 0.5
+          : orderCount <= 4
+            ? feePercent * 0.7
+            : orderCount <= 9
+              ? feePercent * 0.9
+              : feePercent
+        : null;
 
   const montoRecibido =
     dynamicCommission !== null && rate !== null
@@ -217,51 +221,53 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return (
-    <OrderFormContext.Provider
-      value={{
-        monto,
-        setMonto,
-        paypalEmail,
-        setPaypalEmail,
-        network,
-        setNetwork,
-        wallet,
-        setWallet,
-        loading,
-        setLoading,
-        feePercent,
-        finalCommission,
-        exchangeRates,
-        selectedDestinationCurrency,
-        setSelectedDestinationCurrency,
-        selectedPlatform,
-        setSelectedPlatform,
-        bsPhoneNumber,
-        setBsPhoneNumber,
-        bsIdNumber,
-        setBsIdNumber,
-        bankName,
-        setBankName,
-        copAccountNumber,
-        setCopAccountNumber,
-        copAccountHolder,
-        setCopAccountHolder,
-        showAlert,
-        alertMessage,
-        alertType,
-        setShowAlert,
-        displayAlert,
-        rate,
-        montoRecibido,
-        handleCrearOrden,
-        baseFeePercent,
-        orderCount,
-      }}
-    >
-      {children}
-    </OrderFormContext.Provider>
-  );
+ return (
+  <OrderFormContext.Provider
+    value={{
+      monto,
+      setMonto,
+      paypalEmail,
+      setPaypalEmail,
+      network,
+      setNetwork,
+      wallet,
+      setWallet,
+      loading,
+      setLoading,
+      feePercent,
+      finalCommission,
+      dynamicCommission, // ← ✅ AGREGA ESTA LÍNEA
+      exchangeRates,
+      selectedDestinationCurrency,
+      setSelectedDestinationCurrency,
+      selectedPlatform,
+      setSelectedPlatform,
+      bsPhoneNumber,
+      setBsPhoneNumber,
+      bsIdNumber,
+      setBsIdNumber,
+      bankName,
+      setBankName,
+      copAccountNumber,
+      setCopAccountNumber,
+      copAccountHolder,
+      setCopAccountHolder,
+      showAlert,
+      alertMessage,
+      alertType,
+      setShowAlert,
+      displayAlert,
+      rate,
+      montoRecibido,
+      handleCrearOrden,
+      baseFeePercent,
+      orderCount,
+    }}
+  >
+    {children}
+  </OrderFormContext.Provider>
+);
+
 }
 
 export function useOrderForm() {
