@@ -321,127 +321,152 @@ channel.bind("new-message", (data: Message) => {
 
   if (!isOpen) return null;
 
-  const renderOrderDetails = () => {
-    const pricePerUsdt = orderData && orderData.amount && orderData.finalUsdt
-      ? (orderData.amount / orderData.finalUsdt)
+const renderOrderDetails = () => {
+  const pricePerUsdt =
+    orderData && orderData.amount && orderData.finalUsdt
+      ? orderData.amount / orderData.finalUsdt
       : null;
 
-      const handleCopy = (text: string) => {
-  try {
-    navigator.clipboard.writeText(text);
-    toast.success("Copiado");
-  } catch (err) {
-    toast.error("No se pudo copiar.");
-    console.error("Copy error:", err);
+  const handleCopy = (text: string) => {
+    try {
+      navigator.clipboard.writeText(text);
+      toast.success("Copiado");
+    } catch (err) {
+      toast.error("No se pudo copiar.");
+      console.error("Copy error:", err);
+    }
+  };
+
+  // --- Calcular monto recibido con la moneda correcta ---
+  let montoRecibido = orderData?.finalUsd || 0;
+  let currencyLabel = "USDT";
+
+  if (orderData) {
+    if (orderData.to.includes("USDT")) {
+      currencyLabel = "USDT"; // Evita mostrar "USDT - BINANCE_PAY"
+    } else if (orderData.to !== "USDT") {
+      const fiatRate =
+        exchangeRates.find((r) => r.currency === orderData.to)?.rate ?? 1;
+      montoRecibido = orderData.finalUsd * fiatRate;
+      currencyLabel = orderData.to;
+    }
   }
-};
 
-// --- Calcular monto recibido con la moneda correcta ---
-let montoRecibido = orderData?.finalUsd || 0;
-let currencyLabel = "USDT";
-
-if (orderData && orderData.to !== "USDT") {
-  const fiatRate = exchangeRates.find((r) => r.currency === orderData.to)?.rate ?? 1;
-  montoRecibido = orderData.finalUsd * fiatRate;
-  currencyLabel = orderData.to;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let fiatDetails: any = null;
-if (orderData?.to !== "USDT" && orderData?.wallet) {
-  try {
-    fiatDetails = JSON.parse(orderData.wallet);
-  } catch (e) {
-    console.error("Error parsing FIAT wallet details:", e);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let fiatDetails: any = null;
+  if (orderData?.to !== "USDT" && orderData?.wallet) {
+    try {
+      fiatDetails = JSON.parse(orderData.wallet);
+    } catch (e) {
+      console.error("Error parsing FIAT wallet details:", e);
+    }
   }
-}
-const isAdminView = orderData?.user?.email !== currentUserEmail;
 
-if (!orderData) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full text-red-400 text-lg p-4">
-      <CircleX className="mb-4" size={32} />
-      No se pudieron cargar los detalles de la orden.
-      <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 rounded-md text-white">Volver</button>
-    </div>
-  );
-}
+  const isAdminView = orderData?.user?.email !== currentUserEmail;
 
-return (
-  <>
-    {/* Header de Detalles de Orden para Desktop y Overlay Móvil */}
-    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
-      <button onClick={onClose} className="hidden md:block text-gray-400 hover:text-emerald-400 p-2 rounded-full transition-colors">
-        <ArrowLeft size={24} />
-      </button>
-      <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white flex-1 text-center md:text-left ml-4 md:ml-0">
-        Detalles de Orden
-      </h2>
-      <button
-        onClick={() => setShowOrderDetailsMobile(false)}
-        className="block md:hidden text-gray-400 hover:text-gray-200 p-2 rounded-full bg-gray-800"
-        aria-label="Cerrar detalles"
-      >
-        <X size={20} />
-      </button>
-    </div>
-
-    {/* Sección de estado de la orden */}
-    <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xl font-semibold text-gray-100">
-          Orden de: {isAdminView ? orderData.user?.fullName ?? "Tu Capi" : "Tu Capi"}
-        </h3>
-        <span className="flex items-center gap-1 text-sm font-medium">
-          <ShieldUser size={20} className="text-emerald-500" />
-        </span>
-      </div>
-      <p className="text-sm text-gray-400 flex items-center gap-2">
-        Estado:{" "}
-        <span
-          className={`flex items-center gap-1 font-medium ${
-            orderData.status === "COMPLETED"
-              ? "text-emerald-500"
-              : orderData.status === "PENDING"
-              ? "text-yellow-400"
-              : "text-red-500"
-          }`}
+  if (!orderData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-red-400 text-lg p-4">
+        <CircleX className="mb-4" size={32} />
+        No se pudieron cargar los detalles de la orden.
+        <button
+          onClick={onClose}
+          className="mt-4 px-4 py-2 bg-blue-600 rounded-md text-white"
         >
-          {orderData.status === "COMPLETED" && (
-            <>
-              <CheckCircle2 size={16} /> Completada
-            </>
-          )}
-          {orderData.status === "PENDING" && (
-            <>
-              <Clock size={16} /> Pendiente
-            </>
-          )}
-          {orderData.status === "CANCELLED" && (
-            <>
-              <XCircle size={16} /> Cancelada
-            </>
-          )}
-        </span>
-      </p>
-    </div>
-
-    {/* Detalles de montos */}
-    <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-gray-300">Recibiste:</span>
-        <span className="text-white font-bold text-lg">
-          {montoRecibido.toFixed(2)} {currencyLabel}
-        </span>
+          Volver
+        </button>
       </div>
-      {pricePerUsdt && (
-  <div className="flex justify-between items-center text-sm text-gray-400">
-    <span>Precio por USDT:</span>
-    <span>{pricePerUsdt.toFixed(4)} USD</span>
-  </div>
-)}
+    );
+  }
 
+
+  return (
+    <>
+      {/* Header de Detalles de Orden */}
+      <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+        <button
+          onClick={onClose}
+          className="hidden md:block text-gray-400 hover:text-emerald-400 p-2 rounded-full transition-colors"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white flex-1 text-center md:text-left ml-4 md:ml-0">
+          Detalles de Orden
+        </h2>
+        <button
+          onClick={() => setShowOrderDetailsMobile(false)}
+          className="block md:hidden text-gray-400 hover:text-gray-200 p-2 rounded-full bg-gray-800"
+          aria-label="Cerrar detalles"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Sección de estado de la orden */}
+      <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xl font-semibold text-gray-100">
+            Orden de: {isAdminView ? orderData.user?.fullName ?? "Tu Capi" : "Tu Capi"}
+          </h3>
+          <span className="flex items-center gap-1 text-sm font-medium">
+            <ShieldUser size={20} className="text-emerald-500" />
+          </span>
+        </div>
+        <p className="text-sm text-gray-400 flex items-center gap-2">
+          Estado:{" "}
+          <span
+            className={`flex items-center gap-1 font-medium ${
+              orderData.status === "COMPLETED"
+                ? "text-emerald-500"
+                : orderData.status === "PENDING"
+                ? "text-yellow-400"
+                : "text-red-500"
+            }`}
+          >
+            {orderData.status === "COMPLETED" && (
+              <>
+                <CheckCircle2 size={16} /> Completada
+              </>
+            )}
+            {orderData.status === "PENDING" && (
+              <>
+                <Clock size={16} /> Pendiente
+              </>
+            )}
+            {orderData.status === "CANCELLED" && (
+              <>
+                <XCircle size={16} /> Cancelada
+              </>
+            )}
+          </span>
+        </p>
+      </div>
+
+     {/* Detalles de montos */}
+<div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
+  <div className="flex justify-between items-center mb-2">
+    <span className="text-gray-300">Recibiste:</span>
+    <span className="text-white font-bold text-lg">
+      {montoRecibido.toFixed(2)} {currencyLabel.split(" ")[0]} 
+      {/* split(" ")[0] evita mostrar algo como "USDT - BINANCE_PAY" */}
+    </span>
+  </div>
+
+  <div className="flex justify-between items-center mb-2">
+    <span className="text-gray-300">Enviaste:</span>
+    <span className="text-white font-bold text-lg">
+      {orderData.amount.toFixed(2)} USD
+    </span>
+  </div>
+
+  {pricePerUsdt && (
+    <div className="flex justify-between items-center text-sm text-gray-400">
+      <span>Precio por USDT:</span>
+      <span>{pricePerUsdt.toFixed(4)} USD</span>
     </div>
+  )}
+</div>
+
 
     {/* Sección Información Adicional */}
     <div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
