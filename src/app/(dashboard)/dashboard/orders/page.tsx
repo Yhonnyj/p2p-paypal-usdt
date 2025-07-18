@@ -1,5 +1,6 @@
 "use client";
 
+import { OrderFormProvider } from "@/context/OrderFormContext"; // <- IMPORTAR ARRIBA
 import {
   Zap,
   Loader2,
@@ -246,17 +247,19 @@ return (
         )}
       </div>
 
-      {chatOrderId && selectedOrderDetails && (
-        <OrderChatModal
-          orderId={chatOrderId}
-          isOpen={!!chatOrderId}
-          onClose={() => {
-            setChatOrderId(null);
-            setSelectedOrderDetails(null);
-          }}
-          orderData={selectedOrderDetails}
-        />
-      )}
+   {chatOrderId && selectedOrderDetails && (
+  <OrderFormProvider>
+    <OrderChatModal
+      orderId={chatOrderId}
+      isOpen={!!chatOrderId}
+      onClose={() => {
+        setChatOrderId(null);
+        setSelectedOrderDetails(null);
+      }}
+      orderData={selectedOrderDetails}
+    />
+  </OrderFormProvider>
+)}
     </div>
   );
 }

@@ -346,194 +346,180 @@ if (orderData && orderData.to !== "USDT") {
   currencyLabel = orderData.to;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let fiatDetails: any = null;
+if (orderData?.to !== "USDT" && orderData?.wallet) {
+  try {
+    fiatDetails = JSON.parse(orderData.wallet);
+  } catch (e) {
+    console.error("Error parsing FIAT wallet details:", e);
+  }
+}
+const isAdminView = orderData?.user?.email !== currentUserEmail;
 
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let fiatDetails: any = null;
-    if (orderData?.to !== "USDT" && orderData?.wallet) {
-      try {
-        fiatDetails = JSON.parse(orderData.wallet);
-      } catch (e) {
-        console.error("Error parsing FIAT wallet details:", e);
-      }
-    }
-    const isAdminView = orderData?.user?.email !== currentUserEmail;
-
-
-    if (!orderData) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-red-400 text-lg p-4">
-          <CircleX className="mb-4" size={32} />
-          No se pudieron cargar los detalles de la orden.
-          <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 rounded-md text-white">Volver</button>
-        </div>
-      );
-    }
-
-
-    
-    return (
-      <>
-        {/* Header de Detalles de Orden para Desktop y Overlay Móvil */}
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700"> {/* Usar mb-4 pb-2 para coincidir con el chat */}
-          {/* Botón de volver para Desktop (oculto en el overlay móvil) */}
-          <button onClick={onClose} className="hidden md:block text-gray-400 hover:text-emerald-400 p-2 rounded-full transition-colors">
-            <ArrowLeft size={24} />
-          </button>
-          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white flex-1 text-center md:text-left ml-4 md:ml-0">Detalles de Orden</h2> {/* Alineación de texto y margen para coincidir */}
-          {/* Botón X para cerrar overlay móvil (visible solo en el overlay móvil) */}
-          <button
-            onClick={() => setShowOrderDetailsMobile(false)}
-            className="block md:hidden text-gray-400 hover:text-gray-200 p-2 rounded-full bg-gray-800"
-            aria-label="Cerrar detalles"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Sección de estado de la orden */}
-        <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-semibold text-gray-100">Orden de: {isAdminView ? orderData.user?.fullName ?? "Tu Capi" : "Tu Capi"}</h3>
-            <span className="flex items-center gap-1 text-sm font-medium">
-              <ShieldUser size={20} className="text-emerald-500" />
-        
-</span>
-</div>
-<p className="text-sm text-gray-400 flex items-center gap-2">
-  Estado:{" "}
-  <span
-    className={`flex items-center gap-1 font-medium ${
-      orderData.status === "COMPLETED"
-        ? "text-emerald-500"
-        : orderData.status === "PENDING"
-        ? "text-yellow-400"
-        : "text-red-500"
-    }`}
-  >
-    {orderData.status === "COMPLETED" && (
-      <>
-        <CheckCircle2 size={16} /> Completada
-      </>
-    )}
-    {orderData.status === "PENDING" && (
-      <>
-        <Clock size={16} /> Pendiente
-      </>
-    )}
-    {orderData.status === "CANCELLED" && (
-      <>
-        <XCircle size={16} /> Cancelada
-      </>
-    )}
-  </span>
-</p>
-</div>
-
-
-
-       {/* Detalles de montos */}
-<div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
-  <div className="flex justify-between items-center mb-2">
-    <span className="text-gray-300">Recibiste:</span>
-    <span className="text-white font-bold text-lg">
-      {montoRecibido.toFixed(2)} {currencyLabel}
-    </span>
-  </div>
-  <div className="flex justify-between items-center mb-2">
-    <span className="text-gray-300">Enviaste:</span>
-    <span className="text-white font-bold text-lg">
-      {orderData.amount.toFixed(2)} USD
-    </span>
-  </div>
-  {pricePerUsdt && (
-    <div className="flex justify-between items-center text-sm text-gray-400">
-      {/* Aquí puedes añadir la relación de precio si lo deseas */}
+if (!orderData) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full text-red-400 text-lg p-4">
+      <CircleX className="mb-4" size={32} />
+      No se pudieron cargar los detalles de la orden.
+      <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 rounded-md text-white">Volver</button>
     </div>
-  )}
-</div>
+  );
+}
 
-{/* Sección Información Adicional */}
-<div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
-  <div className="w-full flex justify-between items-center p-4 text-gray-100 font-semibold rounded-t-xl">
-    Datos de Pago
-  </div>
-  <div className="px-4 pb-4 border-t border-gray-800 space-y-2">
-  
-    <p className="text-gray-400 text-sm flex items-center gap-2">
-    Orden:
-      <span className="font-mono text-xs text-gray-300 select-all">{orderData.id}</span>
-      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.id)} />
-    </p>
+return (
+  <>
+    {/* Header de Detalles de Orden para Desktop y Overlay Móvil */}
+    <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-700">
+      <button onClick={onClose} className="hidden md:block text-gray-400 hover:text-emerald-400 p-2 rounded-full transition-colors">
+        <ArrowLeft size={24} />
+      </button>
+      <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white flex-1 text-center md:text-left ml-4 md:ml-0">
+        Detalles de Orden
+      </h2>
+      <button
+        onClick={() => setShowOrderDetailsMobile(false)}
+        className="block md:hidden text-gray-400 hover:text-gray-200 p-2 rounded-full bg-gray-800"
+        aria-label="Cerrar detalles"
+      >
+        <X size={20} />
+      </button>
+    </div>
 
-    <p className="text-gray-400 text-sm flex items-center gap-2">
-    Metodo:
-      <span className="font-medium text-gray-300">{orderData.paypalEmail}</span>
-      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.paypalEmail)} />
-    </p>
-
-    <p className="text-gray-400 text-sm flex items-center gap-2">
-    Destino:
-      <span className="font-medium text-gray-300">{orderData.to}</span>
-      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.to)} />
-    </p>
-
-    {orderData.to.includes("USDT") ? (
-      <p className="text-gray-400 text-sm flex items-center gap-2">
-      Wallet USDT:
-        <span className="font-medium text-gray-300 break-all">{orderData.wallet}</span>
-        <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.wallet)} />
+    {/* Sección de estado de la orden */}
+    <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xl font-semibold text-gray-100">
+          Orden de: {isAdminView ? orderData.user?.fullName ?? "Tu Capi" : "Tu Capi"}
+        </h3>
+        <span className="flex items-center gap-1 text-sm font-medium">
+          <ShieldUser size={20} className="text-emerald-500" />
+        </span>
+      </div>
+      <p className="text-sm text-gray-400 flex items-center gap-2">
+        Estado:{" "}
+        <span
+          className={`flex items-center gap-1 font-medium ${
+            orderData.status === "COMPLETED"
+              ? "text-emerald-500"
+              : orderData.status === "PENDING"
+              ? "text-yellow-400"
+              : "text-red-500"
+          }`}
+        >
+          {orderData.status === "COMPLETED" && (
+            <>
+              <CheckCircle2 size={16} /> Completada
+            </>
+          )}
+          {orderData.status === "PENDING" && (
+            <>
+              <Clock size={16} /> Pendiente
+            </>
+          )}
+          {orderData.status === "CANCELLED" && (
+            <>
+              <XCircle size={16} /> Cancelada
+            </>
+          )}
+        </span>
       </p>
-    ) : (
-      fiatDetails && (
-        <>
+    </div>
+
+    {/* Detalles de montos */}
+    <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-gray-300">Recibiste:</span>
+        <span className="text-white font-bold text-lg">
+          {montoRecibido.toFixed(2)} {currencyLabel}
+        </span>
+      </div>
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-gray-300">Enviaste:</span>
+        <span className="text-white font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
+      </div>
+    </div>
+
+    {/* Sección Información Adicional */}
+    <div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
+      <div className="w-full flex justify-between items-center p-4 text-gray-100 font-semibold rounded-t-xl">
+        Datos de Pago
+      </div>
+      <div className="px-4 pb-4 border-t border-gray-800 space-y-2">
+        <p className="text-gray-400 text-sm flex items-center gap-2">
+          Orden:
+          <span className="font-mono text-xs text-gray-300 select-all">{orderData.id}</span>
+          <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.id)} />
+        </p>
+
+        <p className="text-gray-400 text-sm flex items-center gap-2">
+          Metodo:
+          <span className="font-medium text-gray-300">{orderData.paypalEmail}</span>
+          <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.paypalEmail)} />
+        </p>
+
+        <p className="text-gray-400 text-sm flex items-center gap-2">
+          Destino:
+          <span className="font-medium text-gray-300">{orderData.to}</span>
+          <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.to)} />
+        </p>
+
+        {orderData.to.includes("USDT") ? (
           <p className="text-gray-400 text-sm flex items-center gap-2">
-          Banco:
-            <span className="font-medium text-gray-300">{fiatDetails.bankName}</span>
-            <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.bankName)} />
+            Wallet USDT:
+            <span className="font-medium text-gray-300 break-all">{orderData.wallet}</span>
+            <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.wallet)} />
           </p>
-          {fiatDetails.phoneNumber && (
-            <p className="text-gray-400 text-sm flex items-center gap-2">
-             Teléfono:
-              <span className="font-medium text-gray-300">{fiatDetails.phoneNumber}</span>
-              <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.phoneNumber)} />
-            </p>
-          )}
-          {fiatDetails.idNumber && (
-            <p className="text-gray-400 text-sm flex items-center gap-2">
-             Cédula:
-              <span className="font-medium text-gray-300">{fiatDetails.idNumber}</span>
-              <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.idNumber)} />
-            </p>
-          )}
-        </>
-      )
-    )}
+        ) : (
+          fiatDetails && (
+            <>
+              <p className="text-gray-400 text-sm flex items-center gap-2">
+                Banco:
+                <span className="font-medium text-gray-300">{fiatDetails.bankName}</span>
+                <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.bankName)} />
+              </p>
+              {fiatDetails.phoneNumber && (
+                <p className="text-gray-400 text-sm flex items-center gap-2">
+                  Teléfono:
+                  <span className="font-medium text-gray-300">{fiatDetails.phoneNumber}</span>
+                  <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.phoneNumber)} />
+                </p>
+              )}
+              {fiatDetails.idNumber && (
+                <p className="text-gray-400 text-sm flex items-center gap-2">
+                  Cédula:
+                  <span className="font-medium text-gray-300">{fiatDetails.idNumber}</span>
+                  <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(fiatDetails.idNumber)} />
+                </p>
+              )}
+            </>
+          )
+        )}
 
-    <p className="text-gray-400 text-sm flex items-center gap-2">
-    Plataforma:
-      <span className="font-medium text-gray-300">{orderData.platform}</span>
-      <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.platform)} />
-    </p>
-  </div>
-</div>
+        <p className="text-gray-400 text-sm flex items-center gap-2">
+          Plataforma:
+          <span className="font-medium text-gray-300">{orderData.platform}</span>
+          <Copy size={16} className="cursor-pointer text-gray-400 hover:text-green-400" onClick={() => handleCopy(orderData.platform)} />
+        </p>
+      </div>
+    </div>
 
-        {/* Botón Volver al inicio para móvil (dentro del overlay de detalles) y desktop (fuera del overlay) */}
-        <div className="mt-auto pt-4 text-center block md:hidden">
-          <button
-            onClick={() => { setShowOrderDetailsMobile(false); onClose(); }}
-            className="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-xl font-bold shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform active:scale-95"
-          >
-            Volver al inicio
-          </button>
-        </div>
-        <div className="mt-auto pt-4 text-center hidden md:block">
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-gradient-to-r from-emerald-400 to-teal-300 text-white rounded-xl font-bold shadow-lg hover:from-green-700 hover:to-yellow-600 transition-all duration-300 transform active:scale-95"
-          >
-            Volver
-          </button>
+    {/* Botón Volver al inicio para móvil (dentro del overlay de detalles) y desktop (fuera del overlay) */}
+    <div className="mt-auto pt-4 text-center block md:hidden">
+      <button
+        onClick={() => { setShowOrderDetailsMobile(false); onClose(); }}
+        className="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-xl font-bold shadow-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-300 transform active:scale-95"
+      >
+        Volver al inicio
+      </button>
+    </div>
+    <div className="mt-auto pt-4 text-center hidden md:block">
+      <button
+        onClick={onClose}
+        className="w-full py-3 bg-gradient-to-r from-emerald-400 to-teal-300 text-white rounded-xl font-bold shadow-lg hover:from-green-700 hover:to-yellow-600 transition-all duration-300 transform active:scale-95"
+      >
+        Volver
+      </button>
         </div>
       </>
     );
