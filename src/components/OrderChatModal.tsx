@@ -417,22 +417,25 @@ channel.bind("new-message", (data: Message) => {
 
 
 
-        {/* Detalles de montos */}
-        <div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-300">Recibiste:</span>
-            <span className="text-white font-bold text-lg">${orderData.finalUsd.toFixed(2)} USDT</span>
-          </div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-300">Enviaste:</span>
-            <span className="text-white font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
-          </div>
-          {pricePerUsdt && (
-            <div className="flex justify-between items-center text-sm text-gray-400">
-              {/* Aquí puedes añadir la relación de precio si lo deseas */}
-            </div>
-          )}
-        </div>
+       {/* Detalles de montos */}
+<div className="bg-gray-900 rounded-xl p-4 mb-4 shadow-inner border border-gray-700">
+  <div className="flex justify-between items-center mb-2">
+    <span className="text-gray-300">Recibiste:</span>
+    <span className="text-white font-bold text-lg">
+      ${orderData.finalUsd.toFixed(2)} {orderData.to.split(" - ")[0]}
+    </span>
+  </div>
+  <div className="flex justify-between items-center mb-2">
+    <span className="text-gray-300">Enviaste:</span>
+    <span className="text-white font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
+  </div>
+  {pricePerUsdt && (
+    <div className="flex justify-between items-center text-sm text-gray-400">
+      {/* Aquí puedes añadir la relación de precio si lo deseas */}
+    </div>
+  )}
+</div>
+
 {/* Sección Información Adicional */}
 <div className="bg-gray-900 rounded-xl p-0 mb-4 shadow-inner border border-gray-700">
   <div className="w-full flex justify-between items-center p-4 text-gray-100 font-semibold rounded-t-xl">
