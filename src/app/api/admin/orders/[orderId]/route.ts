@@ -89,20 +89,44 @@ if (pushToken) {
     // Notificar por Pusher
     await pusherServer.trigger("orders-channel", "order-updated", updatedOrder);
 
-   // Enviar email al cliente si se completó la orden
+// Enviar email al cliente si se completó la orden
 if (normalizedStatus === "COMPLETED" && updatedOrder.user.email) {
+  const html = `
+    <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px; color: #111; border-radius: 8px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://res.cloudinary.com/dgiy5onqs/image/upload/v1752778216/icon-512x512_vgkmra.png" alt="TuCapi Logo" style="height: 60px;" />
+      </div>
+
+      <h2 style="color: #10b981; text-align: center;">¡Gracias por tu pedido en TuCapi! 🎉</h2>
+      <p style="font-size: 16px; text-align: center;">Nos complace informarte que tu orden ha sido <strong>completada con éxito</strong>.</p>
+
+      <div style="background: #fff; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #ddd;">
+        <p style="font-size: 16px; margin: 4px 0;">
+          <strong>Monto enviado:</strong> $${updatedOrder.amount.toFixed(2)}
+        </p>
+        <p style="font-size: 16px; margin: 4px 0;">
+          <strong>Destino:</strong> ${updatedOrder.to}
+        </p>
+        <p style="font-size: 16px; margin: 4px 0;">
+          <strong>Fecha de finalización:</strong> ${new Date(updatedOrder.updatedAt).toLocaleString("es-ES")}
+        </p>
+      </div>
+
+      <p style="font-size: 16px; text-align: center;">
+        Recuerda que siempre estamos listos para ayudarte. Si tienes alguna duda sobre tu orden, contáctanos por WhatsApp:  
+        <br/>
+        📲 <strong>+1 506 899 8648</strong>
+      </p>
+
+      <p style="font-size: 16px; text-align: center;">¡Gracias por confiar en <strong>TuCapi</strong>! 💛</p>
+    </div>
+  `;
+
   await resend.emails.send({
-    from: "Orden fue completada. <notificaciones@tucapi.app>",
+    from: "TuCapi <notificaciones@tucapi.app>",
     to: updatedOrder.user.email,
-    subject: "✅ TuCapi te informa que tu orden ha sido completada",
-    html: `
-      <h2>¡Gracias por tu pedido!</h2>
-      <p>Tu orden en nuestra plataforma ha sido completada con éxito.</p>
-      <p><strong>Monto enviado:</strong> $${updatedOrder.amount.toFixed(2)}</p>
-      <p><strong>Destino:</strong> ${updatedOrder.to}</p>
-      <p>Este es un correo automatico, no responder este correo.</p>
-      <p><em>Fecha:</em> ${new Date(updatedOrder.updatedAt).toLocaleString("es-ES")}</p>
-    `,
+    subject: "✅ Tu orden en TuCapi ha sido completada",
+    html,
   });
 }
 

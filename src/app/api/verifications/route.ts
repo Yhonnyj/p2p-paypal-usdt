@@ -45,18 +45,44 @@ export async function POST(req: Request) {
       { status: "PENDING" }
     );
 
-    // ✅ Enviar email al admin
-    await resend.emails.send({
-      from: "Nueva verificacion <notificaciones@tucapi.app>",
-      to: "info@caibo.ca",
-      subject: `🔐 Verificación pendiente: ${user.fullName || user.email}`,
-      html: `
-        <h2>Nuevo cliente esperando revisión</h2>
-        <p><strong>Nombre:</strong> ${user.fullName || "Sin nombre"}</p>
-        <p><strong>Email:</strong> ${user.email}</p>
-        <p><strong>Fecha:</strong> ${new Date().toLocaleString("es-ES")}</p>
-      `,
-    });
+   // ✅ Enviar email al admin
+await resend.emails.send({
+  from: "Nueva verificación <notificaciones@tucapi.app>",
+  to: "info@caibo.ca",
+  subject: `🔐 Verificación pendiente: ${user.fullName || user.email}`,
+  html: `
+    <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px; color: #111; border-radius: 8px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://res.cloudinary.com/dgiy5onqs/image/upload/v1752778216/icon-512x512_vgkmra.png" alt="TuCapi Logo" style="height: 60px;" />
+      </div>
+
+      <h2 style="color: #eab308; text-align: center;">🔐 Nueva verificación pendiente</h2>
+      <p style="font-size: 16px; text-align: center;">
+        Un cliente está esperando que revises su verificación de identidad.
+      </p>
+
+      <div style="background: #fff; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #ddd;">
+        <p style="font-size: 16px; margin: 4px 0;">
+          <strong>Nombre:</strong> ${user.fullName || "Sin nombre"}
+        </p>
+        <p style="font-size: 16px; margin: 4px 0;">
+          <strong>Email:</strong> ${user.email}
+        </p>
+        <p style="font-size: 16px; margin: 4px 0;">
+          <strong>Fecha:</strong> ${new Date().toLocaleString("es-ES")}
+        </p>
+      </div>
+
+      <p style="font-size: 16px; text-align: center;">
+        Ingresa al panel de administración para revisar y aprobar la verificación.
+      </p>
+
+      <p style="font-size: 16px; text-align: center;">
+        <strong>Equipo TuCapi 💬</strong>
+      </p>
+    </div>
+  `,
+});
 
     // ✅ Push al admin si tiene token
     const adminUser = await prisma.user.findUnique({
