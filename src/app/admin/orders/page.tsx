@@ -1,5 +1,6 @@
 "use client";
 
+import { OrderFormProvider } from "@/context/OrderFormContext";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast, ToastContainer } from "react-toastify";
@@ -161,20 +162,22 @@ export default function AdminDashboardPage() {
           </>
         )}
       </div>
+{/* Modal de chat */}
+{isChatOpen && selectedOrderId && (
+  <OrderFormProvider>
+    <OrderChatModal
+      orderId={selectedOrderId}
+      isOpen={isChatOpen}
+      onClose={() => {
+        setIsChatOpen(false);
+        setSelectedOrderId(null);
+        setSelectedOrderDetails(null);
+      }}
+      orderData={selectedOrderDetails}
+    />
+  </OrderFormProvider>
+)}
 
-      {/* Modal de chat */}
-      {isChatOpen && selectedOrderId && (
-        <OrderChatModal
-          orderId={selectedOrderId}
-          isOpen={isChatOpen}
-          onClose={() => {
-            setIsChatOpen(false);
-            setSelectedOrderId(null);
-            setSelectedOrderDetails(null);
-          }}
-          orderData={selectedOrderDetails}
-        />
-      )}
 
       <ToastContainer position="bottom-right" autoClose={5000} theme="dark" />
     </div>
