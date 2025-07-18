@@ -1,6 +1,7 @@
 // components/OrderChatModal.tsx
 'use client';
 
+import { useOrderForm } from "@/context/OrderFormContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Pusher from "pusher-js";
@@ -53,6 +54,7 @@ type Props = {
 
 export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: Props) {
   const { user } = useUser();
+  const { exchangeRates } = useOrderForm();
   const currentUserEmail = user?.primaryEmailAddress?.emailAddress;
   const setIsChatModalOpen = useChatStore((s) => s.setIsChatModalOpen);
 
@@ -334,6 +336,17 @@ channel.bind("new-message", (data: Message) => {
   }
 };
 
+// --- Calcular monto recibido con la moneda correcta ---
+let montoRecibido = orderData?.finalUsd || 0;
+let currencyLabel = "USDT";
+
+if (orderData && orderData.to !== "USDT") {
+  const fiatRate = exchangeRates.find((r) => r.currency === orderData.to)?.rate ?? 1;
+  montoRecibido = orderData.finalUsd * fiatRate;
+  currencyLabel = orderData.to;
+}
+
+
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fiatDetails: any = null;
@@ -357,6 +370,8 @@ channel.bind("new-message", (data: Message) => {
       );
     }
 
+
+    
     return (
       <>
         {/* Header de Detalles de Orden para Desktop y Overlay Móvil */}
@@ -422,12 +437,14 @@ channel.bind("new-message", (data: Message) => {
   <div className="flex justify-between items-center mb-2">
     <span className="text-gray-300">Recibiste:</span>
     <span className="text-white font-bold text-lg">
-      ${orderData.finalUsd.toFixed(2)} {orderData.to.split(" - ")[0]}
+      {montoRecibido.toFixed(2)} {currencyLabel}
     </span>
   </div>
   <div className="flex justify-between items-center mb-2">
     <span className="text-gray-300">Enviaste:</span>
-    <span className="text-white font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
+    <span className="text-white font-bold text-lg">
+      {orderData.amount.toFixed(2)} USD
+    </span>
   </div>
   {pricePerUsdt && (
     <div className="flex justify-between items-center text-sm text-gray-400">
