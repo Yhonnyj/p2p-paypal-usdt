@@ -434,10 +434,13 @@ return (
           {montoRecibido.toFixed(2)} {currencyLabel}
         </span>
       </div>
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-gray-300">Enviaste:</span>
-        <span className="text-white font-bold text-lg">{orderData.amount.toFixed(2)} USD</span>
-      </div>
+      {pricePerUsdt && (
+  <div className="flex justify-between items-center text-sm text-gray-400">
+    <span>Precio por USDT:</span>
+    <span>{pricePerUsdt.toFixed(4)} USD</span>
+  </div>
+)}
+
     </div>
 
     {/* Sección Información Adicional */}
