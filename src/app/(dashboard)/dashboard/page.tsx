@@ -94,16 +94,44 @@ export default function DashboardPage() {
     setShowAlert(true);
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black flex items-center justify-center p-8 text-white font-inter">
-        <div className="text-center bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
-          <p className="text-2xl font-bold mb-4 text-red-500">Acceso No Autorizado</p>
-          <p className="text-gray-300">Por favor, inicia sesión para acceder a tu panel.</p>
-        </div>
+if (user === undefined) {
+  return (
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white font-inter overflow-hidden flex items-center justify-center">
+      {/* Fondo radial */}
+      <div
+        className="absolute inset-0 z-0 opacity-20"
+        style={{
+          background:
+            'radial-gradient(circle at top left, #34D399, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
+        }}
+      ></div>
+
+      {/* Logo girando */}
+      <div className="relative z-10 flex flex-col items-center justify-center">
+        <img
+          src="/tucapi-logo.png"
+          alt="TuCapi Logo"
+          className="w-32 h-32 animate-spin-slow"
+        />
+        <p className="text-sm text-gray-400 mt-4">Cargando acceso seguro...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
+if (!user) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black flex items-center justify-center p-8 text-white font-inter">
+      <div className="text-center bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
+        <p className="text-2xl font-bold mb-4 text-red-500">Acceso No Autorizado</p>
+        <p className="text-gray-300">Por favor, inicia sesión para acceder a tu panel.</p>
+      </div>
+    </div>
+  );
+}
+
+
+
 
   // Determine icon and text for verification status
   let statusIcon;
