@@ -1,5 +1,6 @@
 "use client";
 
+import WarningBanner from "@/components/WarningBanner";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import dynamic from "next/dynamic";
@@ -130,9 +131,6 @@ if (!user) {
   );
 }
 
-
-
-
   // Determine icon and text for verification status
   let statusIcon;
   let statusText = "";
@@ -172,36 +170,53 @@ if (!user) {
       break;
   }
 
-  return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white p-8 font-inter overflow-hidden">
-      {/* Background radial gradient for premium feel */}
-      <div className="absolute inset-0 z-0 opacity-20" style={{
-        background: 'radial-gradient(circle at top left, #34D399, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
-      }}></div>
+ return (
+  <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white p-8 font-inter overflow-hidden">
+    {/* Background radial gradient for premium feel */}
+    <div
+      className="absolute inset-0 z-0 opacity-20"
+      style={{
+        background:
+          'radial-gradient(circle at top left, #34D399, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
+      }}
+    ></div>
 
-
-      <div className="relative z-10 max-w-4xl mx-auto">
-        {/* Top bar for User Profile */}
-        <div className="flex justify-between items-center mb-12 pt-4">
+    <div className="relative z-10 max-w-4xl mx-auto">
+      {/* Top bar for User Profile */}
+      <div className="flex justify-between items-start mb-12 pt-4">
+        <div className="flex flex-col gap-2">
           <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-lg animate-fade-in-up">
             ¡Bienvenido, {user.firstName}!
           </h1>
-          
-          <div
-            className="flex items-center gap-3 bg-gray-800/70 backdrop-blur-md rounded-full px-4 py-2 border border-gray-700 shadow-lg transition-all duration-300 hover:shadow-blue-500/20 animate-fade-in delay-200 cursor-pointer"
-            onClick={() => setIsProfileModalOpen(true)} // Make the profile clickable
-          >
-            {user.imageUrl ? (
-              <img src={user.imageUrl} alt="User Avatar" className="h-10 w-10 rounded-full object-cover border-2 border-green-500" />
-            ) : (
-              <UserIcon size={24} className="text-green-500" /> // Fallback icon
-            )}
-            <div className="flex flex-col text-sm">
-              <span className="font-semibold text-gray-100">{user.fullName || user.firstName || 'Usuario'}</span>
-              <span className="text-gray-400">{user.primaryEmailAddress?.emailAddress || 'N/A'}</span>
-            </div>
+
+          {/* Warning Banner */}
+          <WarningBanner />
+        </div>
+
+        <div
+          className="flex items-center gap-3 bg-gray-800/70 backdrop-blur-md rounded-full px-4 py-2 border border-gray-700 shadow-lg transition-all duration-300 hover:shadow-blue-500/20 animate-fade-in delay-200 cursor-pointer"
+          onClick={() => setIsProfileModalOpen(true)}
+        >
+          {user.imageUrl ? (
+            <img
+              src={user.imageUrl}
+              alt="User Avatar"
+              className="h-10 w-10 rounded-full object-cover border-2 border-green-500"
+            />
+          ) : (
+            <UserIcon size={24} className="text-green-500" /> // Fallback icon
+          )}
+          <div className="flex flex-col text-sm">
+            <span className="font-semibold text-gray-100">
+              {user.fullName || user.firstName || 'Usuario'}
+            </span>
+            <span className="text-gray-400">
+              {user.primaryEmailAddress?.emailAddress || 'N/A'}
+            </span>
           </div>
         </div>
+      </div>
+
 
         {/* Verification Status Card */}
         {/* FIX: Se usa la variable statusBg aquí para resolver el error de 'no-unused-vars' */}
@@ -236,16 +251,27 @@ if (!user) {
               Verificar Identidad
             </button>
           )}
-          {verificationStatus === "APPROVED" && (
-            <button
-              onClick={() => {
-                router.push('/dashboard/neworder'); // Actual redirection
-              }}
-              className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-8 py-3 rounded-xl text-white font-bold text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
-            >
-              Crear Nueva Orden
-            </button>
-          )}
+         {verificationStatus === "APPROVED" && (
+  <div className="text-center flex flex-col items-center px-4 sm:px-6 lg:px-8">
+    <img
+      src="/capi-constructor.png"
+      alt="Capybara en mantenimiento"
+      className="w-32 sm:w-40 md:w-48 lg:w-56 xl:w-64 h-auto mb-4 drop-shadow-lg"
+    />
+    <p className="text-red-400 font-semibold mb-4 text-base sm:text-lg md:text-xl leading-snug max-w-md">
+      🛠 Domingo de ajustes, nuestro capybara está afinando tu plataforma favorita.
+      <br />
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 8:00 AM</span>.
+    </p>
+    <button
+      disabled
+      className="bg-gray-600 cursor-not-allowed px-6 sm:px-8 py-2 sm:py-3 rounded-xl text-white font-bold text-sm sm:text-lg opacity-60"
+    >
+      Crear Nueva Orden (Deshabilitado)
+    </button>
+  </div>
+)}
+
         </section>
 
         {/* Key Features / Benefits Section */}
