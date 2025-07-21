@@ -261,7 +261,7 @@ if (!user) {
     <p className="text-red-400 font-semibold mb-4 text-base sm:text-lg md:text-xl leading-snug max-w-md">
       🛠 Domingo de ajustes, nuestro capybara está afinando tu plataforma favorita.
       <br />
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 8:00 AM</span>.
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 12:00 PM</span>
     </p>
     <button
       disabled
