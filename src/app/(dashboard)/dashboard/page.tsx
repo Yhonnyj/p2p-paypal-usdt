@@ -251,26 +251,17 @@ if (!user) {
               Verificar Identidad
             </button>
           )}
-         {verificationStatus === "APPROVED" && (
-  <div className="text-center flex flex-col items-center px-4 sm:px-6 lg:px-8">
-    <img
-      src="/capi-constructor.png"
-      alt="Capybara en mantenimiento"
-      className="w-32 sm:w-40 md:w-48 lg:w-56 xl:w-64 h-auto mb-4 drop-shadow-lg"
-    />
-    <p className="text-red-400 font-semibold mb-4 text-base sm:text-lg md:text-xl leading-snug max-w-md">
-      🛠 Domingo de ajustes, nuestro capybara está afinando tu plataforma favorita.
-      <br />
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 12:00 PM</span>
-    </p>
-    <button
-      disabled
-      className="bg-gray-600 cursor-not-allowed px-6 sm:px-8 py-2 sm:py-3 rounded-xl text-white font-bold text-sm sm:text-lg opacity-60"
-    >
-      Crear Nueva Orden (Deshabilitado)
-    </button>
-  </div>
+   {verificationStatus === "APPROVED" && (
+  <button
+    onClick={() => {
+      router.push("/dashboard/neworder"); // Redirección a nueva orden
+    }}
+    className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-8 py-3 rounded-xl text-white font-bold text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+  >
+    Crear Nueva Orden
+  </button>
 )}
+
 
         </section>
 
