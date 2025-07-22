@@ -14,7 +14,6 @@ import {
   Mail,
   FileText,
   Camera,
-  CheckCircle2,
   Clock,
   Search,
   ChevronLeft,
