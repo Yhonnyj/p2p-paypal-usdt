@@ -1,10 +1,10 @@
 // src/app/admin/verifications/page.tsx
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { pusherClient } from "@/lib/pusher"; // Asegúrate de tener este import y que Pusher esté configurado
-import { motion, AnimatePresence } from "framer-motion"; // Importar Framer Motion
+import { pusherClient } from "@/lib/pusher";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2,
   CircleX,
@@ -12,56 +12,71 @@ import {
   XCircle,
   User,
   Mail,
-  FileText, // Para icono de documento
-  Camera, // Para icono de selfie
+  FileText,
+  Camera,
   CheckCircle2,
-  Clock, // Para el botón de Aprobar
-} from "lucide-react"; // Importar iconos adicionales
-import { toast, ToastContainer } from 'react-toastify'; // Importar ToastContainer si no está en layout global
+  Clock,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
 
 interface VerificationItem {
   id: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   documentUrl: string;
   selfieUrl: string;
+  createdAt: string;
   user: {
     email: string;
     fullName: string | null;
   } | null;
 }
 
+const PAGE_SIZE = 6;
+
 export default function AdminVerificationsPage() {
   const [verifications, setVerifications] = useState<VerificationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // Estado para manejar errores de fetch
+  const [error, setError] = useState<string | null>(null);
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(
+    null
+  );
+  const [search, setSearch] = useState("");
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Nuevo estado para la URL de la imagen en pantalla completa
-  const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
-
-// Función para obtener las verificaciones desde la API
-const fetchVerifications = async () => {
-  setLoading(true);
-  setError(null);
-  try {
-    const res = await fetch("/api/admin/verifications");
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || "Error al cargar las verificaciones.");
+  const fetchVerifications = async (pageNumber = 1, searchQuery = "") => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/verifications?page=${pageNumber}&limit=${PAGE_SIZE}&search=${encodeURIComponent(
+          searchQuery
+        )}`
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.error || "Error al cargar las verificaciones."
+        );
+      }
+      const data = await res.json();
+      setVerifications(data.verifications);
+      setTotal(data.total);
+      setTotalPages(data.totalPages);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message || "Error desconocido al cargar verificaciones.");
+      toast.error(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
-    const data: VerificationItem[] = await res.json();
-    setVerifications(data);
-  } catch (err: unknown) {
-    const error = err as Error;
-    console.error("Error fetching verifications:", error);
-    setError(error.message || "Error desconocido al cargar verificaciones.");
-    toast.error(`Error: ${error.message || "No se pudieron cargar las verificaciones."}`);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-   const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
+  const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
     try {
       const res = await fetch(`/api/admin/verifications/${id}/status`, {
         method: "PATCH",
@@ -71,51 +86,46 @@ const fetchVerifications = async () => {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || `Error al ${status === "APPROVED" ? "aprobar" : "rechazar"} la verificación.`);
+        throw new Error(
+          errorData.error ||
+            `Error al ${
+              status === "APPROVED" ? "aprobar" : "rechazar"
+            } la verificación.`
+        );
       }
 
-      // La actualización se reflejará a través de Pusher, así que no se necesita fetchVerifications aquí directamente
-      toast.success(`Verificación ${id.substring(0, 8)}... ${status === "APPROVED" ? "aprobada" : "rechazada"} con éxito.`);
+      toast.success(
+        `Verificación ${id.substring(0, 8)}... ${
+          status === "APPROVED" ? "aprobada" : "rechazada"
+        } con éxito.`
+      );
     } catch (err: unknown) {
-      console.error("Error updating verification status:", err);
-
-      const errorMessage = err instanceof Error
-        ? err.message
-        : "Falló la actualización del estado de verificación.";
-
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Falló la actualización del estado de verificación.";
       toast.error(`Error: ${errorMessage}`);
-    } // 👈 AQUÍ VA LA LLAVE FALTANTE
+    }
   };
 
-
-  // Efecto para la carga inicial y la suscripción a Pusher
   useEffect(() => {
-    fetchVerifications(); // Carga inicial de verificaciones
+    fetchVerifications(page, search);
+  }, [page, search]);
 
-    // Asegurarse de que pusherClient está definido y configurado
-    if (!pusherClient) {
-        console.error("Pusher client is not initialized. Check '@/lib/pusher'.");
-        return;
-    }
+  useEffect(() => {
+    if (!pusherClient) return;
 
-    pusherClient.subscribe("admin-verifications"); // Suscribirse al canal de admin
+    pusherClient.subscribe("admin-verifications");
+    const handler = () => fetchVerifications(page, search);
 
-    // Handler para cuando hay una actualización de verificación (desde el backend via Pusher)
-    const handler = () => {
-      console.log("🔔 Verificación actualizada - recargando lista");
-      fetchVerifications(); // Recarga la lista para reflejar los cambios
-    };
+    pusherClient.bind("admin-verifications-updated", handler);
 
-    pusherClient.bind("admin-verifications-updated", handler); // Enlazar el evento
-
-    // Función de limpieza al desmontar el componente
     return () => {
       pusherClient.unbind("admin-verifications-updated", handler);
       pusherClient.unsubscribe("admin-verifications");
     };
-  }, []); // Se ejecuta solo una vez al montar
+  }, [page, search]);
 
-  // Helper para mostrar el badge de estado
   const getStatusBadge = (status: "PENDING" | "APPROVED" | "REJECTED") => {
     let colorClass = "";
     let displayText = "";
@@ -139,223 +149,236 @@ const fetchVerifications = async () => {
         break;
     }
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${colorClass}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${colorClass}`}
+      >
         {icon} {displayText}
       </span>
     );
   };
 
-  // Variantes de animación para Framer Motion
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  };
-
   return (
-    <div className="relative min-h-screen bg-gray-950 text-white p-8 font-inter overflow-hidden">
-      {/* Fondo con degradado sutil y animado */}
-      <div className="absolute inset-0 z-0 opacity-10 animate-pulse-light" style={{
-        background: 'radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
-      }}></div>
+    <div className="relative min-h-screen bg-gray-950 text-white p-4 sm:p-6 md:p-8 font-inter overflow-hidden">
+      {/* Fondo premium */}
+      <div
+        className="absolute inset-0 z-0 opacity-10 animate-pulse-light"
+        style={{
+          background:
+            "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
+        }}
+      ></div>
 
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
         className="relative z-10 max-w-7xl mx-auto"
       >
+        {/* Encabezado con buscador */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center sm:text-left bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-lg">
+            Panel de Verificaciones ({total})
+          </h1>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+        </div>
 
-       <div className="flex justify-end mb-6">
-  <a
-    href="/admin/manual-upload"
-    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow transition-all duration-200"
-  >
-    <FileText size={18} />
-    Subir documentos manualmente
-  </a>
-</div>
-
-
-        {/* Título animado */}
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg"
-        >
-          Panel de Verificaciones
-        </motion.h1>
-
-        {/* Estados de carga, error y sin resultados */}
+        {/* Contenido principal */}
         {loading ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-[300px] text-gray-400 text-lg"
-          >
+          <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 text-lg">
             <Loader2 className="animate-spin mb-4 text-green-500" size={48} />
             Cargando verificaciones...
-          </motion.div>
+          </div>
         ) : error ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-[300px] text-red-500 text-lg"
-          >
+          <div className="flex flex-col items-center justify-center h-[300px] text-red-500 text-lg">
             <CircleX size={48} className="mb-4" /> {error}
-          </motion.div>
+          </div>
         ) : verifications.length === 0 ? (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center mt-10 text-gray-400 text-lg"
-          >
+          <p className="text-center mt-10 text-gray-400 text-lg">
             No hay verificaciones enviadas en este momento.
-          </motion.p>
+          </p>
         ) : (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"> {/* Grid responsivo para las tarjetas */}
-            <AnimatePresence>
+          <>
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {verifications.map((v) => (
                 <motion.div
                   key={v.id}
-                  variants={itemVariants} // Aplicar animación a cada tarjeta
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden" // Para cuando se eliminan de la lista
-                  className="border border-gray-700 rounded-2xl p-6 bg-gray-900 shadow-xl hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="border border-gray-700 rounded-2xl p-5 bg-gray-900 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  <div className="flex items-center gap-3 mb-4 border-b border-gray-800 pb-3">
-                    <User size={20} className="text-green-400" />
-                    <p className="text-lg text-white font-semibold">
-                      {v.user?.fullName || "Usuario Desconocido"}
-                    </p>
+                  {/* Info del usuario */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <User size={20} className="text-green-400" />
+                      <p className="text-lg font-semibold">
+                        {v.user?.fullName || "Usuario Desconocido"}
+                      </p>
+                    </div>
                     {v.user?.email && (
-                      <span className="text-sm text-gray-400 flex items-center gap-1">
-                        <Mail size={16} /> ({v.user.email})
-                      </span>
+                      <p className="text-sm text-gray-400 flex items-center gap-1">
+                        <Mail size={16} /> {v.user.email}
+                      </p>
                     )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(v.createdAt).toLocaleDateString("es-VE", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })}
+                    </p>
                   </div>
 
-                  {/* Sección de imágenes */}
-                  <div className="flex flex-wrap justify-center gap-4 mb-5">
-                    {/* Imagen de Documento */}
+                  {/* Imágenes */}
+                  <div className="flex gap-4 mb-4 justify-center">
                     <div className="flex flex-col items-center">
-                      <p className="text-sm text-gray-400 mb-2 flex items-center gap-1"><FileText size={16} /> Documento</p>
+                      <p className="text-sm text-gray-400 mb-1 flex items-center gap-1">
+                        <FileText size={14} /> Documento
+                      </p>
                       <div
-                        className="relative w-48 h-36 rounded-lg overflow-hidden border border-gray-600 shadow-md cursor-pointer transition-transform duration-200 hover:scale-105"
+                        className="relative w-32 h-24 sm:w-40 sm:h-28 rounded-lg overflow-hidden border border-gray-600 cursor-pointer hover:scale-105 transition"
                         onClick={() => setFullScreenImageUrl(v.documentUrl)}
                       >
                         <Image
                           src={v.documentUrl}
-                          alt={`Documento de ${v.user?.fullName || 'usuario'}`}
+                          alt={`Documento`}
                           layout="fill"
                           objectFit="cover"
-                          className="rounded-lg"
-                          unoptimized // Si Cloudinary ya optimiza, esto previene doble optimización
+                          unoptimized
                         />
                       </div>
                     </div>
-
-                    {/* Imagen de Selfie */}
                     <div className="flex flex-col items-center">
-                      <p className="text-sm text-gray-400 mb-2 flex items-center gap-1"><Camera size={16} /> Selfie</p>
+                      <p className="text-sm text-gray-400 mb-1 flex items-center gap-1">
+                        <Camera size={14} /> Selfie
+                      </p>
                       <div
-                        className="relative w-48 h-36 rounded-lg overflow-hidden border border-gray-600 shadow-md cursor-pointer transition-transform duration-200 hover:scale-105"
+                        className="relative w-32 h-24 sm:w-40 sm:h-28 rounded-lg overflow-hidden border border-gray-600 cursor-pointer hover:scale-105 transition"
                         onClick={() => setFullScreenImageUrl(v.selfieUrl)}
                       >
                         <Image
                           src={v.selfieUrl}
-                          alt={`Selfie de ${v.user?.fullName || 'usuario'}`}
+                          alt={`Selfie`}
                           layout="fill"
                           objectFit="cover"
-                          className="rounded-lg"
                           unoptimized
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Sección de Estado y Acciones */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-800">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">Estado:</span>
-                      {getStatusBadge(v.status)}
-                    </div>
-                    {v.status === "PENDING" && ( // Mostrar botones solo si el estado es PENDIENTE
+                  {/* Estado y acciones */}
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-gray-800 pt-3">
+                    {getStatusBadge(v.status)}
+                    {v.status === "PENDING" && (
                       <div className="flex gap-2">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                        <button
                           onClick={() => updateStatus(v.id, "APPROVED")}
-                          className="px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-md hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center gap-2"
+                          className="px-4 py-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl text-sm font-semibold hover:from-green-600 hover:to-emerald-700 transition"
                         >
-                          <CheckCircle2 size={18} /> Aprobar
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                          Aprobar
+                        </button>
+                        <button
                           onClick={() => updateStatus(v.id, "REJECTED")}
-                          className="px-5 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl shadow-md hover:from-red-600 hover:to-rose-700 transition-all duration-200 flex items-center gap-2"
+                          className="px-4 py-1 bg-gradient-to-r from-red-500 to-rose-600 rounded-xl text-sm font-semibold hover:from-red-600 hover:to-rose-700 transition"
                         >
-                          <XCircle size={18} /> Rechazar
-                        </motion.button>
+                          Rechazar
+                        </button>
                       </div>
                     )}
                   </div>
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </div>
+            </div>
+
+            {/* Paginación */}
+            <div className="flex items-center justify-center mt-6 gap-3">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm ${
+                  page === 1
+                    ? "bg-gray-700 cursor-not-allowed"
+                    : "bg-gray-800 hover:bg-gray-700"
+                }`}
+              >
+                <ChevronLeft size={16} /> Anterior
+              </button>
+              <span className="text-gray-300 text-sm">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm ${
+                  page === totalPages
+                    ? "bg-gray-700 cursor-not-allowed"
+                    : "bg-gray-800 hover:bg-gray-700"
+                }`}
+              >
+                Siguiente <ChevronRight size={16} />
+              </button>
+            </div>
+          </>
         )}
       </motion.div>
 
-      {/* Visor de Imagen a Pantalla Completa (Full Screen Image Viewer) */}
+      {/* Imagen en pantalla completa */}
       <AnimatePresence>
         {fullScreenImageUrl && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1002] bg-black/90 flex items-center justify-center p-4 cursor-pointer"
-            onClick={() => setFullScreenImageUrl(null)} // Cierra al hacer clic en el fondo
+            className="fixed inset-0 z-[1002] bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setFullScreenImageUrl(null)}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
               className="relative max-w-full max-h-full"
-              onClick={(e) => e.stopPropagation()} // Evita que el clic en la imagen cierre el modal
             >
               <Image
                 src={fullScreenImageUrl}
-                alt="Imagen en pantalla completa"
-                width={1200} // Valor arbitrario, objectFit: 'contain' lo ajustará
-                height={800} // Valor arbitrario, objectFit: 'contain' lo ajustará
-                style={{ objectFit: 'contain', maxWidth: '95vw', maxHeight: '95vh', width: 'auto', height: 'auto' }} // Ajusta al tamaño de la pantalla
-                className="rounded-lg shadow-2xl border border-gray-700"
-                unoptimized // Mantener unoptimized si Cloudinary ya optimiza
+                alt="Imagen"
+                width={1200}
+                height={800}
+                style={{
+                  objectFit: "contain",
+                  maxWidth: "95vw",
+                  maxHeight: "95vh",
+                }}
+                className="rounded-lg shadow-xl border border-gray-700"
+                unoptimized
               />
               <button
                 onClick={() => setFullScreenImageUrl(null)}
-                className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-full bg-black/50 backdrop-blur-sm transition-colors z-10"
-                aria-label="Cerrar imagen"
+                className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-full bg-black/50"
               >
-                <XCircle size={32} /> {/* Usar XCircle para cerrar el visor */}
+                <XCircle size={32} />
               </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ToastContainer - Asegúrate de que solo esté aquí si no está en RootLayout */}
-      {/* Si ya lo tienes en app/layout.tsx, puedes eliminar esta línea de aquí */}
-      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="dark" />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        theme="dark"
+      />
     </div>
   );
 }
