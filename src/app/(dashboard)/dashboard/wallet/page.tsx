@@ -25,19 +25,20 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
-  const fetchMethods = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/payment-methods");
-      if (!res.ok) throw new Error("Error al cargar métodos de pago");
-      const data = await res.json();
-      setPaymentMethods(data);
-    } catch (error) {
-      toast.error("Error al cargar métodos de pago.");
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchMethods = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch("/api/payment-methods");
+    if (!res.ok) throw new Error("Error al cargar métodos de pago");
+    const data = await res.json();
+    setPaymentMethods(data);
+  } catch {
+    toast.error("Error al cargar métodos de pago.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchMethods();
