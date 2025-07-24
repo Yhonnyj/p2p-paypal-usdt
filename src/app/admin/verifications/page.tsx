@@ -1,10 +1,10 @@
-// src/app/admin/verifications/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { pusherClient } from "@/lib/pusher";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   Loader2,
   CircleX,
@@ -18,6 +18,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Upload,
 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -36,39 +37,61 @@ interface VerificationItem {
 const PAGE_SIZE = 6;
 
 export default function AdminVerificationsPage() {
+  const router = useRouter();
   const [verifications, setVerifications] = useState<VerificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(
-    null
-  );
+  const [fullScreenImageUrl, setFullScreenImageUrl] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const cache = useRef<{ [key: string]: VerificationItem[] }>({});
 
   const fetchVerifications = async (pageNumber = 1, searchQuery = "") => {
-    setLoading(true);
-    setError(null);
+    const cacheKey = `${searchQuery}-${pageNumber}`;
+    if (cache.current[cacheKey]) {
+      setVerifications(cache.current[cacheKey]);
+      setLoading(false);
+      return;
+    }
+
     try {
+      setLoading(true);
+      setError(null);
       const res = await fetch(
         `/api/admin/verifications?page=${pageNumber}&limit=${PAGE_SIZE}&search=${encodeURIComponent(
           searchQuery
-        )}`
+        )}`,
+        { cache: "no-store" }
       );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.error || "Error al cargar las verificaciones."
-        );
-      }
+      if (!res.ok) throw new Error("Error al cargar las verificaciones.");
       const data = await res.json();
       setVerifications(data.verifications);
       setTotal(data.total);
       setTotalPages(data.totalPages);
+      cache.current[cacheKey] = data.verifications;
+
+      // Prefetch de la siguiente página en segundo plano
+      if (pageNumber < data.totalPages) {
+        const nextKey = `${searchQuery}-${pageNumber + 1}`;
+        if (!cache.current[nextKey]) {
+          fetch(
+            `/api/admin/verifications?page=${pageNumber + 1}&limit=${PAGE_SIZE}&search=${encodeURIComponent(
+              searchQuery
+            )}`,
+            { cache: "no-store" }
+          )
+            .then((r) => r.json())
+            .then((nextData) => {
+              cache.current[nextKey] = nextData.verifications;
+            })
+            .catch(() => {});
+        }
+      }
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || "Error desconocido al cargar verificaciones.");
+      setError(error.message);
       toast.error(`Error: ${error.message}`);
     } finally {
       setLoading(false);
@@ -82,28 +105,17 @@ export default function AdminVerificationsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.error ||
-            `Error al ${
-              status === "APPROVED" ? "aprobar" : "rechazar"
-            } la verificación.`
-        );
-      }
-
+      if (!res.ok) throw new Error("Error al actualizar la verificación.");
       toast.success(
         `Verificación ${id.substring(0, 8)}... ${
           status === "APPROVED" ? "aprobada" : "rechazada"
         } con éxito.`
       );
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Falló la actualización del estado de verificación.";
-      toast.error(`Error: ${errorMessage}`);
+      fetchVerifications(page, search);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Error al actualizar el estado."
+      );
     }
   };
 
@@ -113,12 +125,9 @@ export default function AdminVerificationsPage() {
 
   useEffect(() => {
     if (!pusherClient) return;
-
     pusherClient.subscribe("admin-verifications");
     const handler = () => fetchVerifications(page, search);
-
     pusherClient.bind("admin-verifications-updated", handler);
-
     return () => {
       pusherClient.unbind("admin-verifications-updated", handler);
       pusherClient.unsubscribe("admin-verifications");
@@ -126,32 +135,14 @@ export default function AdminVerificationsPage() {
   }, [page, search]);
 
   const getStatusBadge = (status: "PENDING" | "APPROVED" | "REJECTED") => {
-    let colorClass = "";
-    let displayText = "";
-    let icon = null;
-
-    switch (status) {
-      case "PENDING":
-        colorClass = "bg-yellow-600/20 text-yellow-300";
-        displayText = "Pendiente";
-        icon = <Clock className="w-4 h-4" />;
-        break;
-      case "APPROVED":
-        colorClass = "bg-green-600/20 text-green-300";
-        displayText = "Aprobada";
-        icon = <CheckCircle className="w-4 h-4" />;
-        break;
-      case "REJECTED":
-        colorClass = "bg-red-600/20 text-red-300";
-        displayText = "Rechazada";
-        icon = <XCircle className="w-4 h-4" />;
-        break;
-    }
+    const config = {
+      PENDING: { color: "bg-yellow-600/20 text-yellow-300", text: "Pendiente", icon: <Clock className="w-4 h-4" /> },
+      APPROVED: { color: "bg-green-600/20 text-green-300", text: "Aprobada", icon: <CheckCircle className="w-4 h-4" /> },
+      REJECTED: { color: "bg-red-600/20 text-red-300", text: "Rechazada", icon: <XCircle className="w-4 h-4" /> },
+    }[status];
     return (
-      <span
-        className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${colorClass}`}
-      >
-        {icon} {displayText}
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${config.color}`}>
+        {config.icon} {config.text}
       </span>
     );
   };
@@ -160,7 +151,7 @@ export default function AdminVerificationsPage() {
     <div className="relative min-h-screen bg-gray-950 text-white p-4 sm:p-6 md:p-8 font-inter overflow-hidden">
       {/* Fondo premium */}
       <div
-        className="absolute inset-0 z-0 opacity-10 animate-pulse-light"
+        className="absolute inset-0 z-0 opacity-10"
         style={{
           background:
             "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
@@ -170,23 +161,31 @@ export default function AdminVerificationsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
         className="relative z-10 max-w-7xl mx-auto"
       >
-        {/* Encabezado con buscador */}
+        {/* Encabezado con buscador + botón */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-center sm:text-left bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-lg">
             Panel de Verificaciones ({total})
           </h1>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre o email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-72">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre o email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <button
+              onClick={() => router.push("/admin/manual-upload")}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl text-white font-semibold shadow-md transition"
+            >
+              <Upload size={18} /> Subida Manual
+            </button>
           </div>
         </div>
 
@@ -229,11 +228,7 @@ export default function AdminVerificationsPage() {
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(v.createdAt).toLocaleDateString("es-VE", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
+                      {new Date(v.createdAt).toLocaleDateString("es-VE")}
                     </p>
                   </div>
 
@@ -249,9 +244,9 @@ export default function AdminVerificationsPage() {
                       >
                         <Image
                           src={v.documentUrl}
-                          alt={`Documento`}
-                          layout="fill"
-                          objectFit="cover"
+                          alt="Documento"
+                          fill
+                          className="object-cover"
                           unoptimized
                         />
                       </div>
@@ -266,9 +261,9 @@ export default function AdminVerificationsPage() {
                       >
                         <Image
                           src={v.selfieUrl}
-                          alt={`Selfie`}
-                          layout="fill"
-                          objectFit="cover"
+                          alt="Selfie"
+                          fill
+                          className="object-cover"
                           unoptimized
                         />
                       </div>
@@ -353,11 +348,7 @@ export default function AdminVerificationsPage() {
                 alt="Imagen"
                 width={1200}
                 height={800}
-                style={{
-                  objectFit: "contain",
-                  maxWidth: "95vw",
-                  maxHeight: "95vh",
-                }}
+                style={{ objectFit: "contain", maxWidth: "95vw", maxHeight: "95vh" }}
                 className="rounded-lg shadow-xl border border-gray-700"
                 unoptimized
               />
@@ -372,12 +363,7 @@ export default function AdminVerificationsPage() {
         )}
       </AnimatePresence>
 
-      <ToastContainer
-        position="bottom-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        theme="dark"
-      />
+      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} theme="dark" />
     </div>
   );
 }

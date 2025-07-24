@@ -13,48 +13,66 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search") || "";
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "6", 10);
+    const search = (searchParams.get("search") || "").trim();
+    let page = parseInt(searchParams.get("page") || "1", 10);
+    let limit = parseInt(searchParams.get("limit") || "6", 10);
+
+    // Validaciones
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 6;
+    if (limit > 50) limit = 50; // Evitar consultas enormes
+
     const skip = (page - 1) * limit;
 
-    const where: Prisma.VerificationWhereInput =
-      search.trim().length > 0
-        ? {
-            OR: [
-              {
-                user: {
-                  is: { fullName: { contains: search, mode: "insensitive" } },
-                },
-              },
-              {
-                user: {
-                  is: { email: { contains: search, mode: "insensitive" } },
-                },
-              },
-            ],
-          }
-        : {};
+    // Filtro de búsqueda
+    const where: Prisma.VerificationWhereInput = search
+      ? {
+          OR: [
+            { user: { is: { fullName: { contains: search, mode: "insensitive" } } } },
+            { user: { is: { email: { contains: search, mode: "insensitive" } } } },
+          ],
+        }
+      : {};
 
+    // Consultas en paralelo
     const [verifications, total] = await Promise.all([
       prisma.verification.findMany({
         skip,
         take: limit,
         where,
         orderBy: { createdAt: "desc" },
-        include: {
-          user: { select: { email: true, fullName: true } },
+        select: {
+          id: true,
+          status: true,
+          documentUrl: true,
+          selfieUrl: true,
+          createdAt: true,
+          user: {
+            select: {
+              email: true,
+              fullName: true,
+            },
+          },
         },
       }),
       prisma.verification.count({ where }),
     ]);
 
-    return NextResponse.json({
-      verifications,
-      total,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-    });
+    return new NextResponse(
+      JSON.stringify({
+        verifications,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "s-maxage=10, stale-while-revalidate=30", // Cache en Vercel Edge
+        },
+      }
+    );
   } catch (error) {
     console.error("Error en GET /admin/verifications:", error);
     return NextResponse.json(
