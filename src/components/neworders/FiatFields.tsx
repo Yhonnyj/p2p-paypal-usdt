@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, Fragment, forwardRef, useImperativeHandle } from "react";
 import { useOrderForm } from "@/context/OrderFormContext";
 import { Listbox, Transition } from "@headlessui/react";
 import { Check, ChevronDown } from "lucide-react";
@@ -23,10 +23,10 @@ function normalizeBankName(name: string): string {
   return name
     .toLowerCase()
     .replace(/^banco\s+/, "") // elimina prefijo "Banco "
-    .replace(/\s|\(|\)|-/g, ""); // elimina espacios, paréntesis y guiones
+    .replace(/\s|\(|\)|-/g, "");
 }
 
-export default function FiatFields() {
+const FiatFields = forwardRef((_, ref) => {
   const {
     selectedDestinationCurrency,
     bankName,
@@ -72,49 +72,47 @@ export default function FiatFields() {
     if (selectedDestinationCurrency === "BS") fetchAccounts();
   }, [selectedDestinationCurrency]);
 
-  // --- Autoguardado cuando los 3 campos están completos ---
-  useEffect(() => {
+  // --- Guardar cuenta en API (solo cuando se llame desde "Continuar") ---
+  const handleSaveAccount = async () => {
     if (
-      isAddingNew &&
+      selectedDestinationCurrency === "BS" &&
       bankName &&
       bsPhoneNumber &&
-      bsIdNumber &&
-      selectedDestinationCurrency === "BS"
+      bsIdNumber
     ) {
-      const timeout = setTimeout(() => handleSaveAccount(), 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [bankName, bsPhoneNumber, bsIdNumber]);
+      try {
+        const selectedBankOption = bankOptions.find(
+          (b) =>
+            normalizeBankName(b.value) === normalizeBankName(bankName) ||
+            normalizeBankName(b.label) === normalizeBankName(bankName)
+        );
 
-  // --- Guardar cuenta en API ---
-  const handleSaveAccount = async () => {
-    try {
-      const selectedBankOption = bankOptions.find(
-        (b) =>
-          normalizeBankName(b.value) === normalizeBankName(bankName) ||
-          normalizeBankName(b.label) === normalizeBankName(bankName)
-      );
+        const bankValue = selectedBankOption ? selectedBankOption.value : bankName;
 
-      const bankValue = selectedBankOption ? selectedBankOption.value : bankName;
+        const res = await fetch("/api/payment-methods", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "BS",
+            details: { bankName: bankValue, phone: bsPhoneNumber, idNumber: bsIdNumber },
+          }),
+        });
 
-      const res = await fetch("/api/payment-methods", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "BS",
-          details: { bankName: bankValue, phone: bsPhoneNumber, idNumber: bsIdNumber },
-        }),
-      });
-
-      if (!res.ok) throw new Error("Error al guardar cuenta");
-      toast.success("Cuenta BS guardada automáticamente.");
-      setIsAddingNew(false);
-      await fetchAccounts();
-    } catch (err) {
-      console.error(err);
-      toast.error("No se pudo guardar la cuenta.");
+        if (!res.ok) throw new Error("Error al guardar cuenta");
+        toast.success("Cuenta BS guardada con la orden.");
+        setIsAddingNew(false);
+        await fetchAccounts();
+      } catch (err) {
+        console.error(err);
+        toast.error("No se pudo guardar la cuenta.");
+      }
     }
   };
+
+  // Exponer método para que "Continuar" pueda llamar handleSaveAccount()
+  useImperativeHandle(ref, () => ({
+    saveFiatAccount: handleSaveAccount,
+  }));
 
   if (selectedDestinationCurrency === "USDT") return null;
 
@@ -124,7 +122,6 @@ export default function FiatFields() {
 
   return (
     <div className="mt-6 w-full space-y-6">
-      {/* Mostrar cuentas BS guardadas */}
       {selectedDestinationCurrency === "BS" && accounts.length > 0 && !isAddingNew ? (
         <>
           {(showAll ? accounts : accounts.slice(0, 2)).map((account) => {
@@ -292,7 +289,7 @@ export default function FiatFields() {
           {selectedDestinationCurrency === "BS" && (
             <>
               <div>
-<label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
+                <label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
                   Número de Teléfono (BS)
                 </label>
                 <input
@@ -304,7 +301,7 @@ export default function FiatFields() {
                 />
               </div>
               <div>
-<label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
+                <label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
                   Cédula de Identidad (BS)
                 </label>
                 <input
@@ -324,7 +321,7 @@ export default function FiatFields() {
       {selectedDestinationCurrency === "COP" && (
         <>
           <div>
-<label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
+            <label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
               Número de Cuenta (COP)
             </label>
             <input
@@ -336,7 +333,7 @@ export default function FiatFields() {
             />
           </div>
           <div>
-<label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
+            <label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
               Nombre del Titular
             </label>
             <input
@@ -351,4 +348,8 @@ export default function FiatFields() {
       )}
     </div>
   );
-}
+});
+
+FiatFields.displayName = "FiatFields";
+
+export default FiatFields;

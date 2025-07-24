@@ -11,10 +11,14 @@ import SummaryCard from "@/components/neworders/SummaryCard";
 import AlertModal from "@/components/neworders/AlertModal";
 import WarningBanner from "@/components/WarningBanner";
 import PaypalAccountSelector from "@/components/neworders/PaypalAccountSelector";
-
+import { useRef } from "react";
 
 function PedidoFormContent() {
   const form = useOrderForm();
+
+  // Referencias para guardar cuentas y wallets al dar continuar
+  const fiatRef = useRef<{ saveFiatAccount: () => Promise<void> } | null>(null);
+  const usdtRef = useRef<{ saveUSDTWallet: () => Promise<void> } | null>(null);
 
   const handleResetCampos = () => {
     form.setWallet("");
@@ -22,6 +26,20 @@ function PedidoFormContent() {
     form.setBankName("");
     form.setBsPhoneNumber("");
     form.setBsIdNumber("");
+  };
+
+  const handleContinuar = async () => {
+    // Si la moneda destino es FIAT, guardar cuenta antes de crear orden
+    if (form.selectedDestinationCurrency !== "USDT" && fiatRef.current) {
+      await fiatRef.current.saveFiatAccount();
+    }
+
+    // Si la moneda destino es USDT, guardar wallet antes de crear orden
+    if (form.selectedDestinationCurrency === "USDT" && usdtRef.current) {
+      await usdtRef.current.saveUSDTWallet();
+    }
+
+    form.handleCrearOrden();
   };
 
   return (
@@ -37,29 +55,36 @@ function PedidoFormContent() {
           <PlatformSelector />
           <DestinationSelector onReset={handleResetCampos} />
 
-        <PaypalAccountSelector />
+          <PaypalAccountSelector />
 
+          {form.selectedDestinationCurrency === "USDT" ? (
+            <USDTFields ref={usdtRef} />
+          ) : (
+            <FiatFields ref={fiatRef} />
+          )}
 
-          {form.selectedDestinationCurrency === "USDT" ? <USDTFields /> : <FiatFields />}
-
-      <div>
-  <label className="text-sm text-gray-300 mb-1 block font-medium">Monto a enviar (USD)</label>
-  <div className="relative">
-    <input
-      type="number"
-      inputMode="numeric"
-      value={form.monto.toString().replace(/^0+(?=\d)/, "")}
-      onChange={(e) => {
-        const val = e.target.value.replace(/^0+(?=\d)/, "");
-        form.setMonto(Number(val));
-      }}
-      className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-    />
-    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-  </div>
+          <div>
+            <label className="text-sm text-gray-300 mb-1 block font-medium">
+              Monto a enviar (USD)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={form.monto.toString().replace(/^0+(?=\d)/, "")}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/^0+(?=\d)/, "");
+                  form.setMonto(Number(val));
+                }}
+                className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            </div>
 
             <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow-md">
-              En TuCapi no hay sorpresas: <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span><br />
+              En TuCapi no hay sorpresas:{" "}
+              <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span>
+              <br />
               El monto que quieras cambiar, es el monto que tienes que enviar.
             </p>
           </div>
@@ -67,7 +92,7 @@ function PedidoFormContent() {
           <SummaryCard />
 
           <button
-            onClick={form.handleCrearOrden}
+            onClick={handleContinuar}
             disabled={form.loading}
             className="w-full py-4 px-6 rounded-xl font-bold text-xl text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition duration-300 shadow-lg"
           >

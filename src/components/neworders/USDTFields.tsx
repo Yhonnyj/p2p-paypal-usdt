@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, Fragment, forwardRef, useImperativeHandle } from "react";
 import { useOrderForm } from "@/context/OrderFormContext";
 import { Listbox, Transition } from "@headlessui/react";
-import { Check, ChevronDownIcon } from "lucide-react";
+import { Check, ChevronDown as ChevronDownIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 
@@ -21,17 +21,10 @@ const networkOptions = [
   { value: "TRC20", label: "TRC20 (Tron)", img: "/images/trc20.png" },
   { value: "BEP20", label: "BNB Smart Chain (BEP20)", img: "/images/bep20.png" },
   { value: "ARBITRUM", label: "Arbitrum One", img: "/images/arbitrum.png" },
-  
 ];
 
-export default function USDTFields() {
-  const {
-    selectedDestinationCurrency,
-    network,
-    setNetwork,
-    wallet,
-    setWallet,
-  } = useOrderForm();
+const USDTFields = forwardRef((_, ref) => {
+  const { selectedDestinationCurrency, network, setNetwork, wallet, setWallet } = useOrderForm();
 
   const [wallets, setWallets] = useState<PaymentMethod[]>([]);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -63,16 +56,9 @@ export default function USDTFields() {
     if (selectedDestinationCurrency === "USDT") fetchWallets();
   }, [selectedDestinationCurrency]);
 
-  // --- Autoguardado cuando hay una nueva wallet ---
-  useEffect(() => {
-    if (isAddingNew && wallet && selectedDestinationCurrency === "USDT") {
-      const timeout = setTimeout(() => handleSaveWallet(), 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [wallet, network]);
-
-  // --- Guardar nueva wallet en API ---
+  // --- Guardar wallet solo cuando se llame desde "Continuar" ---
   const handleSaveWallet = async () => {
+    if (!wallet) return; // No guardar si está vacío
     try {
       const res = await fetch("/api/payment-methods", {
         method: "POST",
@@ -84,7 +70,7 @@ export default function USDTFields() {
       });
 
       if (!res.ok) throw new Error("Error al guardar wallet");
-      toast.success("Wallet USDT guardada automáticamente.");
+      toast.success("Wallet USDT guardada con la orden.");
       setIsAddingNew(false);
       await fetchWallets();
     } catch (err) {
@@ -92,6 +78,10 @@ export default function USDTFields() {
       toast.error("No se pudo guardar la wallet.");
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    saveUSDTWallet: handleSaveWallet,
+  }));
 
   if (selectedDestinationCurrency !== "USDT") return null;
 
@@ -214,9 +204,9 @@ export default function USDTFields() {
 
           {/* Input de wallet */}
           <div className="mt-6">
-<label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
-  {network === "BINANCE_PAY" ? "User ID de Binance Pay" : "Wallet USDT"}
-</label>
+            <label className="text-sm text-gray-300 mb-2 block font-medium leading-6">
+              {network === "BINANCE_PAY" ? "User ID de Binance Pay" : "Wallet USDT"}
+            </label>
 
             <input
               type="text"
@@ -236,4 +226,7 @@ export default function USDTFields() {
       )}
     </div>
   );
-}
+});
+
+USDTFields.displayName = "USDTFields";
+export default USDTFields;
