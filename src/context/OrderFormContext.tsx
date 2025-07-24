@@ -128,23 +128,26 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       if (methodsRes.ok) {
         const methodsData = await methodsRes.json();
         const paypalExists = methodsData.some(
-          (m: any) => m.type === "PayPal" && m.details.email === paypalEmail
-        );
+    (m: Record<string, unknown>) => 
+  (m as { type: string; details: { email?: string } }).type === "PayPal" &&
+  (m as { type: string; details: { email?: string } }).details.email === paypalEmail
+);
 
-        if (!paypalExists) {
-          await fetch("/api/payment-methods", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
-          });
-          console.log("Cuenta PayPal guardada automáticamente:", paypalEmail);
-        }
-      }
-    } catch (err) {
-      console.error("Error guardando cuenta PayPal:", err);
-    }
+if (!paypalExists) {
+  await fetch("/api/payment-methods", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
+  });
+  console.log("Cuenta PayPal guardada automáticamente:", paypalEmail);
+}
+}
+} catch (err) {
+  console.error("Error guardando cuenta PayPal:", err);
+}
 
-    let recipientDetails: any = {};
+let recipientDetails: Record<string, unknown> = {};
+
 
     if (selectedDestinationCurrency === "USDT") {
       if (!wallet) {

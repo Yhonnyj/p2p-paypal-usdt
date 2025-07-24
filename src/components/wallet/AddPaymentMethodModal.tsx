@@ -16,9 +16,14 @@ const networkOptions = [
   { value: "ARBITRUM", label: "Arbitrum One", img: "/images/arbitrum.png" },
 ];
 
-export default function AddPaymentMethodModal({ open, onClose, onSave }: any) {
-  const [selectedTab, setSelectedTab] = useState("PayPal");
-  const [form, setForm] = useState<any>({});
+export default function AddPaymentMethodModal({
+  open,
+  onClose,
+  onSave,
+}: { open: boolean; onClose: () => void; onSave: (type: string, form: Record<string, string>) => void }) {
+  const [selectedTab, setSelectedTab] = useState<string>("PayPal");
+  const [form, setForm] = useState<Record<string, string>>({});
+
 
   const handleSave = () => {
     onSave(selectedTab, form);
