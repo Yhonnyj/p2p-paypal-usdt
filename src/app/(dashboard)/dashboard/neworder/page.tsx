@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Mail, DollarSign } from "lucide-react";
+import { ArrowRight, DollarSign } from "lucide-react";
 import { useOrderForm } from "@/context/OrderFormContext";
 import { OrderFormProvider } from "@/context/OrderFormContext";
 import PlatformSelector from "@/components/neworders/PlatformSelector";
