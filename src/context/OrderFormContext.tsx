@@ -24,7 +24,7 @@ interface OrderFormContextProps {
   setLoading: (v: boolean) => void;
   feePercent: number | null;
   finalCommission: number | null;
-  dynamicCommission: number | null; // ✅ Agrega esto aquí
+  dynamicCommission: number | null;
   exchangeRates: ExchangeRate[];
   selectedDestinationCurrency: string;
   setSelectedDestinationCurrency: (v: string) => void;
@@ -40,6 +40,8 @@ interface OrderFormContextProps {
   setCopAccountNumber: (v: string) => void;
   copAccountHolder: string;
   setCopAccountHolder: (v: string) => void;
+  selectedAccountId: string | null; // ✅ Nuevo
+  setSelectedAccountId: (v: string | null) => void; // ✅ Nuevo
   showAlert: boolean;
   alertMessage: string;
   alertType: AlertType;
@@ -50,7 +52,6 @@ interface OrderFormContextProps {
   handleCrearOrden: () => Promise<void>;
   baseFeePercent: number | null;
   orderCount: number | null;
-
 }
 
 const OrderFormContext = createContext<OrderFormContextProps | undefined>(undefined);
@@ -74,6 +75,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [bankName, setBankName] = useState("");
   const [copAccountNumber, setCopAccountNumber] = useState("");
   const [copAccountHolder, setCopAccountHolder] = useState("");
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null); // ✅ Nuevo
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<AlertType>("error");
@@ -82,19 +84,19 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     selectedDestinationCurrency === "USDT"
       ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
       : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
+
   const dynamicCommission =
-  typeof finalCommission === "number"
-    ? finalCommission
-    : feePercent !== null && orderCount !== null
+    typeof finalCommission === "number"
+      ? finalCommission
+      : feePercent !== null && orderCount !== null
       ? orderCount === 0
         ? feePercent * 0.5
         : orderCount === 4
-          ? feePercent * 0.82
-          : orderCount >= 14
-            ? feePercent * 0.90
-            : feePercent
+        ? feePercent * 0.82
+        : orderCount >= 14
+        ? feePercent * 0.9
+        : feePercent
       : null;
-
 
   const montoRecibido =
     dynamicCommission !== null && rate !== null
@@ -111,7 +113,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
 
   const handleCrearOrden = async () => {
     if (selectedPlatform !== "PayPal") {
-      displayAlert("Solo PayPal est\u00e1 disponible.");
+      displayAlert("Solo PayPal está disponible.");
       return;
     }
 
@@ -120,17 +122,29 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    let recipientDetails: {
-      type?: string;
-      currency?: string;
-      wallet?: string;
-      network?: string;
-      bankName?: string;
-      phoneNumber?: string;
-      idNumber?: string;
-      accountNumber?: string;
-      accountHolder?: string;
-    } = {};
+    // Guardar cuenta PayPal automáticamente si no existe
+    try {
+      const methodsRes = await fetch("/api/payment-methods");
+      if (methodsRes.ok) {
+        const methodsData = await methodsRes.json();
+        const paypalExists = methodsData.some(
+          (m: any) => m.type === "PayPal" && m.details.email === paypalEmail
+        );
+
+        if (!paypalExists) {
+          await fetch("/api/payment-methods", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
+          });
+          console.log("Cuenta PayPal guardada automáticamente:", paypalEmail);
+        }
+      }
+    } catch (err) {
+      console.error("Error guardando cuenta PayPal:", err);
+    }
+
+    let recipientDetails: any = {};
 
     if (selectedDestinationCurrency === "USDT") {
       if (!wallet) {
@@ -139,26 +153,23 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       }
       recipientDetails = { type: "USDT", currency: "USDT", wallet, network };
     } else {
-      if (!bankName) {
-        displayAlert("Completa el nombre del banco.");
+      if (!bankName && !selectedAccountId) {
+        displayAlert("Selecciona una cuenta bancaria.");
         return;
       }
-      recipientDetails = { type: "FIAT", currency: selectedDestinationCurrency, bankName };
+      recipientDetails = {
+        type: "FIAT",
+        currency: selectedDestinationCurrency,
+        bankName,
+        selectedAccountId, // ✅ Incluimos el ID seleccionado
+      };
 
       if (selectedDestinationCurrency === "BS") {
-        if (!bsPhoneNumber || !bsIdNumber) {
-          displayAlert("Tel\u00e9fono e ID requeridos para BS.");
-          return;
-        }
         recipientDetails.phoneNumber = bsPhoneNumber;
         recipientDetails.idNumber = bsIdNumber;
       }
 
       if (selectedDestinationCurrency === "COP") {
-        if (!copAccountNumber || !copAccountHolder) {
-          displayAlert("Número de cuenta y titular requeridos para COP.");
-          return;
-        }
         recipientDetails.accountNumber = copAccountNumber;
         recipientDetails.accountHolder = copAccountHolder;
       }
@@ -178,10 +189,10 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         router.push(`/dashboard/orders?chat=open&id=${data.id}`);
         return;
       } else {
-        displayAlert("Error: " + (data.error || "Algo sali\u00f3 mal."), "error");
+        displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
       }
     } catch (err) {
-      console.error("\u274c Error al crear orden:", err);
+      console.error("❌ Error al crear orden:", err);
       displayAlert("Error al crear la orden.");
     } finally {
       setLoading(false);
@@ -200,9 +211,9 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         if (configRes.ok) setFeePercent(configData.feePercent);
         if (ratesRes.ok) setExchangeRates(ratesData);
         if (orderCountRes.ok) setOrderCount(orderCountData.count);
-        else displayAlert("Error al obtener cantidad de \u00f3rdenes.");
+        else displayAlert("Error al obtener cantidad de órdenes.");
       } catch {
-        displayAlert("Error de conexi\u00f3n.");
+        displayAlert("Error de conexión.");
       }
     };
     fetchData();
@@ -222,53 +233,54 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
- return (
-  <OrderFormContext.Provider
-    value={{
-      monto,
-      setMonto,
-      paypalEmail,
-      setPaypalEmail,
-      network,
-      setNetwork,
-      wallet,
-      setWallet,
-      loading,
-      setLoading,
-      feePercent,
-      finalCommission,
-      dynamicCommission, // ← ✅ AGREGA ESTA LÍNEA
-      exchangeRates,
-      selectedDestinationCurrency,
-      setSelectedDestinationCurrency,
-      selectedPlatform,
-      setSelectedPlatform,
-      bsPhoneNumber,
-      setBsPhoneNumber,
-      bsIdNumber,
-      setBsIdNumber,
-      bankName,
-      setBankName,
-      copAccountNumber,
-      setCopAccountNumber,
-      copAccountHolder,
-      setCopAccountHolder,
-      showAlert,
-      alertMessage,
-      alertType,
-      setShowAlert,
-      displayAlert,
-      rate,
-      montoRecibido,
-      handleCrearOrden,
-      baseFeePercent,
-      orderCount,
-    }}
-  >
-    {children}
-  </OrderFormContext.Provider>
-);
-
+  return (
+    <OrderFormContext.Provider
+      value={{
+        monto,
+        setMonto,
+        paypalEmail,
+        setPaypalEmail,
+        network,
+        setNetwork,
+        wallet,
+        setWallet,
+        loading,
+        setLoading,
+        feePercent,
+        finalCommission,
+        dynamicCommission,
+        exchangeRates,
+        selectedDestinationCurrency,
+        setSelectedDestinationCurrency,
+        selectedPlatform,
+        setSelectedPlatform,
+        bsPhoneNumber,
+        setBsPhoneNumber,
+        bsIdNumber,
+        setBsIdNumber,
+        bankName,
+        setBankName,
+        copAccountNumber,
+        setCopAccountNumber,
+        copAccountHolder,
+        setCopAccountHolder,
+        selectedAccountId,
+        setSelectedAccountId, // ✅
+        showAlert,
+        alertMessage,
+        alertType,
+        setShowAlert,
+        displayAlert,
+        rate,
+        montoRecibido,
+        handleCrearOrden,
+        baseFeePercent,
+        orderCount,
+      }}
+    >
+      {children}
+    </OrderFormContext.Provider>
+  );
 }
 
 export function useOrderForm() {

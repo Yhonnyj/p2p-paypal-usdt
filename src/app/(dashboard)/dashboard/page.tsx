@@ -171,8 +171,8 @@ if (!user) {
   }
 
  return (
-  <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white p-8 font-inter overflow-hidden">
-    {/* Background radial gradient for premium feel */}
+  <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white p-6 sm:p-8 font-inter overflow-hidden">
+    {/* Background radial gradient */}
     <div
       className="absolute inset-0 z-0 opacity-20"
       style={{
@@ -181,143 +181,159 @@ if (!user) {
       }}
     ></div>
 
-    <div className="relative z-10 max-w-4xl mx-auto">
+    <div className="relative z-10 max-w-5xl mx-auto">
       {/* Top bar for User Profile */}
-      <div className="flex justify-between items-start mb-12 pt-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-lg animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-6">
+        <div className="flex flex-col gap-2 text-center sm:text-left">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-lg animate-fade-in-up">
             ¡Bienvenido, {user.firstName}!
           </h1>
-
-          {/* Warning Banner */}
           <WarningBanner />
         </div>
 
         <div
-          className="flex items-center gap-3 bg-gray-800/70 backdrop-blur-md rounded-full px-4 py-2 border border-gray-700 shadow-lg transition-all duration-300 hover:shadow-blue-500/20 animate-fade-in delay-200 cursor-pointer"
+          className="flex items-center gap-3 bg-gray-800/70 backdrop-blur-md rounded-full px-3 sm:px-5 py-2 border border-gray-700 shadow-lg transition-all duration-300 hover:shadow-blue-500/20 animate-fade-in delay-200 cursor-pointer mx-auto sm:mx-0 w-fit"
           onClick={() => setIsProfileModalOpen(true)}
         >
           {user.imageUrl ? (
             <img
               src={user.imageUrl}
               alt="User Avatar"
-              className="h-10 w-10 rounded-full object-cover border-2 border-green-500"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover border-2 border-green-500"
             />
           ) : (
-            <UserIcon size={24} className="text-green-500" /> // Fallback icon
+            <UserIcon size={28} className="text-green-500" />
           )}
-          <div className="flex flex-col text-sm">
-            <span className="font-semibold text-gray-100">
+          <div className="flex flex-col text-xs sm:text-sm leading-tight text-left">
+            <span className="font-semibold text-gray-100 truncate max-w-[120px] sm:max-w-[160px]">
               {user.fullName || user.firstName || 'Usuario'}
             </span>
-            <span className="text-gray-400">
+            <span className="text-gray-400 truncate max-w-[120px] sm:max-w-[160px]">
               {user.primaryEmailAddress?.emailAddress || 'N/A'}
             </span>
           </div>
         </div>
       </div>
 
-
-        {/* Verification Status Card */}
-        {/* FIX: Se usa la variable statusBg aquí para resolver el error de 'no-unused-vars' */}
-        <section className={`mb-12 ${statusBg} backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-xl transition-all duration-300 hover:shadow-green-500/20 animate-fade-in delay-200`}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-100 flex items-center gap-3">
-              <span className={`${statusColor}`}>{statusIcon}</span>
-              Estado de Verificación
-            </h2>
-<VerificationStatusBadge status={verificationStatus} />
-          </div>
-          <p className="text-gray-300 mb-6 leading-relaxed">
-            {statusText}
-            {verificationStatus === "NONE" && (
-              <>: Para poder realizar operaciones financieras completas en nuestra plataforma, es necesario que completes la verificación de tu identidad. Es un proceso rápido, menos de 1 minuto .</>
-            )}
-            {verificationStatus === "REJECTED" && (
-              <>: Tu verificación ha sido rechazada. Por favor, revisa tus documentos y vuelve a intentarlo o contacta a soporte.</>
-            )}
-            {verificationStatus === "PENDING" && (
-              <>: Tu solicitud de verificación está siendo revisada. Te notificaremos una vez que el proceso haya finalizado. Agradecemos tu paciencia.</>
-            )}
-            {verificationStatus === "APPROVED" && (
-              <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
-            )}
-          </p>
-          {(verificationStatus === "NONE" || verificationStatus === "REJECTED") && (
-            <button
-              onClick={() => setIsOpen(true)}
-              className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-8 py-3 rounded-xl text-white font-bold text-lg shadow-lg shadow-green-500/30 transform active:scale-98 disabled:opacity-50 disabled:shadow-none"
-            >
-              Verificar Identidad
-            </button>
-          )}
-   {verificationStatus === "APPROVED" && (
-  <button
-    onClick={() => {
-      router.push("/dashboard/neworder"); // Redirección a nueva orden
-    }}
-    className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-8 py-3 rounded-xl text-white font-bold text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
-  >
-    Crear Nueva Orden
-  </button>
-)}
-
-
-        </section>
-
-        {/* Key Features / Benefits Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fade-in delay-400">
-          <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-blue-500/50">
-            <DollarSign size={40} className="text-blue-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-gray-100">Transacciones Seguras</h3>
-            <p className="text-gray-400 text-sm">Tu seguridad es nuestra prioridad. Todas tus operaciones están protegidas.</p>
-          </div>
-          <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-purple-500/50">
-            <Wallet size={40} className="text-purple-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-gray-100">Múltiples Destinos</h3>
-            <p className="text-gray-400 text-sm">Elige entre USDT, Bolívares y otras monedas fiat.</p>
-          </div>
-          <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-yellow-500/50">
-            <Repeat2 size={40} className="text-yellow-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-gray-100">Proceso Ágil</h3>
-            <p className="text-gray-400 text-sm">Realiza tus pedidos de forma rápida y eficiente.</p>
-          </div>
-        </section>
-      </div>
-
-      <VerificationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
-
-  {/* Profile Modal */}
-{isProfileModalOpen && (
-  <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
-    <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 w-[95vw] max-w-[95vw] md:max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 animate-scale-up-fade-in relative flex flex-col">
-      <button
-        onClick={() => setIsProfileModalOpen(false)}
-        className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors duration-200 z-10"
-        aria-label="Cerrar perfil"
+      {/* Verification Status Card */}
+      <section
+        className={`mb-12 ${statusBg} backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-xl transition-all duration-300 hover:shadow-green-500/20 animate-fade-in delay-200`}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-100 flex items-center gap-3">
+            <span className={`${statusColor}`}>{statusIcon}</span>
+            Estado de Verificación
+          </h2>
+          <VerificationStatusBadge status={verificationStatus} />
+        </div>
+        <p className="text-gray-300 mb-6 leading-relaxed text-sm sm:text-base">
+          {statusText}
+          {verificationStatus === 'NONE' && (
+            <>
+              : Para poder realizar operaciones financieras completas en nuestra plataforma, es
+              necesario que completes la verificación de tu identidad. Es un proceso rápido, menos
+              de 1 minuto.
+            </>
+          )}
+          {verificationStatus === 'REJECTED' && (
+            <>
+              : Tu verificación ha sido rechazada. Por favor, revisa tus documentos y vuelve a
+              intentarlo o contacta a soporte.
+            </>
+          )}
+          {verificationStatus === 'PENDING' && (
+            <>
+              : Tu solicitud de verificación está siendo revisada. Te notificaremos una vez que el
+              proceso haya finalizado. Agradecemos tu paciencia.
+            </>
+          )}
+          {verificationStatus === 'APPROVED' && (
+            <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
+          )}
+        </p>
+        {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+          <button
+            onClick={() => setIsOpen(true)}
+            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
+          >
+            Verificar Identidad
+          </button>
+        )}
+        {verificationStatus === 'APPROVED' && (
+          <button
+            onClick={() => {
+              router.push('/dashboard/neworder');
+            }}
+            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+          >
+            Crear Nueva Orden
+          </button>
+        )}
+      </section>
 
-      <div className="clerk-profile-container flex-grow overflow-y-auto p-0 md:p-6">
-        <UserProfile />
-      </div>
+      {/* Key Features */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 animate-fade-in delay-400">
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-blue-500/50">
+          <DollarSign size={36} className="text-blue-400 mx-auto mb-3" />
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">
+            Transacciones Seguras
+          </h3>
+          <p className="text-gray-400 text-xs sm:text-sm">
+            Tu seguridad es nuestra prioridad. Todas tus operaciones están protegidas.
+          </p>
+        </div>
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-purple-500/50">
+          <Wallet size={36} className="text-purple-400 mx-auto mb-3" />
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">Múltiples Destinos</h3>
+          <p className="text-gray-400 text-xs sm:text-sm">
+            Elige entre USDT, Bolívares y otras monedas fiat.
+          </p>
+        </div>
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-yellow-500/50">
+          <Repeat2 size={36} className="text-yellow-400 mx-auto mb-3" />
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">Proceso Ágil</h3>
+          <p className="text-gray-400 text-xs sm:text-sm">
+            Realiza tus pedidos de forma rápida y eficiente.
+          </p>
+        </div>
+      </section>
     </div>
-  </div>
-)}
+
+    <VerificationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+
+    {/* Profile Modal */}
+    {isProfileModalOpen && (
+      <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
+        <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 w-[95vw] max-w-[95vw] md:max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 animate-scale-up-fade-in relative flex flex-col">
+          <button
+            onClick={() => setIsProfileModalOpen(false)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors duration-200 z-10"
+            aria-label="Cerrar perfil"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          <div className="clerk-profile-container flex-grow overflow-y-auto p-0 md:p-6">
+            <UserProfile />
+          </div>
+        </div>
+      </div>
+    )}
+
+
+
 
 
       {/* Custom Alert/Modal (for messages like "Redireccionando...") */}

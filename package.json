@@ -15,7 +15,6 @@
     "@clerk/nextjs": "^6.21.0",
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.9.0",
     "date-fns": "^4.1.0",
     "expo-server-sdk": "^3.15.0",
     "framer-motion": "^12.16.0",
@@ -34,13 +33,14 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@prisma/client": "^6.12.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
-    "prisma": "^6.9.0",
+    "prisma": "^6.12.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

@@ -10,6 +10,8 @@ import FiatFields from "@/components/neworders/FiatFields";
 import SummaryCard from "@/components/neworders/SummaryCard";
 import AlertModal from "@/components/neworders/AlertModal";
 import WarningBanner from "@/components/WarningBanner";
+import PaypalAccountSelector from "@/components/neworders/PaypalAccountSelector";
+
 
 function PedidoFormContent() {
   const form = useOrderForm();
@@ -35,19 +37,8 @@ function PedidoFormContent() {
           <PlatformSelector />
           <DestinationSelector onReset={handleResetCampos} />
 
-          <div>
-            <label className="text-sm text-gray-300 mb-1 block font-medium">Correo de PayPal</label>
-            <div className="relative">
-              <input
-                type="email"
-                value={form.paypalEmail}
-                onChange={(e) => form.setPaypalEmail(e.target.value)}
-                placeholder="cliente@paypal.com"
-                className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            </div>
-          </div>
+        <PaypalAccountSelector />
+
 
           {form.selectedDestinationCurrency === "USDT" ? <USDTFields /> : <FiatFields />}
 
