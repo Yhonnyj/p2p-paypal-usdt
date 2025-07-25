@@ -59,7 +59,20 @@ const USDTFields = forwardRef((_, ref) => {
   // --- Guardar wallet solo cuando se llame desde "Continuar" ---
   const handleSaveWallet = async () => {
     if (!wallet) return; // No guardar si está vacío
+
     try {
+      // Validar duplicados
+      const exists = wallets.some(
+        (w) =>
+          w.details.address?.toLowerCase() === wallet.toLowerCase() &&
+          w.details.network === network
+      );
+
+      if (exists) {
+toast.success("Estamos procesando tu orden.");
+        return;
+      }
+
       const res = await fetch("/api/payment-methods", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

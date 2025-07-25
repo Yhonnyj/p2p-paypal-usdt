@@ -15,6 +15,8 @@ interface PaymentMethod {
     bankName?: string;
     phone?: string;
     idNumber?: string;
+    accountNumber?: string;
+    accountHolder?: string;
   };
 }
 
@@ -46,41 +48,61 @@ const FiatFields = forwardRef((_, ref) => {
   const [showAll, setShowAll] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  // --- Cargar cuentas BS ---
+  // --- Cargar cuentas ---
   const fetchAccounts = async () => {
     try {
       const res = await fetch("/api/payment-methods");
-      if (!res.ok) throw new Error("Error al cargar cuentas BS");
+      if (!res.ok) throw new Error("Error al cargar cuentas");
       const data: PaymentMethod[] = await res.json();
-      const bsAccounts = data.filter((m) => m.type === "BS");
-      setAccounts(bsAccounts);
+      const fiatAccounts = data.filter((m) => m.type === "BS" || m.type === "COP");
+      setAccounts(fiatAccounts);
 
-      if (bsAccounts.length > 0 && !isAddingNew) {
-        const first = bsAccounts[0];
-        setSelectedAccountId(first.id);
-        setBankName(first.details.bankName || "");
-        setBsPhoneNumber(first.details.phone || "");
-        setBsIdNumber(first.details.idNumber || "");
+      if (selectedDestinationCurrency === "BS") {
+        const bsAccounts = fiatAccounts.filter((m) => m.type === "BS");
+        if (bsAccounts.length > 0 && !isAddingNew) {
+          const first = bsAccounts[0];
+          setSelectedAccountId(first.id);
+          setBankName(first.details.bankName || "");
+          setBsPhoneNumber(first.details.phone || "");
+          setBsIdNumber(first.details.idNumber || "");
+        }
       }
     } catch (err) {
       console.error(err);
-      toast.error("No se pudieron cargar las cuentas BS.");
+      toast.error("No se pudieron cargar las cuentas.");
     }
   };
 
   useEffect(() => {
-    if (selectedDestinationCurrency === "BS") fetchAccounts();
+    if (selectedDestinationCurrency === "BS" || selectedDestinationCurrency === "COP") {
+      fetchAccounts();
+    }
   }, [selectedDestinationCurrency]);
 
   // --- Guardar cuenta en API (solo cuando se llame desde "Continuar") ---
   const handleSaveAccount = async () => {
-    if (
-      selectedDestinationCurrency === "BS" &&
-      bankName &&
-      bsPhoneNumber &&
-      bsIdNumber
-    ) {
-      try {
+    try {
+      // --- Validar BS ---
+      if (
+        selectedDestinationCurrency === "BS" &&
+        bankName &&
+        bsPhoneNumber &&
+        bsIdNumber
+      ) {
+        // Evitar duplicados
+        const exists = accounts.some(
+          (acc) =>
+            acc.type === "BS" &&
+            normalizeBankName(acc.details.bankName || "") === normalizeBankName(bankName) &&
+            acc.details.phone === bsPhoneNumber &&
+            acc.details.idNumber === bsIdNumber
+        );
+
+        if (exists) {
+toast.success("Estamos procesando tu orden.");
+          return;
+        }
+
         const selectedBankOption = bankOptions.find(
           (b) =>
             normalizeBankName(b.value) === normalizeBankName(bankName) ||
@@ -102,10 +124,42 @@ const FiatFields = forwardRef((_, ref) => {
         toast.success("Cuenta BS guardada con la orden.");
         setIsAddingNew(false);
         await fetchAccounts();
-      } catch (err) {
-        console.error(err);
-        toast.error("No se pudo guardar la cuenta.");
       }
+
+      // --- Validar COP ---
+      if (
+        selectedDestinationCurrency === "COP" &&
+        copAccountNumber &&
+        copAccountHolder
+      ) {
+        const existsCOP = accounts.some(
+          (acc) =>
+            acc.type === "COP" &&
+            acc.details.accountNumber === copAccountNumber &&
+            acc.details.accountHolder?.toLowerCase() === copAccountHolder.toLowerCase()
+        );
+
+        if (existsCOP) {
+toast.success("Estamos procesando tu orden.");
+          return;
+        }
+
+        const res = await fetch("/api/payment-methods", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "COP",
+            details: { accountNumber: copAccountNumber, accountHolder: copAccountHolder },
+          }),
+        });
+
+        if (!res.ok) throw new Error("Error al guardar cuenta COP");
+        toast.success("Cuenta COP guardada con la orden.");
+        await fetchAccounts();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo guardar la cuenta.");
     }
   };
 
@@ -122,9 +176,9 @@ const FiatFields = forwardRef((_, ref) => {
 
   return (
     <div className="mt-6 w-full space-y-6">
-      {selectedDestinationCurrency === "BS" && accounts.length > 0 && !isAddingNew ? (
+      {selectedDestinationCurrency === "BS" && accounts.filter(a => a.type === "BS").length > 0 && !isAddingNew ? (
         <>
-          {(showAll ? accounts : accounts.slice(0, 2)).map((account) => {
+          {(showAll ? accounts.filter(a => a.type === "BS") : accounts.filter(a => a.type === "BS").slice(0, 2)).map((account) => {
             const accountBank = bankOptions.find(
               (b) =>
                 normalizeBankName(b.value) ===
@@ -170,7 +224,7 @@ const FiatFields = forwardRef((_, ref) => {
             );
           })}
           <div className="flex justify-between items-center mt-2">
-            {accounts.length > 2 && (
+            {accounts.filter(a => a.type === "BS").length > 2 && (
               <button
                 type="button"
                 onClick={() => setShowAll(!showAll)}
