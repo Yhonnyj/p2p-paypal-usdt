@@ -5,10 +5,17 @@ import { Copy } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 
+type ReferralEarning = {
+  id: string;
+  referredUserId: string;
+  amount: number;
+  createdAt: string;
+};
+
 export default function ReferredPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [referrals, setReferrals] = useState<any[]>([]);
+  const [referrals, setReferrals] = useState<ReferralEarning[]>([]);
   const [totalGanado, setTotalGanado] = useState(0);
   const [link, setLink] = useState("");
 
