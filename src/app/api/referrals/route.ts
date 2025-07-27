@@ -10,21 +10,27 @@ export async function GET() {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    // Buscar el usuario en la base de datos
-    const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+  // Buscar el usuario en la base de datos
+const user = await prisma.user.findUnique({
+  where: { clerkId: userId },
+  include: {
+    referralEarnings: {
       include: {
-        referralEarnings: {
-          include: { user: true },
-          orderBy: { createdAt: "desc" },
+        user: {
+          select: {
+            fullName: true,
+          },
         },
       },
-    });
+      orderBy: { createdAt: "desc" },
+    },
+  },
+});
 
-    if (!user) {
-      console.error("❌ Usuario no encontrado para clerkId:", userId);
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
-    }
+if (!user) {
+  console.error("❌ Usuario no encontrado para clerkId:", userId);
+  return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+}
 
     // Calcular total
     const totalGanado = user.referralEarnings.reduce((sum, e) => sum + e.amount, 0);
