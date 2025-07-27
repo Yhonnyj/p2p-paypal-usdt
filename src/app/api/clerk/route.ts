@@ -1,19 +1,21 @@
 // app/api/clerk/route.ts
-
 import { Webhook } from "svix";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET!;
 
-type ClerkEvent = {
+type ClerkUserCreatedEvent = {
+  type: "user.created";
   data: {
     id: string;
     email_addresses: { email_address: string }[];
     first_name?: string;
     last_name?: string;
+    unsafe_metadata?: {
+      referrerId?: string;
+    };
   };
-  type: "user.created";
 };
 
 export async function POST(req: Request) {
@@ -22,10 +24,10 @@ export async function POST(req: Request) {
     const headers = Object.fromEntries(req.headers.entries());
 
     const wh = new Webhook(WEBHOOK_SECRET);
-    const evt = wh.verify(payload, headers) as ClerkEvent;
+    const evt = wh.verify(payload, headers) as ClerkUserCreatedEvent;
 
     if (evt.type === "user.created") {
-      const { id, email_addresses, first_name, last_name } = evt.data;
+      const { id, email_addresses, first_name, last_name, unsafe_metadata } = evt.data;
       const email = email_addresses?.[0]?.email_address;
       const fullName = [first_name, last_name].filter(Boolean).join(" ");
 
@@ -33,14 +35,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Email no encontrado" }, { status: 400 });
       }
 
-     // Extraer manualmente la cookie del header
-const cookieHeader = req.headers.get("cookie") || "";
-const referrerId = cookieHeader
-  .split(";")
-  .find((c) => c.trim().startsWith("referrerId="))
-  ?.split("=")[1];
-
-      // ✅ Validar si ese referido realmente existe
+      const referrerId = unsafe_metadata?.referrerId;
       const validReferrer = referrerId
         ? await prisma.user.findUnique({ where: { id: referrerId } })
         : null;
@@ -50,13 +45,13 @@ const referrerId = cookieHeader
         update: {
           email,
           fullName,
-...(validReferrer && { referrerId })
+          ...(validReferrer && { referrerId: validReferrer.id }),
         },
         create: {
           clerkId: id,
           email,
           fullName,
-...(validReferrer && { referrerId })
+          ...(validReferrer && { referrerId: validReferrer.id }),
         },
       });
 

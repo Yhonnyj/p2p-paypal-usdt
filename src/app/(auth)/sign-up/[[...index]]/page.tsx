@@ -2,8 +2,11 @@
 
 import { SignUp } from "@clerk/nextjs";
 import { motion } from 'framer-motion';
+import { useReferrer } from "@/lib/useReferrer";
 
 export default function SignUpPage() {
+  useReferrer(); // Guarda el referrerId en localStorage
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
       {/* Fondo degradado y blobs como login */}
@@ -32,6 +35,9 @@ export default function SignUpPage() {
           <SignUp
             afterSignUpUrl="/dashboard"
             redirectUrl="/dashboard"
+            unsafeMetadata={{
+              referrerId: typeof window !== "undefined" ? localStorage.getItem("referrerId") : null,
+            }}
             appearance={{
               elements: {
                 card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
