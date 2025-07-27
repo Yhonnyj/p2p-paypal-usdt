@@ -9,11 +9,10 @@ type ReferralEarning = {
   id: string;
   amount: number;
   createdAt: string;
-  user: {
+  referredUser: {
     fullName: string | null;
   };
 };
-
 
 export default function ReferredPage() {
   const [loading, setLoading] = useState(true);
@@ -119,7 +118,7 @@ export default function ReferredPage() {
                 key={earning.id}
                 className="border-t border-gray-800 hover:bg-gray-800/70 transition-colors duration-300"
               >
-<td className="p-3 font-medium">{earning.user?.fullName || "Usuario sin nombre"}</td>
+                <td className="p-3 font-medium">{earning.referredUser?.fullName || "Usuario"}</td>
                 <td className="p-3">{format(new Date(earning.createdAt), "dd/MM/yyyy")}</td>
                 <td className="p-3 text-green-400 font-semibold">
                   +{earning.amount} USDT
@@ -150,8 +149,8 @@ export default function ReferredPage() {
               className="bg-gray-900 p-4 rounded-lg shadow-md text-sm hover:scale-[1.01] transition-transform duration-300"
             >
               <p className="text-gray-300">
-               <span className="font-semibold text-white">Referido:</span>{" "}
-{earning.user?.fullName || "Usuario sin nombre"}
+                <span className="font-semibold text-white">Referido:</span>{" "}
+                {earning.referredUser?.fullName || "Usuario"}
 
               </p>
               <p className="text-gray-300">
