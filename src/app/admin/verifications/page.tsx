@@ -33,7 +33,7 @@ interface VerificationItem {
 }
 
 const PAGE_SIZE = 6;
-const MAX_CACHE_PAGES = 3; // Mantener últimas 3 páginas
+const MAX_CACHE_PAGES = 3;
 
 export default function AdminVerificationsPage() {
   const router = useRouter();
@@ -47,15 +47,15 @@ export default function AdminVerificationsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Cache de las últimas 3 páginas
   const cache = useRef<{ [key: string]: VerificationItem[] }>({});
 
-  // Debounce en buscador
+  // Debounce para buscador
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timeout);
   }, [search]);
 
+  // Obtener verificaciones
   const fetchVerifications = async (pageNumber = 1, searchQuery = "") => {
     const cacheKey = `${searchQuery}-${pageNumber}`;
     if (cache.current[cacheKey]) {
@@ -80,14 +80,14 @@ export default function AdminVerificationsPage() {
       setTotal(data.total);
       setTotalPages(data.totalPages);
 
-      // Guardamos en cache y limpiamos viejas páginas
+      // Guardar en cache
       cache.current[cacheKey] = data.verifications;
       const keys = Object.keys(cache.current);
       if (keys.length > MAX_CACHE_PAGES) {
-        delete cache.current[keys[0]]; // eliminamos la más antigua
+        delete cache.current[keys[0]]; // borrar el más viejo
       }
 
-      // Prefetch de siguiente página
+      // Prefetch siguiente página
       if (pageNumber < data.totalPages) {
         const nextKey = `${searchQuery}-${pageNumber + 1}`;
         if (!cache.current[nextKey]) {
@@ -113,8 +113,8 @@ export default function AdminVerificationsPage() {
     }
   };
 
+  // Aprobar/Rechazar
   const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
-    // Actualización optimista
     setVerifications((prev) =>
       prev.map((v) => (v.id === id ? { ...v, status } : v))
     );
@@ -133,7 +133,6 @@ export default function AdminVerificationsPage() {
         } con éxito.`
       );
 
-      // Actualizamos el cache en memoria
       const cacheKey = `${debouncedSearch}-${page}`;
       if (cache.current[cacheKey]) {
         cache.current[cacheKey] = cache.current[cacheKey].map((v) =>
@@ -144,26 +143,44 @@ export default function AdminVerificationsPage() {
       toast.error(
         err instanceof Error ? err.message : "Error al actualizar el estado."
       );
-      fetchVerifications(page, debouncedSearch); // revertir si falla
+      fetchVerifications(page, debouncedSearch);
     }
   };
 
+  // Eventos iniciales
   useEffect(() => {
     fetchVerifications(page, debouncedSearch);
   }, [page, debouncedSearch]);
 
+  // Pusher para tiempo real
   useEffect(() => {
     if (!pusherClient) return;
     pusherClient.subscribe("admin-verifications");
 
-    const handler = () => {
+    const updateHandler = () => {
       cache.current = {};
       fetchVerifications(page, debouncedSearch);
     };
 
-    pusherClient.bind("admin-verifications-updated", handler);
+    const newHandler = (newVerification: VerificationItem) => {
+      toast.info(
+        `Nueva verificación de ${newVerification.user?.fullName || "Usuario desconocido"}`
+      );
+      if (page === 1) {
+        setVerifications((prev) => [newVerification, ...prev].slice(0, PAGE_SIZE));
+        setTotal((prev) => prev + 1);
+      } else {
+        cache.current = {};
+        fetchVerifications(page, debouncedSearch);
+      }
+    };
+
+    pusherClient.bind("admin-verifications-updated", updateHandler);
+    pusherClient.bind("verification-created", newHandler);
+
     return () => {
-      pusherClient.unbind("admin-verifications-updated", handler);
+      pusherClient.unbind("admin-verifications-updated", updateHandler);
+      pusherClient.unbind("verification-created", newHandler);
       pusherClient.unsubscribe("admin-verifications");
     };
   }, [page, debouncedSearch]);
@@ -200,12 +217,9 @@ export default function AdminVerificationsPage() {
 
   return (
     <div className="relative min-h-screen bg-gray-950 text-white p-4 sm:p-6 md:p-8 font-inter overflow-hidden">
-      <div
-        className="absolute inset-0 z-0 opacity-10"
-        style={{
+      <div className="absolute inset-0 z-0 opacity-10" style={{
           background: "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
-        }}
-      ></div>
+        }}></div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header */}
@@ -220,7 +234,7 @@ export default function AdminVerificationsPage() {
                 type="text"
                 placeholder="Buscar por nombre o email..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setPage(1); setSearch(e.target.value); }}
                 className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-800 border border-gray-700 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
