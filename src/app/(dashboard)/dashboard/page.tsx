@@ -276,7 +276,7 @@ if (!user) {
       <p className="text-yellow-300 text-sm font-medium text-center">
       🛠 Domingo de ajustes, nuestro capybara está afinando tu plataforma favorita.      </p>
       <p className="text-gray-400 text-xs mt-1">
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 10:00 AM</span>.      </p>
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 12:00 PM</span>.      </p>
     </div>
   </div>
 )}
