@@ -289,11 +289,11 @@ if (!user) {
 
       <p className="text-yellow-300 text-sm font-medium text-center">
 
-      Nuestro capybara está descansando.      </p>
+      Estamos presentando problemas con nuestra red de USDT y sistema de Bolivares.      </p>
 
       <p className="text-gray-400 text-xs mt-1">
 
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">martes 12:00 PM</span>.      </p>
+      Estamos trabajando lo mas rapido que podemos <span className="text-yellow-300">para resolver el problema y puedas crear ordenes.</span>.      </p>
 
     </div>
 
