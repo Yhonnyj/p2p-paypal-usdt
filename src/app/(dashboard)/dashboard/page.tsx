@@ -259,43 +259,51 @@ if (!user) {
             Verificar Identidad
           </button>
         )}
-   {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+   {verificationStatus === 'APPROVED' && (
 
-          <button
+  <div className="flex flex-col items-center">
 
-            onClick={() => setIsOpen(true)}
+    <button
 
-            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
+      disabled
 
-          >
+      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
 
-            Verificar Identidad
+    >
 
-          </button>
+      Crear Nueva Orden
 
-        )}
+    </button>
 
-        {verificationStatus === 'APPROVED' && (
+    <div className="mt-4 flex flex-col items-center">
 
-          <button
+      <img
 
-            onClick={() => {
+        src="/images/capi-constructor.png"
 
-              router.push('/dashboard/neworder');
+        alt="Capi Constructor"
 
-            }}
+        className="w-24 h-24 mb-2 object-contain"
 
-            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+      />
 
-          >
+      <p className="text-yellow-300 text-sm font-medium text-center">
 
-            Crear Nueva Orden
+      Nuestro capybara está descansando.      </p>
 
-          </button>
+      <p className="text-gray-400 text-xs mt-1">
 
-        )}
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">martes 10:30 AM</span>.      </p>
 
-      </section>
+    </div>
+
+  </div>
+
+)}
+
+</section>
+
+
 
 
       
