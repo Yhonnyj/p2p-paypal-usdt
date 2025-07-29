@@ -293,7 +293,7 @@ if (!user) {
 
       <p className="text-gray-400 text-xs mt-1">
 
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">martes 10:30 AM</span>.      </p>
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">martes 12:00 PM</span>.      </p>
 
     </div>
 
