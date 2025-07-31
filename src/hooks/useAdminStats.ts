@@ -1,10 +1,9 @@
-// hooks/useAdminStats.ts
 import { useEffect, useState } from "react";
 
 type AdminStatsResponse = {
   totalUSD: number;
   totalUSDT: number;
-  totalBsUsd: number; // ✅ AGREGA ESTA LÍNEA
+  totalBS: number; // ✅ CAMBIADO a totalBS para que coincida con la API
   stats: {
     COMPLETED: number;
     PENDING: number;
@@ -14,7 +13,11 @@ type AdminStatsResponse = {
 
 type RangeOption = "7d" | "15d" | "month" | "all" | "custom";
 
-export function useAdminStats(range: RangeOption = "month", customStart?: string, customEnd?: string) {
+export function useAdminStats(
+  range: RangeOption = "month",
+  customStart?: string,
+  customEnd?: string
+) {
   const [data, setData] = useState<AdminStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 

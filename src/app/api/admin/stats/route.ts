@@ -44,7 +44,7 @@ export async function GET(req: Request) {
 
     const totalUSD = completedOrders.reduce((sum, o) => sum + o.amount, 0);
     const totalUSDT = completedOrders.reduce((sum, o) => sum + o.finalUsdt, 0);
-    const totalBsUsd = completedOrders
+    const totalBS = completedOrders
       .filter((o) => o.to === "BS")
       .reduce((sum, o) => sum + o.finalUsd, 0);
 
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       totalUSD,
       totalUSDT,
-      totalBsUsd, // ✅ Ya incluido en la respuesta
+      totalBS, // ✅ ← nombre limpio y coherente
       stats: {
         COMPLETED: completedCount,
         PENDING: pendingCount,
