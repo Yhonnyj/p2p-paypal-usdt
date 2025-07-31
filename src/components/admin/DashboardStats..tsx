@@ -25,8 +25,8 @@ export default function AdminDashboardStats() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-      <Card title="💵 Total USD (BS)" value={`$${totalUSD.toFixed(2)}`} />
-      <Card title="🪙 Total USDT" value={`${totalUSDT.toFixed(2)} USDT`} />
+      <Card title="💰 Total USD recibidos" value={`$${totalUSD.toFixed(2)}`} />
+      <Card title="🪙 Total USDT enviados" value={`${totalUSDT.toFixed(2)} USDT`} />
       <Card title="✅ Completadas" value={COMPLETED.toString()} />
       <Card title="🕒 Pendientes" value={PENDING.toString()} />
       <Card title="❌ Canceladas" value={CANCELLED.toString()} />

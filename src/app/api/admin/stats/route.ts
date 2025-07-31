@@ -10,18 +10,18 @@ export async function GET() {
   }
 
   try {
+    // Solo órdenes completadas
     const completedOrders = await prisma.order.findMany({
       where: { status: "COMPLETED" },
     });
 
-    const totalUSD = completedOrders
-      .filter(o => o.to.includes("BS")) // Cambio de PayPal a BS
-      .reduce((sum, o) => sum + o.finalUsd, 0);
+    // Total USD que el cliente te envió (PayPal)
+    const totalUSD = completedOrders.reduce((sum, o) => sum + o.amount, 0);
 
-    const totalUSDT = completedOrders
-      .filter(o => o.to.includes("USDT"))
-      .reduce((sum, o) => sum + o.finalUsdt, 0);
+    // Total USDT que tú enviaste (no importa si decía BS o USDT)
+    const totalUSDT = completedOrders.reduce((sum, o) => sum + o.finalUsdt, 0);
 
+    // Conteo por estado
     const [completedCount, pendingCount, cancelledCount] = await Promise.all([
       prisma.order.count({ where: { status: "COMPLETED" } }),
       prisma.order.count({ where: { status: "PENDING" } }),
