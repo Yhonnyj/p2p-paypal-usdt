@@ -11,14 +11,22 @@ type AdminStatsResponse = {
   };
 };
 
-export function useAdminStats() {
+type RangeOption = "7d" | "15d" | "month" | "all" | "custom";
+
+export function useAdminStats(range: RangeOption = "month", customStart?: string, customEnd?: string) {
   const [data, setData] = useState<AdminStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("/api/admin/stats");
+        let url = `/api/admin/stats?range=${range}`;
+
+        if (range === "custom" && customStart && customEnd) {
+          url += `&start=${customStart}&end=${customEnd}`;
+        }
+
+        const res = await fetch(url);
 
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -28,14 +36,16 @@ export function useAdminStats() {
         setData(json);
       } catch (err) {
         console.error("❌ Error al cargar stats:", err);
-        setData(null); // por seguridad, dejamos null si falla
+        setData(null);
       } finally {
         setLoading(false);
       }
     }
 
     fetchStats();
-  }, []);
+  }, [range, customStart, customEnd]);
 
   return { data, loading };
 }
+
+export type { RangeOption };

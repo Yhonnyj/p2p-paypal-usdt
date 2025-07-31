@@ -1,5 +1,5 @@
 // app/admin/dashboard/page.tsx
-import DashboardStats from "@/components/admin/DashboardStats.";
+import DashboardStats from "@/components/admin/DashboardStats";
 
 export default function AdminDashboardPage() {
   return (
