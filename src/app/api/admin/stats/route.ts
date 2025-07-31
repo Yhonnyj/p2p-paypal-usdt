@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    let dateFilter: { gte?: Date; lte?: Date } = {};
+const dateFilter: { gte?: Date; lte?: Date } = {};
 
     const now = new Date();
 
