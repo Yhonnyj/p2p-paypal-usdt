@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 type AdminStatsResponse = {
   totalUSD: number;
   totalUSDT: number;
+  totalBsUsd: number; // ✅ AGREGA ESTA LÍNEA
   stats: {
     COMPLETED: number;
     PENDING: number;

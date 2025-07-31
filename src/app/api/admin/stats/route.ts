@@ -15,8 +15,7 @@ export async function GET(req: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-const dateFilter: { gte?: Date; lte?: Date } = {};
-
+    const dateFilter: { gte?: Date; lte?: Date } = {};
     const now = new Date();
 
     if (range === "7d") {
@@ -45,6 +44,9 @@ const dateFilter: { gte?: Date; lte?: Date } = {};
 
     const totalUSD = completedOrders.reduce((sum, o) => sum + o.amount, 0);
     const totalUSDT = completedOrders.reduce((sum, o) => sum + o.finalUsdt, 0);
+    const totalBsUsd = completedOrders
+      .filter((o) => o.to === "BS")
+      .reduce((sum, o) => sum + o.finalUsd, 0);
 
     const [completedCount, pendingCount, cancelledCount] = await Promise.all([
       prisma.order.count({ where: { status: "COMPLETED", ...(range !== "all" && { createdAt: dateFilter }) } }),
@@ -55,6 +57,7 @@ const dateFilter: { gte?: Date; lte?: Date } = {};
     return NextResponse.json({
       totalUSD,
       totalUSDT,
+      totalBsUsd, // ✅ Ya incluido en la respuesta
       stats: {
         COMPLETED: completedCount,
         PENDING: pendingCount,

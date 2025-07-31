@@ -25,6 +25,7 @@ export default function AdminDashboardStats() {
   const {
     totalUSD = 0,
     totalUSDT = 0,
+      totalBsUsd = 0, // ✅ ← Esto faltaba
     stats: { COMPLETED = 0, PENDING = 0, CANCELLED = 0 } = {},
   } = data;
 
@@ -48,13 +49,15 @@ export default function AdminDashboardStats() {
       </div>
 
       {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card title="💰 Total USD recibidos" value={`$${totalUSD.toFixed(2)}`} />
-        <Card title="🪙 Total USDT enviados" value={`${totalUSDT.toFixed(2)} USDT`} />
-        <Card title="✅ Completadas" value={COMPLETED.toString()} />
-        <Card title="🕒 Pendientes" value={PENDING.toString()} />
-        <Card title="❌ Canceladas" value={CANCELLED.toString()} />
-      </div>
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <Card title="💰 Total USD recibidos" value={`$${totalUSD.toFixed(2)}`} />
+  <Card title="🪙 Total USDT enviados" value={`${totalUSDT.toFixed(2)} USDT`} />
+<Card title="🇻🇪 Total BS (USD)" value={`$${totalBsUsd.toFixed(2)}`} />
+  <Card title="✅ Completadas" value={COMPLETED.toString()} />
+  <Card title="🕒 Pendientes" value={PENDING.toString()} />
+  <Card title="❌ Canceladas" value={CANCELLED.toString()} />
+</div>
+
     </div>
   );
 }
