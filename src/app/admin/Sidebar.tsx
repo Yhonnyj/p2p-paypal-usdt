@@ -4,21 +4,23 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
+  ArrowRightLeft,
   Settings,
   LogOut,
-  ShieldCheck,
+  IdCardLanyard,
   BellRing,
   X,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 const links = [
-  { href: "/admin/orders", label: "Órdenes", icon: LayoutDashboard },
+  { href: "/admin/dashboard", label: "Reporte", icon: FileSpreadsheet },
+  { href: "/admin/orders", label: "Órdenes", icon: ArrowRightLeft },
   { href: "/admin/rates", label: "Cotizaciones", icon: Settings },
-  { href: "/admin/verifications", label: "Verificación", icon: ShieldCheck },
+  { href: "/admin/verifications", label: "Verificación", icon: IdCardLanyard },
 ];
 
 export default function AdminSidebar({
@@ -35,9 +37,7 @@ export default function AdminSidebar({
   const [pendingVerifications, setPendingVerifications] = useState(0);
   const sidebarRef = useRef<HTMLDivElement>(null); // 👈 Referencia al sidebar
 
-  useEffect(() => {
-    setPendingVerifications(3);
-  }, []);
+
 
   // ✅ Cierra el sidebar si se hace clic fuera
   useEffect(() => {
