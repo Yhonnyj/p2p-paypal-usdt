@@ -34,7 +34,7 @@ export default function AdminSidebar({
   const router = useRouter();
   const { signOut } = useClerk();
 
-  const [pendingVerifications, setPendingVerifications] = useState(0);
+  const [pendingVerifications,] = useState(0);
   const sidebarRef = useRef<HTMLDivElement>(null); // 👈 Referencia al sidebar
 
 
