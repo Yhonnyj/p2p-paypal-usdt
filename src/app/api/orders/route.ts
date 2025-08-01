@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -122,6 +121,19 @@ const finalUsdt = recipientDetails.type === "USDT"
       },
       include: { user: true },
     });
+
+// Enviar factura PayPal automáticamente
+await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/paypal/invoice`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    email: order.paypalEmail,
+    amount: order.amount,
+  }),
+});
+
 
     // ✅ Mensaje automático del bot
     await prisma.message.create({
