@@ -261,35 +261,47 @@ if (!user) {
         )}
    {verificationStatus === 'APPROVED' && (
 
+  <div className="flex flex-col items-center">
 
-          <button
+    <button
 
+      disabled
 
-            onClick={() => {
+      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
 
+    >
 
-              router.push('/dashboard/neworder');
+      Crear Nueva Orden
 
+    </button>
 
-            }}
+    <div className="mt-4 flex flex-col items-center">
 
+      <img
 
-            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+        src="/images/capi-constructor.png"
 
+        alt="Capi Constructor"
 
-          >
+        className="w-24 h-24 mb-2 object-contain"
 
+      />
 
-            Crear Nueva Orden
+      <p className="text-yellow-300 text-sm font-medium text-center">
 
+      🛠 Domingo de ajustes, nuestro capybara está afinando tu plataforma favorita.      </p>
 
-          </button>
+      <p className="text-gray-400 text-xs mt-1">
 
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 12:00 PM</span>.      </p>
 
-        )}
+    </div>
 
+  </div>
 
-      </section>
+)}
+
+</section>
 
 
 

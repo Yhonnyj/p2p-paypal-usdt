@@ -40,6 +40,7 @@ model Order {
   updatedAt DateTime    @updatedAt
 
   messages Message[] @relation("OrderMessages")
+  paypalInvoiceId String?
 }
 
 model Message {

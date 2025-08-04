@@ -122,8 +122,8 @@ const finalUsdt = recipientDetails.type === "USDT"
       include: { user: true },
     });
 
-// Enviar factura PayPal automáticamente
-await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/paypal/invoice`, {
+// Enviar factura PayPal y guardar ID
+const paypalRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/paypal/invoice`, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -133,6 +133,22 @@ await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/paypal/invoice`, {
     amount: order.amount,
   }),
 });
+
+const paypalData = await paypalRes.json();
+const paypalInvoiceId = paypalData.invoiceId;
+
+// Actualizar la orden con el ID de la factura
+if (paypalInvoiceId && typeof paypalInvoiceId === "string") {
+  await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      paypalInvoiceId, // o paypalInvoiceId: paypalInvoiceId
+    },
+  });
+}
+
+
+
 
 
     // ✅ Mensaje automático del bot
