@@ -47,9 +47,11 @@ export async function POST(
     const start = startDate.toISOString();
     const end = endDate.toISOString();
 
-    // Buscar transacción por invoice_id (más seguro)
-    const txRes = await fetch(
-      `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
+    let transaction = null;
+
+    // 1️⃣ Consultar la factura para intentar obtener transaction_id
+    const invoiceRes = await fetch(
+      `https://api-m.paypal.com/v2/invoicing/invoices/${order.paypalInvoiceId}`,
       {
         method: "GET",
         headers: {
@@ -58,8 +60,50 @@ export async function POST(
         },
       }
     );
-    const txData = await txRes.json();
-    const transaction = txData?.transaction_details?.[0]?.transaction_info;
+    const invoiceData = await invoiceRes.json();
+
+    const transactionId =
+      invoiceData?.payments?.[0]?.payment_id ||
+      invoiceData?.payments?.[0]?.transaction_id ||
+      invoiceData?.payments?.payments_received?.[0]?.payment_id ||
+      invoiceData?.payments?.payments_received?.[0]?.transaction_id;
+
+    // 2️⃣ Si hay transaction_id, buscar por él
+    if (transactionId) {
+      const txRes = await fetch(
+        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&transaction_id=${transactionId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const txData = await txRes.json();
+      transaction = txData?.transaction_details?.[0]?.transaction_info;
+    }
+
+    // 3️⃣ Si no hay transaction_id o no se encontró, buscar por invoice_id
+    if (!transaction) {
+      const txRes = await fetch(
+        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const txData = await txRes.json();
+const txMatch = txData?.transaction_details?.find(
+  (t: any) => t?.transaction_info?.invoice_id === order.paypalInvoiceId
+);
+transaction = txMatch?.transaction_info;
+    }
 
     if (!transaction) {
       return NextResponse.json(
@@ -68,6 +112,7 @@ export async function POST(
       );
     }
 
+    // 4️⃣ Calcular montos
     const grossAmount = transaction.transaction_amount?.value
       ? parseFloat(transaction.transaction_amount.value)
       : null;
@@ -82,13 +127,13 @@ export async function POST(
       );
     }
 
-    // Calcular netAmount manualmente (gross + fee)
+    // netAmount = gross + fee (PayPal devuelve fee como negativo)
     const netAmount = grossAmount + feeAmount;
 
-    // Calcular ganancia real
+    // Ganancia real
     const realProfit = netAmount - (order.finalUsd || 0);
 
-    // Guardar en la orden
+    // Guardar en BD
     await prisma.order.update({
       where: { id: order.id },
       data: { realProfit },
