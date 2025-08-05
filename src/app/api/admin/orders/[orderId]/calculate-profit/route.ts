@@ -1,16 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-type PayPalTransactionDetail = {
-  transaction_info?: {
-    transaction_id?: string;
-    invoice_id?: string;
-    transaction_amount?: { value: string };
-    fee_amount?: { value: string };
-    net_amount?: { value: string };
-  };
-};
-
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID!;
   const secret = process.env.PAYPAL_CLIENT_SECRET!;
@@ -48,18 +38,7 @@ export async function POST(
 
     const accessToken = await getPayPalAccessToken();
 
-    // Rango de fechas para la búsqueda
-    const startDate = new Date(order.createdAt);
-    startDate.setDate(startDate.getDate() - 1);
-    const endDate = new Date(order.createdAt);
-    endDate.setDate(endDate.getDate() + 1);
-
-    const start = startDate.toISOString();
-    const end = endDate.toISOString();
-
-    let transaction: PayPalTransactionDetail["transaction_info"] | null = null;
-
-    // 1️⃣ Consultar la factura para intentar obtener transaction_id
+    // 1️⃣ Consultar la factura en PayPal
     const invoiceRes = await fetch(
       `https://api-m.paypal.com/v2/invoicing/invoices/${order.paypalInvoiceId}`,
       {
@@ -72,53 +51,35 @@ export async function POST(
     );
     const invoiceData = await invoiceRes.json();
 
+    // 2️⃣ Obtener transaction_id desde payments_received
     const transactionId =
-      invoiceData?.payments?.[0]?.payment_id ||
-      invoiceData?.payments?.[0]?.transaction_id ||
-      invoiceData?.payments?.payments_received?.[0]?.payment_id ||
-      invoiceData?.payments?.payments_received?.[0]?.transaction_id;
+      invoiceData?.payments?.payments_received?.[0]?.transaction_id ||
+      invoiceData?.payments?.[0]?.transaction_id;
 
-    // 2️⃣ Si hay transaction_id, buscar por él
-    if (transactionId) {
-      const txRes = await fetch(
-        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&transaction_id=${transactionId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
+    if (!transactionId) {
+      return NextResponse.json(
+        { error: "No se encontró transaction_id en la factura" },
+        { status: 404 }
       );
-
-      const txData = await txRes.json();
-      transaction = txData?.transaction_details?.[0]?.transaction_info;
     }
 
-    // 3️⃣ Si no hay transaction_id o no se encontró, buscar por invoice_id
-    if (!transaction) {
-      const txRes = await fetch(
-        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    // 3️⃣ Consultar la transacción por transaction_id
+    const txRes = await fetch(
+      `https://api-m.paypal.com/v1/reporting/transactions?transaction_id=${transactionId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const txData = await txRes.json();
 
-      const txData = await txRes.json();
-      const txMatch = txData?.transaction_details?.find(
-        (t: PayPalTransactionDetail) =>
-          t?.transaction_info?.invoice_id === order.paypalInvoiceId
-      );
-      transaction = txMatch?.transaction_info || null;
-    }
-
+    const transaction = txData?.transaction_details?.[0]?.transaction_info;
     if (!transaction) {
       return NextResponse.json(
-        { error: "No se encontró transacción para esta factura" },
+        { error: "No se encontró transacción en PayPal para este transaction_id" },
         { status: 404 }
       );
     }
@@ -130,21 +91,18 @@ export async function POST(
     const feeAmount = transaction.fee_amount?.value
       ? parseFloat(transaction.fee_amount.value)
       : 0;
+    const netAmount = grossAmount !== null ? grossAmount + feeAmount : null;
 
-    if (grossAmount === null) {
+    if (netAmount === null) {
       return NextResponse.json(
-        { error: "No se pudo obtener monto bruto" },
+        { error: "No se pudo calcular netAmount" },
         { status: 400 }
       );
     }
 
-    // netAmount = gross + fee (PayPal devuelve fee como negativo)
-    const netAmount = grossAmount + feeAmount;
-
-    // Ganancia real
     const realProfit = netAmount - (order.finalUsd || 0);
 
-    // Guardar en BD
+    // 5️⃣ Guardar en la orden
     await prisma.order.update({
       where: { id: order.id },
       data: { realProfit },
@@ -153,7 +111,7 @@ export async function POST(
     return NextResponse.json({
       orderId: order.id,
       paypalInvoiceId: order.paypalInvoiceId,
-      transactionId: transaction.transaction_id,
+      transactionId,
       grossAmount,
       fee: feeAmount,
       netAmount,
