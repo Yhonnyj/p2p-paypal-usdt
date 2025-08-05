@@ -38,7 +38,7 @@ export async function POST(
 
     const accessToken = await getPayPalAccessToken();
 
-    // Calcular rango de fechas para la búsqueda
+    // Calcular rango de fechas
     const startDate = new Date(order.createdAt);
     startDate.setDate(startDate.getDate() - 1);
     const endDate = new Date(order.createdAt);
@@ -47,7 +47,7 @@ export async function POST(
     const start = startDate.toISOString();
     const end = endDate.toISOString();
 
-    // 1️⃣ Consultar la factura en PayPal
+    // 1️⃣ Consultar factura en PayPal
     const invoiceRes = await fetch(
       `https://api-m.paypal.com/v2/invoicing/invoices/${order.paypalInvoiceId}`,
       {
@@ -68,7 +68,7 @@ export async function POST(
 
     let transaction = null;
 
-    // 2️⃣ Si NO hay transaction_id, buscar por invoice_id
+    // 2️⃣ Buscar transacción
     if (!transactionId) {
       const txRes = await fetch(
         `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
@@ -84,7 +84,6 @@ export async function POST(
       transaction = txData?.transaction_details?.[0]?.transaction_info;
       transactionId = transaction?.transaction_id;
     } else {
-      // 3️⃣ Buscar por transaction_id
       const txRes = await fetch(
         `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&transaction_id=${transactionId}`,
         {
@@ -106,14 +105,19 @@ export async function POST(
       );
     }
 
-    const netAmountStr = transaction.net_amount?.value;
-    const netAmount = netAmountStr ? parseFloat(netAmountStr) : null;
+    // 3️⃣ Tomar net_amount o calcularlo si falta
+    let netAmount = transaction.net_amount?.value
+      ? parseFloat(transaction.net_amount.value)
+      : null;
 
     if (netAmount === null) {
-      return NextResponse.json(
-        { error: "No se pudo obtener monto neto" },
-        { status: 400 }
-      );
+      const gross = transaction.transaction_amount?.value
+        ? parseFloat(transaction.transaction_amount.value)
+        : 0;
+      const fee = transaction.fee_amount?.value
+        ? parseFloat(transaction.fee_amount.value)
+        : 0;
+      netAmount = gross - fee;
     }
 
     // 4️⃣ Calcular ganancia
