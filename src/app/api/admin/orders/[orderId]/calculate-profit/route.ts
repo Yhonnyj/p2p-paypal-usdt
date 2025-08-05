@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type PayPalTransactionDetail = {
+  transaction_info?: {
+    transaction_id?: string;
+    invoice_id?: string;
+    transaction_amount?: { value: string };
+    fee_amount?: { value: string };
+    net_amount?: { value: string };
+  };
+};
+
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID!;
   const secret = process.env.PAYPAL_CLIENT_SECRET!;
@@ -47,7 +57,7 @@ export async function POST(
     const start = startDate.toISOString();
     const end = endDate.toISOString();
 
-    let transaction = null;
+    let transaction: PayPalTransactionDetail["transaction_info"] | null = null;
 
     // 1️⃣ Consultar la factura para intentar obtener transaction_id
     const invoiceRes = await fetch(
@@ -99,10 +109,11 @@ export async function POST(
       );
 
       const txData = await txRes.json();
-const txMatch = txData?.transaction_details?.find(
-  (t: any) => t?.transaction_info?.invoice_id === order.paypalInvoiceId
-);
-transaction = txMatch?.transaction_info;
+      const txMatch = txData?.transaction_details?.find(
+        (t: PayPalTransactionDetail) =>
+          t?.transaction_info?.invoice_id === order.paypalInvoiceId
+      );
+      transaction = txMatch?.transaction_info || null;
     }
 
     if (!transaction) {
