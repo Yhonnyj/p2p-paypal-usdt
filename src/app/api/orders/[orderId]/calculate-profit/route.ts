@@ -62,7 +62,7 @@ export async function POST(
     const realProfit = netAmount - (order.finalUsd || 0);
 
     // Guardar en la orden
-    const updatedOrder = await prisma.order.update({
+    await prisma.order.update({
       where: { id: order.id },
       data: { realProfit },
     });
