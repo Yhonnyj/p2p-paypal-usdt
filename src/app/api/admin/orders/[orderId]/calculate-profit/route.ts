@@ -38,9 +38,9 @@ export async function POST(
 
     const accessToken = await getPayPalAccessToken();
 
-    // Consultar detalles de la factura en PayPal
-    const invoiceRes = await fetch(
-      `https://api-m.paypal.com/v2/invoicing/invoices/${order.paypalInvoiceId}`,
+    // Buscar transacción en PayPal por invoice_id
+    const txRes = await fetch(
+      `https://api-m.paypal.com/v1/reporting/transactions?invoice_id=${order.paypalInvoiceId}`,
       {
         method: "GET",
         headers: {
@@ -50,8 +50,14 @@ export async function POST(
       }
     );
 
-    const invoiceData = await invoiceRes.json();
-    const netAmountStr = invoiceData?.amount?.net_amount?.value;
+    const txData = await txRes.json();
+
+    const transaction = txData?.transaction_details?.[0]?.transaction_info;
+    if (!transaction) {
+      return NextResponse.json({ error: "No se encontró transacción para esta factura" }, { status: 404 });
+    }
+
+    const netAmountStr = transaction.net_amount?.value;
     const netAmount = netAmountStr ? parseFloat(netAmountStr) : null;
 
     if (netAmount === null) {
@@ -70,6 +76,8 @@ export async function POST(
     return NextResponse.json({
       orderId: order.id,
       paypalInvoiceId: order.paypalInvoiceId,
+      grossAmount: transaction.transaction_amount?.value,
+      fee: transaction.fee_amount?.value,
       netAmount,
       finalUsd: order.finalUsd,
       realProfit,
