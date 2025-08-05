@@ -50,32 +50,52 @@ export async function POST(
       }
     );
     const invoiceData = await invoiceRes.json();
+    console.log("📄 PayPal Invoice Data:", JSON.stringify(invoiceData, null, 2));
 
-    const transactionId =
+    let transactionId =
       invoiceData?.payments?.[0]?.payment_id ||
-      invoiceData?.payments?.[0]?.transaction_id;
+      invoiceData?.payments?.[0]?.transaction_id ||
+      invoiceData?.payments?.payments_received?.[0]?.payment_id ||
+      invoiceData?.payments?.payments_received?.[0]?.transaction_id;
 
+    let transaction = null;
+
+    // 2️⃣ Si NO hay transaction_id, intentar buscar por invoice_id directamente
     if (!transactionId) {
-      return NextResponse.json(
-        { error: "No se encontró transaction_id en la factura" },
-        { status: 404 }
+      console.warn("⚠ No se encontró transaction_id en la factura. Buscando por invoice_id...");
+      const txRes = await fetch(
+        `https://api-m.paypal.com/v1/reporting/transactions?invoice_id=${order.paypalInvoiceId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
+      const txData = await txRes.json();
+      console.log("💳 PayPal Transaction Search by Invoice ID:", JSON.stringify(txData, null, 2));
+
+      transaction = txData?.transaction_details?.[0]?.transaction_info;
+      transactionId = transaction?.transaction_id;
+    } else {
+      // 3️⃣ Si hay transaction_id, buscar por transaction_id
+      const txRes = await fetch(
+        `https://api-m.paypal.com/v1/reporting/transactions?transaction_id=${transactionId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const txData = await txRes.json();
+      console.log("💳 PayPal Transaction Search by Transaction ID:", JSON.stringify(txData, null, 2));
+
+      transaction = txData?.transaction_details?.[0]?.transaction_info;
     }
 
-    // 2️⃣ Consultar transacción en PayPal por transaction_id
-    const txRes = await fetch(
-      `https://api-m.paypal.com/v1/reporting/transactions?transaction_id=${transactionId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const txData = await txRes.json();
-
-    const transaction = txData?.transaction_details?.[0]?.transaction_info;
     if (!transaction) {
       return NextResponse.json(
         { error: "No se encontró transacción para esta factura" },
@@ -93,10 +113,10 @@ export async function POST(
       );
     }
 
-    // 3️⃣ Calcular ganancia
+    // 4️⃣ Calcular ganancia
     const realProfit = netAmount - (order.finalUsd || 0);
 
-    // 4️⃣ Guardar en la orden
+    // 5️⃣ Guardar en la orden
     await prisma.order.update({
       where: { id: order.id },
       data: { realProfit },
