@@ -38,7 +38,7 @@ export async function POST(
 
     const accessToken = await getPayPalAccessToken();
 
-    // Calcular rango de fechas
+    // Rango de fechas para la búsqueda
     const startDate = new Date(order.createdAt);
     startDate.setDate(startDate.getDate() - 1);
     const endDate = new Date(order.createdAt);
@@ -47,9 +47,9 @@ export async function POST(
     const start = startDate.toISOString();
     const end = endDate.toISOString();
 
-    // 1️⃣ Consultar factura en PayPal
-    const invoiceRes = await fetch(
-      `https://api-m.paypal.com/v2/invoicing/invoices/${order.paypalInvoiceId}`,
+    // Buscar transacción por invoice_id (más seguro)
+    const txRes = await fetch(
+      `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
       {
         method: "GET",
         headers: {
@@ -58,45 +58,8 @@ export async function POST(
         },
       }
     );
-    const invoiceData = await invoiceRes.json();
-
-    let transactionId =
-      invoiceData?.payments?.[0]?.payment_id ||
-      invoiceData?.payments?.[0]?.transaction_id ||
-      invoiceData?.payments?.payments_received?.[0]?.payment_id ||
-      invoiceData?.payments?.payments_received?.[0]?.transaction_id;
-
-    let transaction = null;
-
-    // 2️⃣ Buscar transacción
-    if (!transactionId) {
-      const txRes = await fetch(
-        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const txData = await txRes.json();
-      transaction = txData?.transaction_details?.[0]?.transaction_info;
-      transactionId = transaction?.transaction_id;
-    } else {
-      const txRes = await fetch(
-        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&transaction_id=${transactionId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const txData = await txRes.json();
-      transaction = txData?.transaction_details?.[0]?.transaction_info;
-    }
+    const txData = await txRes.json();
+    const transaction = txData?.transaction_details?.[0]?.transaction_info;
 
     if (!transaction) {
       return NextResponse.json(
@@ -105,25 +68,27 @@ export async function POST(
       );
     }
 
-    // 3️⃣ Tomar net_amount o calcularlo si falta
-    let netAmount = transaction.net_amount?.value
-      ? parseFloat(transaction.net_amount.value)
+    const grossAmount = transaction.transaction_amount?.value
+      ? parseFloat(transaction.transaction_amount.value)
       : null;
+    const feeAmount = transaction.fee_amount?.value
+      ? parseFloat(transaction.fee_amount.value)
+      : 0;
 
-    if (netAmount === null) {
-      const gross = transaction.transaction_amount?.value
-        ? parseFloat(transaction.transaction_amount.value)
-        : 0;
-      const fee = transaction.fee_amount?.value
-        ? parseFloat(transaction.fee_amount.value)
-        : 0;
-      netAmount = gross - fee;
+    if (grossAmount === null) {
+      return NextResponse.json(
+        { error: "No se pudo obtener monto bruto" },
+        { status: 400 }
+      );
     }
 
-    // 4️⃣ Calcular ganancia
+    // Calcular netAmount manualmente (gross + fee)
+    const netAmount = grossAmount + feeAmount;
+
+    // Calcular ganancia real
     const realProfit = netAmount - (order.finalUsd || 0);
 
-    // 5️⃣ Guardar en la orden
+    // Guardar en la orden
     await prisma.order.update({
       where: { id: order.id },
       data: { realProfit },
@@ -132,9 +97,9 @@ export async function POST(
     return NextResponse.json({
       orderId: order.id,
       paypalInvoiceId: order.paypalInvoiceId,
-      transactionId,
-      grossAmount: transaction.transaction_amount?.value,
-      fee: transaction.fee_amount?.value,
+      transactionId: transaction.transaction_id,
+      grossAmount,
+      fee: feeAmount,
       netAmount,
       finalUsd: order.finalUsd,
       realProfit,
