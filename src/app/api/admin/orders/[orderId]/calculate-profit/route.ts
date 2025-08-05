@@ -38,6 +38,15 @@ export async function POST(
 
     const accessToken = await getPayPalAccessToken();
 
+    // Calcular rango de fechas para la búsqueda
+    const startDate = new Date(order.createdAt);
+    startDate.setDate(startDate.getDate() - 1);
+    const endDate = new Date(order.createdAt);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const start = startDate.toISOString();
+    const end = endDate.toISOString();
+
     // 1️⃣ Consultar la factura en PayPal
     const invoiceRes = await fetch(
       `https://api-m.paypal.com/v2/invoicing/invoices/${order.paypalInvoiceId}`,
@@ -50,7 +59,6 @@ export async function POST(
       }
     );
     const invoiceData = await invoiceRes.json();
-    console.log("📄 PayPal Invoice Data:", JSON.stringify(invoiceData, null, 2));
 
     let transactionId =
       invoiceData?.payments?.[0]?.payment_id ||
@@ -60,11 +68,10 @@ export async function POST(
 
     let transaction = null;
 
-    // 2️⃣ Si NO hay transaction_id, intentar buscar por invoice_id directamente
+    // 2️⃣ Si NO hay transaction_id, buscar por invoice_id
     if (!transactionId) {
-      console.warn("⚠ No se encontró transaction_id en la factura. Buscando por invoice_id...");
       const txRes = await fetch(
-        `https://api-m.paypal.com/v1/reporting/transactions?invoice_id=${order.paypalInvoiceId}`,
+        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&invoice_id=${order.paypalInvoiceId}`,
         {
           method: "GET",
           headers: {
@@ -74,14 +81,12 @@ export async function POST(
         }
       );
       const txData = await txRes.json();
-      console.log("💳 PayPal Transaction Search by Invoice ID:", JSON.stringify(txData, null, 2));
-
       transaction = txData?.transaction_details?.[0]?.transaction_info;
       transactionId = transaction?.transaction_id;
     } else {
-      // 3️⃣ Si hay transaction_id, buscar por transaction_id
+      // 3️⃣ Buscar por transaction_id
       const txRes = await fetch(
-        `https://api-m.paypal.com/v1/reporting/transactions?transaction_id=${transactionId}`,
+        `https://api-m.paypal.com/v1/reporting/transactions?start_date=${start}&end_date=${end}&transaction_id=${transactionId}`,
         {
           method: "GET",
           headers: {
@@ -91,8 +96,6 @@ export async function POST(
         }
       );
       const txData = await txRes.json();
-      console.log("💳 PayPal Transaction Search by Transaction ID:", JSON.stringify(txData, null, 2));
-
       transaction = txData?.transaction_details?.[0]?.transaction_info;
     }
 
