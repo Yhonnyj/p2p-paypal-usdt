@@ -1,11 +1,35 @@
-import { NextResponse } from "next/server"; //
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    // 📌 Intentar leer JSON, si falla, leer texto y parsear manualmente
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      const raw = await req.text();
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        return NextResponse.json(
+          { error: "Cuerpo no es JSON válido" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const { email, password } = body;
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email y contraseña requeridos" },
+        { status: 400 }
+      );
+    }
 
     console.log("📩 Datos recibidos:", email);
 
+    // 1️⃣ Iniciar sesión en Clerk
     const signInRes = await fetch("https://api.clerk.com/v1/sign_ins", {
       method: "POST",
       headers: {
@@ -25,6 +49,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // 2️⃣ Crear token de sesión
     const tokenRes = await fetch(
       `https://api.clerk.com/v1/sessions/${signInData.created_session_id}/tokens`,
       {
@@ -46,12 +71,16 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Respuesta final
     return NextResponse.json({
       token: tokenData.session_token,
       userId: signInData.user_id,
     });
   } catch (error) {
     console.error("💥 Error en mobile-login:", error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error interno" },
+      { status: 500 }
+    );
   }
 }
