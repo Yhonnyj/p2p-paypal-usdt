@@ -41,6 +41,7 @@ model Order {
 
   messages Message[] @relation("OrderMessages")
   paypalInvoiceId String?
+  realProfit Float? // Ganancia neta después de fee de PayPal
 }
 
 model Message {
