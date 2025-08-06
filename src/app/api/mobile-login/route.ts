@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     // 📌 Intentar leer JSON, si falla, leer texto y parsear manualmente
-    let body: any;
+    let body: Record<string, unknown>;
     try {
       body = await req.json();
     } catch {
       const raw = await req.text();
       try {
-        body = JSON.parse(raw);
+        body = JSON.parse(raw) as Record<string, unknown>;
       } catch {
         return NextResponse.json(
           { error: "Cuerpo no es JSON válido" },
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const { email, password } = body;
+    const { email, password } = body as { email?: string; password?: string };
 
     if (!email || !password) {
       return NextResponse.json(
@@ -26,6 +26,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
 
     console.log("📩 Datos recibidos:", email);
 
