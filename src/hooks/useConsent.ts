@@ -7,6 +7,8 @@ type ConsentState = {
   analytics: boolean;
 };
 
+type ConsentChangedEvent = CustomEvent<ConsentState>;
+
 export function useConsent() {
   const [consent, setConsent] = useState<ConsentState | null>(null);
 
@@ -14,16 +16,22 @@ export function useConsent() {
     const read = () => {
       try {
         const raw = localStorage.getItem('tucapi_consent');
-        setConsent(raw ? JSON.parse(raw) : null);
+        const parsed = raw ? (JSON.parse(raw) as ConsentState) : null;
+        setConsent(parsed);
       } catch {
         setConsent(null);
       }
     };
 
     read();
-    const handler = (e: any) => setConsent(e.detail);
-    window.addEventListener('consent:changed', handler as any);
-    return () => window.removeEventListener('consent:changed', handler as any);
+
+    const handler = (e: Event) => {
+      const detail = (e as ConsentChangedEvent).detail;
+      setConsent(detail ?? null);
+    };
+
+    window.addEventListener('consent:changed', handler);
+    return () => window.removeEventListener('consent:changed', handler);
   }, []);
 
   return consent;

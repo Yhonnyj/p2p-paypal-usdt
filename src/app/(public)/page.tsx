@@ -63,8 +63,6 @@ export default async function Home() {
           </div>
         </div>
 
-      
-
         <div className="flex flex-col sm:flex-row justify-center gap-6 mt-8">
           <Link href="/sign-in" passHref legacyBehavior>
             <a className="relative px-12 py-4 rounded-full bg-gray-800 text-emerald-300 border-2 border-emerald-600 font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
@@ -100,7 +98,7 @@ export default async function Home() {
               time: '9 min promedio',
               icon: '👨‍💼'
             }
-          ].map((item, index) => (
+          ].map((item) => (
             <div
               key={item.title}
               className="bg-gray-800/80 p-6 rounded-2xl border border-gray-700 text-center hover:border-emerald-600 transition-all duration-300 hover:bg-gray-800 group"
@@ -193,7 +191,7 @@ export default async function Home() {
                   <span key={i} className="text-yellow-400 text-lg">★</span>
                 ))}
               </div>
-              <p className="text-gray-300 mb-4 italic">"{testimonial.text}"</p>
+              <p className="text-gray-300 mb-4 italic">&ldquo;{testimonial.text}&rdquo;</p>
               <div className="text-sm">
                 <div className="text-emerald-300 font-semibold">{testimonial.name}</div>
                 <div className="text-gray-400">{testimonial.role}</div>
@@ -249,8 +247,6 @@ export default async function Home() {
           </Link>
         </div>
       </section>
-
-     
 
       <footer className="text-center text-gray-500 text-sm mt-10 mb-4 relative z-10 space-y-2 max-w-4xl">
         <p>
