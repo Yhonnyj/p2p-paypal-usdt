@@ -3,9 +3,11 @@ import { esES } from "@clerk/localizations";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AddToHomeModal from "@/components/AddToHomeModal";
-import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+// import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // ❌ moveremos GA al gate
 import WhatsAppSupportButton from "@/components/WhatsAppSupportButton";
-import ReferralTracker from "@/components/ReferralTracker"; // 👈 NUEVO
+import ReferralTracker from "@/components/ReferralTracker";
+import CookieConsent from "@/components/CookieConsent";            // ✅ banner + modal
+import AnalyticsGate from "@/components/AnalyticsGate";            // ✅ carga condicional de GA
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,16 +40,12 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider localization={esES}>
       <html lang="es">
         <head>
-          <GoogleAnalytics />
+          {/* ❌ Quitar GoogleAnalytics del head para poder respetar consentimiento */}
           <link rel="manifest" href="/manifest.json" />
           <meta name="theme-color" content="#10B981" />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
@@ -61,10 +59,16 @@ export default function RootLayout({
           <script src="https://cdn.getdidit.com/verify.js" defer></script>
         </head>
         <body className={inter.className}>
-          <ReferralTracker /> {/* 👈 Este se encarga de guardar el referrer */}
+          <ReferralTracker />
           <AddToHomeModal />
           {children}
           <WhatsAppSupportButton />
+
+          {/* ✅ Siempre presente: banner + modal de cookies */}
+          <CookieConsent />
+
+          {/* ✅ Solo monta GoogleAnalytics si el usuario aceptó cookies analíticas */}
+          <AnalyticsGate />
         </body>
       </html>
     </ClerkProvider>

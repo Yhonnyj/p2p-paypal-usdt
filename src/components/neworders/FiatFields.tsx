@@ -175,75 +175,92 @@ toast.success("Estamos procesando tu orden.");
   );
 
   return (
-    <div className="mt-6 w-full space-y-6">
-      {selectedDestinationCurrency === "BS" && accounts.filter(a => a.type === "BS").length > 0 && !isAddingNew ? (
-        <>
-          {(showAll ? accounts.filter(a => a.type === "BS") : accounts.filter(a => a.type === "BS").slice(0, 2)).map((account) => {
-            const accountBank = bankOptions.find(
-              (b) =>
-                normalizeBankName(b.value) ===
-                normalizeBankName(account.details.bankName || "")
-            );
-            const isSelected = account.id === selectedAccountId;
-            return (
-              <div
-                key={account.id}
-                onClick={() => {
-                  setSelectedAccountId(account.id);
-                  setBankName(account.details.bankName || "");
-                  setBsPhoneNumber(account.details.phone || "");
-                  setBsIdNumber(account.details.idNumber || "");
-                }}
-                className={`relative w-full rounded-xl p-4 shadow-md cursor-pointer transition border 
-                  ${
-                    isSelected
-                      ? "border-emerald-500 bg-gray-700"
-                      : "border-gray-700 bg-gray-800 hover:border-emerald-500"
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  {accountBank && (
-                    <Image
-                      src={accountBank.img}
-                      alt={accountBank.label}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <p className="text-white text-sm">
-                      {accountBank ? accountBank.label : account.details.bankName}
+  <div className="mt-6 w-full space-y-6">
+    {selectedDestinationCurrency === "BS" &&
+      accounts.filter(a => a.type === "BS").length > 0 &&
+      !isAddingNew ? (
+      <>
+        {(showAll
+          ? accounts.filter(a => a.type === "BS")
+          : accounts.filter(a => a.type === "BS").slice(0, 2)
+        ).map((account) => {
+          const accountBank = bankOptions.find(
+            (b) =>
+              normalizeBankName(b.value) ===
+              normalizeBankName(account.details.bankName || "")
+          );
+          const isSelected = account.id === selectedAccountId;
+          const isDisabled = accountBank?.disabled;
+
+          return (
+            <div
+              key={account.id}
+              onClick={() => {
+                if (isDisabled) return;
+                setSelectedAccountId(account.id);
+                setBankName(account.details.bankName || "");
+                setBsPhoneNumber(account.details.phone || "");
+                setBsIdNumber(account.details.idNumber || "");
+              }}
+              className={`relative w-full rounded-xl p-4 shadow-md transition border 
+                ${isDisabled
+                  ? "border-red-500 bg-gray-800 opacity-60 cursor-not-allowed"
+                  : isSelected
+                  ? "border-emerald-500 bg-gray-700 cursor-pointer"
+                  : "border-gray-700 bg-gray-800 hover:border-emerald-500 cursor-pointer"
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                {accountBank && (
+                  <Image
+                    src={accountBank.img}
+                    alt={accountBank.label}
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="text-white text-sm">
+                    {accountBank ? accountBank.label : account.details.bankName}
+                  </p>
+                  <p className="text-gray-400 text-xs">Tel: {account.details.phone}</p>
+                  <p className="text-gray-400 text-xs">CI: {account.details.idNumber}</p>
+                  {isDisabled && (
+                    <p className="text-xs text-red-400 mt-1">
+                      Banco está presentando problemas, por favor seleccionar otro banco.
                     </p>
-                    <p className="text-gray-400 text-xs">Tel: {account.details.phone}</p>
-                    <p className="text-gray-400 text-xs">CI: {account.details.idNumber}</p>
-                  </div>
-                  {isSelected && <Check className="h-5 w-5 text-emerald-400" />}
+                  )}
                 </div>
+                {!isDisabled && isSelected && (
+                  <Check className="h-5 w-5 text-emerald-400" />
+                )}
               </div>
-            );
-          })}
-          <div className="flex justify-between items-center mt-2">
-            {accounts.filter(a => a.type === "BS").length > 2 && (
-              <button
-                type="button"
-                onClick={() => setShowAll(!showAll)}
-                className="text-emerald-400 text-xs hover:text-emerald-300"
-              >
-                {showAll ? "Ver menos" : "Ver más"}
-              </button>
-            )}
+            </div>
+          );
+        })}
+        <div className="flex justify-between items-center mt-2">
+          {accounts.filter(a => a.type === "BS").length > 2 && (
             <button
               type="button"
-              onClick={() => {
-                setBankName("");
-                setBsPhoneNumber("");
-                setBsIdNumber("");
-                setSelectedAccountId(null);
-                setIsAddingNew(true);
-              }}
+              onClick={() => setShowAll(!showAll)}
               className="text-emerald-400 text-xs hover:text-emerald-300"
             >
+              {showAll ? "Ver menos" : "Ver más"}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setBankName("");
+              setBsPhoneNumber("");
+              setBsIdNumber("");
+              setSelectedAccountId(null);
+              setIsAddingNew(true);
+            }}
+            className="text-emerald-400 text-xs hover:text-emerald-300"
+          >
+
               Agregar nueva
             </button>
           </div>
@@ -290,40 +307,49 @@ toast.success("Estamos procesando tu orden.");
                       leaveTo="transform opacity-0 scale-95"
                     >
                       <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-gray-800 border border-gray-700 py-1 text-sm sm:text-base text-white shadow-lg focus:outline-none z-50">
-                        {bankOptions.map((bank) => (
-                          <Listbox.Option
-                            key={bank.value}
-                            value={bank.value}
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-2 pl-12 pr-10 ${
-                                active ? "bg-green-500 text-white" : "text-gray-300"
-                              }`
-                            }
-                          >
-                            {({ selected }) => (
-                              <>
-                                <Image
-                                  src={bank.img}
-                                  alt={bank.label}
-                                  width={20}
-                                  height={20}
-                                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full"
-                                />
-                                <span
-                                  className={`block truncate ${
-                                    selected ? "font-medium" : "font-normal"
-                                  }`}
-                                >
-                                  {bank.label}
-                                </span>
-                                {selected && (
-                                  <Check className="absolute inset-y-0 right-2 my-auto h-4 w-4 text-white" />
-                                )}
-                              </>
-                            )}
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
+  {bankOptions.map((bank) => (
+    <Listbox.Option
+      key={bank.value}
+      value={bank.value}
+      disabled={bank.disabled} // 👈 evitar selección si está deshabilitado
+      className={({ active, disabled }) =>
+        `relative select-none py-2 pl-12 pr-10 ${
+          disabled
+            ? "opacity-50 cursor-not-allowed"
+            : active
+            ? "bg-green-500 text-white cursor-pointer"
+            : "text-gray-300 cursor-pointer"
+        }`
+      }
+    >
+      {({ selected }) => (
+        <>
+          <Image
+            src={bank.img}
+            alt={bank.label}
+            width={20}
+            height={20}
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full"
+          />
+          <span
+            className={`block truncate ${
+              selected ? "font-medium" : "font-normal"
+            }`}
+          >
+            {bank.label}
+          </span>
+          {bank.note && (
+            <span className="block text-xs text-red-400">{bank.note}</span>
+          )}
+          {selected && !bank.disabled && (
+            <Check className="absolute inset-y-0 right-2 my-auto h-4 w-4 text-white" />
+          )}
+        </>
+      )}
+    </Listbox.Option>
+  ))}
+</Listbox.Options>
+
                     </Transition>
                   </div>
                 )}

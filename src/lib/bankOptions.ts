@@ -1,5 +1,8 @@
 export const bankOptions = [
-  { value: "Banco de Venezuela (BDV)", label: "Banco de Venezuela (BDV)", img: "/images/banks/0102-bdv.png" },
+  { value: "Banco de Venezuela (BDV)", label: "Banco de Venezuela (BDV)", img: "/images/banks/0102-bdv.png", 
+   disabled: true,                
+  note: "presenta problemas",    
+   },
   { value: "Banco Mercantil", label: "Banco Mercantil", img: "/images/banks/0105-mercantil.png" },
   { value: "Banesco Banco Universal", label: "Banesco Banco Universal", img: "/images/banks/0134-banesco.png" },
   { value: "Bancamiga", label: "Bancamiga", img: "/images/banks/0172-bancamiga.png" },
