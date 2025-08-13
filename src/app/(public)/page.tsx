@@ -250,7 +250,7 @@ export default async function Home() {
 
       <footer className="text-center text-gray-500 text-sm mt-10 mb-4 relative z-10 space-y-2 max-w-4xl">
         <p>
-          &copy; {new Date().getFullYear()} TuCapi. El intercambio más rápido del mercado. Operamos bajo Caibo INC.
+          &copy; {new Date().getFullYear()} Tu Capi LLC. El intercambio más rápido del mercado.
         </p>
         <div className="space-x-4">
           <a href="/terms" className="underline hover:text-emerald-400 transition-colors">Términos</a>
@@ -259,7 +259,7 @@ export default async function Home() {
           <span>|</span>
         </div>
         <div className="mt-6 text-xs text-gray-400 leading-relaxed max-w-3xl mx-auto">
-          <p>Caibo INC, registrada ante FINTRAC (MSB) M23228298 desde agosto 2023. Autorizada para intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p>
+          <p>Tu Capi LLC contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) M23228298 desde agosto 2023, autorizada para el intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p> 
         </div>
       </footer>
     </main>

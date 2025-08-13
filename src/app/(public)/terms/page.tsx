@@ -138,10 +138,10 @@ export default function TermsPage() {
           {/* 12. Soporte y Contacto Legal */}
           <h2 className="text-2xl font-semibold text-teal-300">12. Soporte y Contacto Legal</h2>
           <p className="text-gray-300">
-            Soporte: <a href="mailto:soporte@tucapi.com" className="text-emerald-400 underline">soporte@tucapi.com</a>
+            Soporte: <a href="mailto:soporte@tucapi.com" className="text-emerald-400 underline">soporte@tucapi.app</a>
           </p>
           <p className="text-gray-300">
-            Contacto legal: <span className="text-gray-200">[Acton, Ontario. Canada]</span>
+            Contacto legal: <span className="text-gray-200">1621 Central Ave, suite 8110. Cheyenne, WY 82001. Estados Unidos</span>
           </p>
 
           {/* 13. Cookies y Preferencias */}
@@ -160,12 +160,7 @@ export default function TermsPage() {
 
         {/* Información de regulación */}
         <div className="mt-10 text-sm text-gray-400 border-t border-gray-700 pt-6">
-          <p>
-            Caibo INC figura registrada ante FINTRAC (MSB) bajo el número M23238298 desde el 4 de agosto de 2023, 
-            habilitada para ofrecer servicios de cambio de divisas tradicionales y operaciones con monedas virtuales. 
-            Nuestra actividad se encuentra enmarcada dentro de la normativa vigente en materia de prevención de lavado de activos 
-            y financiamiento del terrorismo.
-          </p>
+         <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) M23228298 desde agosto 2023, autorizada para el intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p> 
         </div>
       </div>
     </main>

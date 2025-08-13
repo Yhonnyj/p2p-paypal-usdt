@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
         <p className="text-gray-400">Última actualización: Agosto 2025</p>
 
         <p>
-          En <strong>TuCapi</strong>, operado por <strong>Caibo INC</strong>, nos comprometemos a proteger la privacidad de nuestros usuarios y la seguridad de sus datos personales.
+          En <strong>Tu Capi LLC</strong>, contrata los servicios de <strong>Caibo INC</strong>., y nos comprometemos a proteger la privacidad de nuestros usuarios y la seguridad de sus datos personales.
           Esta Política explica cómo recopilamos, usamos, compartimos y protegemos tu información.
         </p>
 
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
         <p>Tratamos tus datos para:</p>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
           <li><strong>Ejecución del contrato:</strong> crear tu cuenta, procesar transacciones, brindar soporte.</li>
-          <li><strong>Cumplimiento legal/AML (FINTRAC – MSB):</strong> verificación de identidad (KYC), prevención de lavado y fraude.</li>
+          <li><strong>Tu Capi LLC, contrata los servicios de Caibo INC., para cumplimiento legal/AML (FINTRAC – MSB):</strong> verificación de identidad (KYC), prevención de lavado y fraude.</li>
           <li><strong>Interés legítimo:</strong> seguridad, detección de abusos, mejora del servicio, analítica operativa mínima.</li>
           <li><strong>Consentimiento (si aplica):</strong> comunicaciones comerciales y cookies analíticas no esenciales.</li>
         </ul>
@@ -118,16 +118,14 @@ export default function PrivacyPolicyPage() {
         {/* 10. Contacto */}
         <h2 className="text-2xl font-semibold text-teal-300">10. Contacto</h2>
         <ul className="list-disc list-inside space-y-1 text-gray-300">
-          <li>Soporte: <a href="mailto:soporte@tucapi.com" className="text-emerald-400 underline">soporte@tucapi.com</a></li>
-          <li>Contacto legal: <span className="text-gray-200">Acton, Ontario. Canada</span></li>
+          <li>Soporte: <a href="mailto:soporte@tucapi.com" className="text-emerald-400 underline">soporte@tucapi.app</a></li>
+          <li>Contacto legal: <span className="text-gray-200"> 1621 Central Ave, suite 8110. Cheyenne, WY 82001. Estados Unidos</span></li>
           <li>Formulario disponible en el sitio web.</li>
         </ul>
 
         {/* Regulación */}
         <div className="mt-10 text-sm text-gray-400 border-t border-gray-700 pt-6">
-          <p>
-            Caibo INC figura registrada ante FINTRAC (MSB) bajo el número M23238298 desde el 4 de agosto de 2023, habilitada para ofrecer servicios de cambio de divisas tradicionales y operaciones con monedas virtuales. Nuestra actividad se encuentra enmarcada dentro de la normativa vigente en materia de prevención de lavado de activos y financiamiento del terrorismo.
-          </p>
+          <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) M23228298 desde agosto 2023, autorizada para el intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p> 
         </div>
       </div>
     </main>
