@@ -147,14 +147,10 @@ if (paypalInvoiceId && typeof paypalInvoiceId === "string") {
   });
 }
 
-
-
-
-
     // ✅ Mensaje automático del bot
     await prisma.message.create({
       data: {
-        content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes alguna duda un operador será asignado pronto.",
+        content: "Gracias por preferir nuestra plataforma, tu orden esta siendo procesada y la factura ha sido enviada a tu cuenta paypal. Si tienes alguna duda el operador estara encantado de ayudarte.",
         senderId: "cmclws6rl0000vh38t04argqp",
         orderId: order.id,
       },
@@ -162,7 +158,7 @@ if (paypalInvoiceId && typeof paypalInvoiceId === "string") {
 
     await pusherServer.trigger(`order-${order.id}`, "new-message", {
       id: "auto-message-" + Date.now(),
-      content: "Gracias por preferir nuestra plataforma, tu orden será procesada en breve. Si tienes alguna duda un operador será asignado pronto.",
+      content: "Gracias por preferir nuestra plataforma, tu orden esta siendo procesada y la factura ha sido enviada a tu cuenta paypal. Si tienes alguna duda el operador estara encantado de ayudarte.",
       createdAt: new Date().toISOString(),
       imageUrl: null,
       sender: {
