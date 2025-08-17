@@ -28,7 +28,7 @@ function PedidoFormContent() {
     form.setBsIdNumber("");
   };
 
-  const handleContinuar = async () => {
+ const handleContinuar = async () => {
     // Si la moneda destino es FIAT, guardar cuenta antes de crear orden
     if (form.selectedDestinationCurrency !== "USDT" && fiatRef.current) {
       await fiatRef.current.saveFiatAccount();
@@ -91,12 +91,17 @@ function PedidoFormContent() {
 
           <SummaryCard />
 
-  <button
+<button
+  onClick={handleContinuar}
   disabled
   className="w-full py-4 px-6 rounded-xl font-bold text-xl text-white bg-gray-600 cursor-not-allowed"
 >
-  Continuar
+  <span className="flex items-center justify-center gap-2">
+    Continuar
+    <ArrowRight size={22} className="invisible" aria-hidden />
+  </span>
 </button>
+
 
 
 
