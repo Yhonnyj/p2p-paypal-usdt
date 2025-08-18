@@ -323,7 +323,7 @@ if (!user) {
 
 
 
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 10:00 AM</span>.      </p>
+      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 12:00 PM</span>.      </p>
 
 
 </div>
