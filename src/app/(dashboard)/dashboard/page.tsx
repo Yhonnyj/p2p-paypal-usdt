@@ -315,8 +315,8 @@ if (!user) {
 
 
 
-      🛠 Tu plataforma favorita esta presentando problemas de red 
-      con las crypto y sistema de pago movil, nuestro capybara está afinando estos detalles.      </p>
+      🛠 Nuestros proveedores bancarios y de critoactivos estan presentando intermitencias para los retiros,
+       nuestro capybara está afinando estos detalles.     </p>
 
 
 
