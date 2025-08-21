@@ -312,19 +312,15 @@ if (!user) {
       />
 
  <p className="text-yellow-300 text-sm font-medium text-center">
+  Tu Capi te cuida 🛡️<br />
+  Nuestros proveedores bancarios y cripto presentan intermitencias externas.<br />
+  Para protegerte, pausamos nuevas órdenes hoy.
+</p>
 
-
-
-      🛠 Nuestros proveedores bancarios y de critoactivos estan presentando intermitencias para los retiros,
-       nuestro capybara está afinando estos detalles.     </p>
-
-
-
-      <p className="text-gray-400 text-xs mt-1">
-
-
-
-      Podrás crear nuevas órdenes a partir de manana <span className="text-yellow-300">viernes 10:00 AM</span>.      </p>
+<p className="text-gray-400 text-xs mt-1">
+  Podrás crear nuevas órdenes a partir de mañana <span className="text-yellow-300">viernes 10:00 AM</span>. Soporte activo por DM/WhatsApp 💬
+</p>
+    
 
 
 </div>
