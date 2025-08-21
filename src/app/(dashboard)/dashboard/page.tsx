@@ -315,7 +315,8 @@ if (!user) {
 
 
 
-      🛠 Domingo de ajustes, nuestro capybara está afinando tu plataforma favorita.      </p>
+      🛠 Tu plataforma favorita esta presentando problemas de red 
+      con las crypto y sistema de pago movil, nuestro capybara está afinando estos detalles.      </p>
 
 
 
@@ -323,7 +324,7 @@ if (!user) {
 
 
 
-      Podrás crear nuevas órdenes a partir del <span className="text-yellow-300">lunes 12:00 PM</span>.      </p>
+      Podrás crear nuevas órdenes a partir de manana <span className="text-yellow-300">viernes 10:00 AM</span>.      </p>
 
 
 </div>
