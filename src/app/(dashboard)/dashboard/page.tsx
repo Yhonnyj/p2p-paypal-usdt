@@ -297,11 +297,11 @@ if (!user) {
 
 
 
-        src="/images/capi-constructor.png"
+        src="/images/capi-duerme.png"
 
 
 
-        alt="Capi Constructor"
+        alt="Capi durmiendo"
 
 
 
@@ -312,13 +312,13 @@ if (!user) {
       />
 
  <p className="text-yellow-300 text-sm font-medium text-center">
-  Tu Capi te cuida 🛡️<br />
-  Nuestros proveedores bancarios y cripto presentan intermitencias externas.<br />
-  Para protegerte, pausamos nuevas órdenes hoy.
+  Tu Capibara Favorito<br />
+  Esta descansando.<br />
+  Volveremos manana Sabado.
 </p>
 
 <p className="text-gray-400 text-xs mt-1">
-  Podrás crear nuevas órdenes a partir de mañana <span className="text-yellow-300">viernes 12:00 PM</span>. Soporte activo por DM/WhatsApp 💬
+  Podrás crear nuevas órdenes a partir de mañana <span className="text-yellow-300">Sabado 10:00 AM</span>. Soporte activo por DM/WhatsApp 💬
 </p>
     
 
