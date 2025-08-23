@@ -313,14 +313,13 @@ if (!user) {
 
  <p className="text-yellow-300 text-sm font-medium text-center">
   Tu Capibara Favorito<br />
-  Esta descansando.<br />
-  Volveremos manana Sabado.
+  Está descansando.<br />
+  Volveremos mañana sábado.
 </p>
 
 <p className="text-gray-400 text-xs mt-1">
-  Podrás crear nuevas órdenes a partir de mañana <span className="text-yellow-300">Sabado 10:00 AM</span>. Soporte activo por DM/WhatsApp 💬
+  Podrás crear nuevas órdenes a partir de mañana <span className="text-yellow-300">sábado 10:00 AM</span>. Soporte activo por DM/WhatsApp 💬
 </p>
-    
 
 
 </div>
