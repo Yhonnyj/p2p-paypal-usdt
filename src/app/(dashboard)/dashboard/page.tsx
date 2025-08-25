@@ -318,7 +318,7 @@ if (!user) {
 </p>
 
 <p className="text-gray-400 text-xs mt-1">
-  Podrás crear nuevas órdenes a partir del dia <span className="text-yellow-300">lunes 10:00 AM</span>. Soporte activo por DM/WhatsApp 💬
+  Podrás crear nuevas órdenes a partir del dia <span className="text-yellow-300">lunes 12:00 PM</span>. Soporte activo por DM/WhatsApp 💬
 </p>
 
 
