@@ -5,14 +5,17 @@ import { pusherServer } from "@/lib/pusher"; // ✅ NUEVO
 import { NextResponse } from "next/server";
 import { sendPushNotification } from "@/lib/sendPushNotification";
 
-const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
-
+const ADMIN_CLERK_ID =
+  process.env.APP_ENV === "production"
+    ? process.env.ADMIN_CLERK_ID_PROD
+    : process.env.ADMIN_CLERK_ID_STAGING;
 export async function PATCH(req: Request, context: { params: { id: string } }) {
   const { userId } = await auth();
 
-  if (userId !== ADMIN_ID) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
+ if (userId !== ADMIN_CLERK_ID) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+  
 
   const { id } = context.params;
   const { status } = await req.json();

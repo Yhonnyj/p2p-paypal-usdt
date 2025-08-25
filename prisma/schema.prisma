@@ -25,15 +25,21 @@ model Order {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  platform  String // Ej: PayPal
+  // --- NUEVOS CAMPOS ---
+  side                 String?  // "BUY" | "SELL"
+  paymentChannelKey    String?  // referencia al método (PaymentChannel.key)
+  appliedCommissionPct Float?   // % usado en ese momento
+  exchangeRateUsed     Float?   // tasa congelada usada para esta orden
+
+  platform  String // Ej: PayPal  (⚠️ en el futuro podrías migrar todo a paymentChannelKey)
   to        String // Ej: USDT - TRC20
-  amount    Float // Monto enviado por el usuario (USD)
-  finalUsd  Float // Monto neto tras comisión (USD)
-  finalUsdt Float // Monto en USDT entregado
+  amount    Float
+  finalUsd  Float
+  finalUsdt Float
   finalCommission Float @default(0)
 
-  paypalEmail String // Correo del cliente
-  wallet      String // Wallet USDT o user ID de Binance Pay
+  paypalEmail String
+  wallet      String
 
   status    OrderStatus @default(PENDING)
   createdAt DateTime    @default(now())
@@ -41,8 +47,9 @@ model Order {
 
   messages Message[] @relation("OrderMessages")
   paypalInvoiceId String?
-  realProfit Float? // Ganancia neta después de fee de PayPal
+  realProfit Float?
 }
+
 
 model Message {
   id        String    @id @default(cuid())
@@ -131,4 +138,30 @@ model PaymentMethod {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model PaymentChannel {
+  id                    String   @id @default(cuid())
+  key                   String   @unique     // "PAYPAL", "ZELLE", "ZINLI"...
+  label                 String               // Nombre visible: "PayPal"
+
+  // % por lado
+  commissionBuyPercent  Float
+  commissionSellPercent Float
+
+  // Disponibilidad por lado
+  enabledBuy            Boolean  @default(true)
+  enabledSell           Boolean  @default(true)
+
+  // Visibilidad y mensajes
+  visible               Boolean  @default(true)
+  statusTextBuy         String?
+  statusTextSell        String?
+
+  // Utilidades
+  sortOrder             Int      @default(0)
+  archivedAt            DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }

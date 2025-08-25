@@ -3,16 +3,20 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher";
 
-const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Reemplaza con tu ID real
+const ADMIN_CLERK_ID =
+  process.env.APP_ENV === "production"
+    ? process.env.ADMIN_CLERK_ID_PROD
+    : process.env.ADMIN_CLERK_ID_STAGING;
 
 export async function PATCH(
   req: Request,
   context: { params: { currency: string } }
 ) {
   const { userId } = await auth();
-  if (userId !== ADMIN_ID) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
+ if (userId !== ADMIN_CLERK_ID) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+  
 
   const currency = context.params.currency.toUpperCase();
   const body = await req.json();
@@ -56,9 +60,10 @@ export async function DELETE(
 ) {
   const { userId } = await auth();
 
-  if (userId !== ADMIN_ID) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
+  if (userId !== ADMIN_CLERK_ID) {
+       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+     }
+   
 
   const currency = context.params.currency.toUpperCase();
 

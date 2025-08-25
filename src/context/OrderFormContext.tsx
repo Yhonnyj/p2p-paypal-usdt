@@ -11,7 +11,32 @@ export interface ExchangeRate {
   rate: number;
 }
 
+type PublicChannel = {
+  key: string;            // "PAYPAL"
+  label: string;          // "PayPal"
+  commissionPercent: number; // según side=BUY
+  available: boolean;
+  displayStatus: string;  // "Disponible" | "No disponible" | "Mantenimiento"
+  sortOrder: number;
+};
+
+type QuoteResponse = {
+  side: "BUY" | "SELL";
+  channelKey: string;
+  channelLabel: string;
+  destinationCurrency: string;
+  amountUsd: number;
+  commissionPercent: number;
+  baseFeePercent: number;
+  userDiscountPercent: number;
+  totalPct: number;
+  netUsd: number;
+  exchangeRateUsed: number;
+  totalInDestination: number;
+};
+
 interface OrderFormContextProps {
+  // existing
   monto: number;
   setMonto: (v: number) => void;
   paypalEmail: string;
@@ -28,8 +53,11 @@ interface OrderFormContextProps {
   exchangeRates: ExchangeRate[];
   selectedDestinationCurrency: string;
   setSelectedDestinationCurrency: (v: string) => void;
+
+  // mantenemos por compatibilidad visual con tu selector actual
   selectedPlatform: string;
   setSelectedPlatform: (v: string) => void;
+
   bsPhoneNumber: string;
   setBsPhoneNumber: (v: string) => void;
   bsIdNumber: string;
@@ -40,8 +68,8 @@ interface OrderFormContextProps {
   setCopAccountNumber: (v: string) => void;
   copAccountHolder: string;
   setCopAccountHolder: (v: string) => void;
-  selectedAccountId: string | null; // ✅ Nuevo
-  setSelectedAccountId: (v: string | null) => void; // ✅ Nuevo
+  selectedAccountId: string | null;
+  setSelectedAccountId: (v: string | null) => void;
   showAlert: boolean;
   alertMessage: string;
   alertType: AlertType;
@@ -52,12 +80,22 @@ interface OrderFormContextProps {
   handleCrearOrden: () => Promise<void>;
   baseFeePercent: number | null;
   orderCount: number | null;
+
+  // 🔹 NUEVO: métodos dinámicos y selección real
+  channels: PublicChannel[];
+  selectedChannelKey: string | null;
+  setSelectedChannelKey: (v: string | null) => void;
+
+  // 🔹 NUEVO: cotización oficial desde backend
+  quote: QuoteResponse | null;
 }
 
 const OrderFormContext = createContext<OrderFormContextProps | undefined>(undefined);
 
 export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+
+  // --------- STATE EXISTENTE ---------
   const [monto, setMonto] = useState(100);
   const [paypalEmail, setPaypalEmail] = useState("");
   const [network, setNetwork] = useState("TRC20");
@@ -69,17 +107,28 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [orderCount, setOrderCount] = useState<number | null>(null);
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [selectedDestinationCurrency, setSelectedDestinationCurrency] = useState("USDT");
+
+  // 👉 Legacy visual: lo mantengo para que tu UI no se rompa
   const [selectedPlatform, setSelectedPlatform] = useState("PayPal");
+
   const [bsPhoneNumber, setBsPhoneNumber] = useState("");
   const [bsIdNumber, setBsIdNumber] = useState("");
   const [bankName, setBankName] = useState("");
   const [copAccountNumber, setCopAccountNumber] = useState("");
   const [copAccountHolder, setCopAccountHolder] = useState("");
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null); // ✅ Nuevo
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<AlertType>("error");
 
+  // --------- NUEVO: MÉTODOS PÚBLICOS Y SELECCIÓN REAL ---------
+  const [channels, setChannels] = useState<PublicChannel[]>([]);
+  const [selectedChannelKey, setSelectedChannelKey] = useState<string | null>(null);
+
+  // --------- NUEVO: COTIZACIÓN DESDE BACKEND ---------
+  const [quote, setQuote] = useState<QuoteResponse | null>(null);
+
+  // --------- CÁLCULOS EXISTENTES (se mantienen para compatibilidad) ---------
   const rate =
     selectedDestinationCurrency === "USDT"
       ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
@@ -111,43 +160,108 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     setShowAlert(true);
   };
 
+  // --------- NUEVO: CARGAR MÉTODOS DINÁMICOS (BUY) ---------
+  useEffect(() => {
+    const loadChannels = async () => {
+      try {
+        const res = await fetch("/api/payment-channels?side=BUY", { cache: "no-store" });
+        const data = await res.json();
+        if (res.ok) {
+          setChannels(data);
+          // Selección por defecto: primer disponible
+          const firstAvail = (data as PublicChannel[]).find((c) => c.available);
+          if (firstAvail && !selectedChannelKey) {
+            setSelectedChannelKey(firstAvail.key);
+            // sincroniza legacy visual si tu dropdown está en base a 'selectedPlatform'
+            setSelectedPlatform(firstAvail.label);
+          }
+        } else {
+          displayAlert(data.error || "No se pudieron cargar los métodos.");
+        }
+      } catch {
+        displayAlert("Error de conexión al cargar métodos.");
+      }
+    };
+    loadChannels();
+  }, [selectedChannelKey]); // una vez al inicio (y si no hay selección)
+
+  // --------- NUEVO: COTIZAR CADA VEZ QUE CAMBIA ALGO IMPORTANTE ---------
+  useEffect(() => {
+    const runQuote = async () => {
+      // requiere selección y monto válido
+      if (!selectedChannelKey || !monto || monto <= 0) {
+        setQuote(null);
+        return;
+      }
+      try {
+        const res = await fetch("/api/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            side: "BUY",
+            channelKey: selectedChannelKey,
+            amountUsd: monto,
+            destinationCurrency: selectedDestinationCurrency,
+            // puedes activar estas si las usas:
+            // includeBaseFee: true,
+            // userDiscountPercent: 0,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setQuote(data as QuoteResponse);
+        } else {
+          setQuote(null);
+          displayAlert(data.error || "No se pudo obtener la cotización.");
+        }
+      } catch {
+        setQuote(null);
+        displayAlert("Error de conexión al cotizar.");
+      }
+    };
+    runQuote();
+  }, [selectedChannelKey, monto, selectedDestinationCurrency]);
+
+  // --------- CREAR ORDEN (ACTUALIZADO) ---------
   const handleCrearOrden = async () => {
-    if (selectedPlatform !== "PayPal") {
-      displayAlert("Solo PayPal está disponible.");
+    // validaciones mínimas
+    if (!selectedChannelKey) {
+      displayAlert("Selecciona un método de pago.");
       return;
     }
 
+    // legacy visual: si tu UI sólo muestra PayPal, evita bloquear por label
+    // (quitamos el check anterior de “Solo PayPal está disponible”)
     if (!paypalEmail) {
       displayAlert("Completa el correo PayPal.");
       return;
     }
 
-    // Guardar cuenta PayPal automáticamente si no existe
+    // Guardar cuenta PayPal automáticamente si no existe (igual que antes)
     try {
       const methodsRes = await fetch("/api/payment-methods");
       if (methodsRes.ok) {
         const methodsData = await methodsRes.json();
         const paypalExists = methodsData.some(
-    (m: Record<string, unknown>) => 
-  (m as { type: string; details: { email?: string } }).type === "PayPal" &&
-  (m as { type: string; details: { email?: string } }).details.email === paypalEmail
-);
+          (m: Record<string, unknown>) =>
+            (m as { type: string; details: { email?: string } }).type === "PayPal" &&
+            (m as { type: string; details: { email?: string } }).details.email === paypalEmail
+        );
 
-if (!paypalExists) {
-  await fetch("/api/payment-methods", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
-  });
-  console.log("Cuenta PayPal guardada automáticamente:", paypalEmail);
-}
-}
-} catch (err) {
-  console.error("Error guardando cuenta PayPal:", err);
-}
+        if (!paypalExists) {
+          await fetch("/api/payment-methods", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
+          });
+          console.log("Cuenta PayPal guardada automáticamente:", paypalEmail);
+        }
+      }
+    } catch (err) {
+      console.error("Error guardando cuenta PayPal:", err);
+    }
 
-let recipientDetails: Record<string, unknown> = {};
-
+    let recipientDetails: Record<string, unknown> = {};
 
     if (selectedDestinationCurrency === "USDT") {
       if (!wallet) {
@@ -164,21 +278,34 @@ let recipientDetails: Record<string, unknown> = {};
         type: "FIAT",
         currency: selectedDestinationCurrency,
         bankName,
-        selectedAccountId, // ✅ Incluimos el ID seleccionado
+        selectedAccountId,
       };
 
       if (selectedDestinationCurrency === "BS") {
-        recipientDetails.phoneNumber = bsPhoneNumber;
-        recipientDetails.idNumber = bsIdNumber;
+        (recipientDetails as any).phoneNumber = bsPhoneNumber;
+        (recipientDetails as any).idNumber = bsIdNumber;
       }
 
       if (selectedDestinationCurrency === "COP") {
-        recipientDetails.accountNumber = copAccountNumber;
-        recipientDetails.accountHolder = copAccountHolder;
+        (recipientDetails as any).accountNumber = copAccountNumber;
+        (recipientDetails as any).accountHolder = copAccountHolder;
       }
     }
 
-    const payload = { platform: selectedPlatform, amount: monto, paypalEmail, recipientDetails };
+    // Payload actualizado: enviamos side + channelKey + destino
+    const payload = {
+      // legacy: mantiene 'platform' para no romper backend viejo
+      platform: selectedPlatform,
+      // nuevo
+      side: "BUY" as const,
+      channelKey: selectedChannelKey,
+      destinationCurrency: selectedDestinationCurrency,
+
+      amount: monto,
+      paypalEmail,
+      recipientDetails,
+    };
+
     setLoading(true);
     try {
       const res = await fetch("/api/orders", {
@@ -188,6 +315,7 @@ let recipientDetails: Record<string, unknown> = {};
       });
       const data = await res.json();
       if (res.ok) {
+        // el backend debe recalcular y devolver finalCommission si aplica
         setFinalCommission(data.finalCommission ?? null);
         router.push(`/dashboard/orders?chat=open&id=${data.id}`);
         return;
@@ -202,6 +330,7 @@ let recipientDetails: Record<string, unknown> = {};
     }
   };
 
+  // --------- CARGAS INICIALES ORIGINALES ---------
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -220,6 +349,7 @@ let recipientDetails: Record<string, unknown> = {};
       }
     };
     fetchData();
+
     const channel1 = pusherClient.subscribe("exchange-rates");
     channel1.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
       setExchangeRates(data.rates);
@@ -268,7 +398,7 @@ let recipientDetails: Record<string, unknown> = {};
         copAccountHolder,
         setCopAccountHolder,
         selectedAccountId,
-        setSelectedAccountId, // ✅
+        setSelectedAccountId,
         showAlert,
         alertMessage,
         alertType,
@@ -279,6 +409,12 @@ let recipientDetails: Record<string, unknown> = {};
         handleCrearOrden,
         baseFeePercent,
         orderCount,
+
+        // nuevos
+        channels,
+        selectedChannelKey,
+        setSelectedChannelKey,
+        quote,
       }}
     >
       {children}

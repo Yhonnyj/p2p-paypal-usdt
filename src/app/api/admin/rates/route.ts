@@ -6,14 +6,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { pusherServer } from "@/lib/pusher"; // ✅ Asegúrate de tener esto bien
 
-const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // Reemplaza por tu ID si es distinto
+const ADMIN_CLERK_ID =
+  process.env.APP_ENV === "production"
+    ? process.env.ADMIN_CLERK_ID_PROD
+    : process.env.ADMIN_CLERK_ID_STAGING;
 
 export async function GET() {
   const { userId } = await auth();
 
-  if (userId !== ADMIN_ID) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
+ if (userId !== ADMIN_CLERK_ID) {
+     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+   }
+ 
 
   try {
     const rates = await prisma.exchangeRate.findMany({
@@ -36,10 +40,10 @@ export async function GET() {
 export async function POST(req: Request) {
   const { userId } = await auth();
 
-  if (userId !== ADMIN_ID) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
-
+  if (userId !== ADMIN_CLERK_ID) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+  
   try {
     const body = await req.json();
     const { currency, rate } = body;

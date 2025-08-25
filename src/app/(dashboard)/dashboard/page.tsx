@@ -297,7 +297,7 @@ if (!user) {
 
 
 
-        src="/images/capi-duerme.png"
+        src="/images/capi-constructor.png"
 
 
 
@@ -312,13 +312,12 @@ if (!user) {
       />
 
  <p className="text-yellow-300 text-sm font-medium text-center">
-  Tu Capibara Favorito<br />
-  Está descansando.<br />
-  Volveremos el dia  lunes, feliz fin de semana.
+  Nuestros proveedores estan presentando problemas externos<br /><br />
+  Volveremos en unos minutos.
 </p>
 
 <p className="text-gray-400 text-xs mt-1">
-  Podrás crear nuevas órdenes a partir del dia <span className="text-yellow-300">lunes 12:00 PM</span>. Soporte activo por DM/WhatsApp 💬
+
 </p>
 
 

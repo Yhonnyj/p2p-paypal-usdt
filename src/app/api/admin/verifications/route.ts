@@ -3,14 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-const ADMIN_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
+const ADMIN_CLERK_ID =
+  process.env.APP_ENV === "production"
+    ? process.env.ADMIN_CLERK_ID_PROD
+    : process.env.ADMIN_CLERK_ID_STAGING;
+
 
 export async function GET(req: Request) {
   try {
     const { userId } = await auth();
-    if (userId !== ADMIN_ID) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
+   if (userId !== ADMIN_CLERK_ID) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+      }
+    
 
     const { searchParams } = new URL(req.url);
     const search = (searchParams.get("search") || "").trim();

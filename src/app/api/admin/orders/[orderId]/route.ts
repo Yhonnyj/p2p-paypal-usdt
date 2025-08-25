@@ -7,7 +7,10 @@ import { pusherServer } from "@/lib/pusher";
 import { resend } from "@/lib/resend";
 import { sendPushNotification } from "@/lib/sendPushNotification";
 
-const ADMIN_CLERK_ID = process.env.ADMIN_CLERK_ID ?? "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH";
+const ADMIN_CLERK_ID =
+  process.env.APP_ENV === "production"
+    ? process.env.ADMIN_CLERK_ID_PROD
+    : process.env.ADMIN_CLERK_ID_STAGING;
 
 export async function PATCH(
   req: NextRequest,
