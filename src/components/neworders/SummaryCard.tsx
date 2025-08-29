@@ -3,190 +3,245 @@
 import { useOrderForm } from "@/context/OrderFormContext";
 import { motion, AnimatePresence } from "framer-motion";
 
+// ---------- Helpers de formato ----------
+const fmtFiatVE = (v: number) =>
+  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+const fmtUSD = (v: number) =>
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+const fmtCrypto = (v: number) => v.toFixed(2); // USDT a 2 decimales
+const fmtRate = (v: number) =>
+  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
 export default function SummaryCard() {
   const {
-    // backend (preferido)
+    // backend-first
     quote,
-    orderCount,
 
-    // fallback local
+    // fallback local (si la quote falla/no llegó)
     feePercent,
     dynamicCommission,
     rate,
     selectedDestinationCurrency,
     montoRecibido,
-  } = useOrderForm();
+    monto,
+  } = useOrderForm() as any;
 
   // ---------- Con quote del backend ----------
   if (quote) {
     const {
-      totalPct,             // % total aplicado (base + canal - descuento)
-      netUsd,               // USD neto después del totalPct
-      exchangeRateUsed,     // 1 si USDT, o tasa fiat
-      totalInDestination,   // netUsd convertido a destino
-      destinationCurrency,  // "USDT" o fiat
-      userDiscountPercent,  // descuento aplicado (si lo usas)
+      preDiscountPercent,
+      totalPct,
+      userDiscountPercent = 0,
+      exchangeRateUsed,
+      destinationCurrency,
+      totalInDestination,
+      netUsd,
+      milestone,
     } = quote;
 
-    // Mensaje de “premio” por frecuencia (con orderCount)
-    let motivoDescuento = "";
-    if (typeof orderCount === "number") {
-      const currentOrderNumber = orderCount + 1;
-      if (currentOrderNumber === 1) {
-        motivoDescuento = "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!";
-      } else if (currentOrderNumber === 5) {
-        motivoDescuento = "🎉 ¡Obtuviste un 18% de descuento por tu quinta orden!";
-      } else if (currentOrderNumber >= 15) {
-        motivoDescuento = "🏅 ¡Gracias por tu fidelidad! Recibiste un 10% de descuento.";
-      }
-    }
+    const cotizacionBase = 1 + preDiscountPercent / 100;
+    const cotizacionConDescuento = 1 + totalPct / 100;
+
+    // Siempre 3 decimales para resaltar el descuento (ej: 1.065)
+    const fmtBase = (x: number) => x.toFixed(2);
+    const fmtDesc = (x: number) => x.toFixed(3);
+
+    const hasDiscount = userDiscountPercent > 0;
+
+    const motivoDescuento =
+      milestone === "FIRST"
+        ? "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!"
+        : milestone === "FIFTH"
+        ? "🎉 ¡Obtuviste un 18% de descuento por tu quinta orden!"
+        : milestone === "FIFTEEN_PLUS"
+        ? "🏅 ¡Gracias por tu fidelidad! Recibiste un 10% de descuento."
+        : hasDiscount
+        ? "✅ Descuento de fidelidad aplicado automáticamente."
+        : "";
 
     return (
-      <div className="bg-gradient-to-br from-gray-900 to-emerald-950 rounded-2xl p-4 sm:p-6 text-sm sm:text-base border border-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-green-500/60 mt-6 sm:mt-8 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4 items-start">
-          {/* Columna Izquierda: detalles compactos */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center border-t border-gray-700 pt-2">
-              <span className="text-gray-300 font-medium">% Total aplicado</span>
-              <span className="text-red-400 font-bold text-lg sm:text-xl">
-                {totalPct.toFixed(2)}%
-              </span>
-            </div>
-
-            {typeof userDiscountPercent === "number" && userDiscountPercent > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-emerald-400 font-medium">Incluye descuento</span>
-                <span className="text-emerald-400 font-semibold">
-                  -{userDiscountPercent.toFixed(2)}%
+      <div className="w-full mt-6 sm:mt-8">
+        <div className="bg-gradient-to-br from-gray-900 to-emerald-950 rounded-2xl border border-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-green-500/60 p-4 sm:p-5 md:p-6">
+          {/* Grid responsivo */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 items-start">
+            {/* Izquierda: cotizaciones */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 font-medium text-sm sm:text-base">
+                  Cotización base
+                </span>
+                <span
+                  className={`font-bold text-lg sm:text-xl ${
+                    hasDiscount
+                      ? "text-gray-400 line-through decoration-red-400 decoration-2"
+                      : "text-red-400"
+                  }`}
+                  title="Antes del descuento de fidelidad"
+                >
+                  {fmtBase(cotizacionBase)}
                 </span>
               </div>
-            )}
 
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400 font-medium">Tasa usada</span>
-              <span className="text-gray-200 font-semibold">
-                {destinationCurrency === "USDT" ? "1.00 (USDT)" : exchangeRateUsed.toFixed(2)}
+              {hasDiscount && (
+                // ⬇️ Badge arriba, número debajo, MISMAS TAMAÑOS
+                <div className="flex items-start justify-between">
+                  <span className="text-emerald-400 font-medium text-sm sm:text-base">
+                    Cotización con descuento
+                  </span>
+                  <div className="flex flex-col items-end -mt-1">
+                    <span className="text-[8px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-600 text-emerald-300">
+                      −{userDiscountPercent.toFixed(2)}%
+                    </span>
+                    <span className="text-green-400 font-bold text-lg sm:text-xl mt-1">
+                      {fmtDesc(cotizacionConDescuento)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 font-medium text-sm sm:text-base">Tasa usada</span>
+                <span className="text-gray-200 font-semibold text-sm sm:text-base">
+                  {destinationCurrency === "USDT" ? "1.00 (USDT)" : fmtRate(exchangeRateUsed)}
+                </span>
+              </div>
+            </div>
+
+            {/* Derecha: recibirá + neto */}
+            <div className="md:text-right">
+              <span className="text-gray-300 font-medium block text-sm sm:text-base">
+                Usted recibirá
               </span>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${totalInDestination.toFixed(2)}-${destinationCurrency}`}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.22 }}
+                  className="text-2xl sm:text-2xl md:text-2xl lg:text-2xl font-extrabold text-green-400 leading-tight"
+                >
+                  <span className="whitespace-nowrap">
+                    {destinationCurrency === "USDT"
+                      ? fmtCrypto(totalInDestination)
+                      : fmtFiatVE(totalInDestination)}
+                  </span>
+                  <span className="text-xl sm:text-2xl font-semibold ml-1 align-top">
+                    {destinationCurrency}
+                  </span>
+                </motion.div>
+              </AnimatePresence>
+
+              <div className="text-[11px] sm:text-xs text-gray-400 mt-1">
+                Neto en USD:{" "}
+                <span className="text-gray-200 font-semibold">{fmtUSD(netUsd)} USD</span>
+              </div>
             </div>
           </div>
 
-          {/* Columna Derecha: monto recibido */}
-          <div>
-            <span className="text-gray-300 font-medium block">Usted recibirá</span>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${totalInDestination.toFixed(2)}-${destinationCurrency}`}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.25 }}
-                className="text-green-400 text-3xl font-extrabold block"
-              >
-                {totalInDestination.toFixed(2)}
-                <span className="text-xl font-semibold ml-1">{destinationCurrency}</span>
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="text-xs text-gray-400 mt-1">
-              Neto en USD:{" "}
-              <span className="text-gray-200 font-semibold">{netUsd.toFixed(2)} USD</span>
+          {motivoDescuento && (
+            <div className="relative group mt-4 text-emerald-400 leading-snug cursor-default w-full md:w-fit text-sm sm:text-base">
+              {motivoDescuento} <span className="ml-1">ℹ️</span>
+              <div className="absolute left-0 md:left-auto md:right-0 z-10 mt-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg max-w-xs">
+                Mostramos la cotización base (antes del descuento) y la cotización con
+                descuento (la que se aplica).
+              </div>
             </div>
-          </div>
+          )}
         </div>
-
-        {/* Mensaje de premio por número de órdenes */}
-        {motivoDescuento && (
-          <div className="relative group mt-4 text-sm sm:text-base text-emerald-400 leading-snug cursor-pointer w-fit">
-            {motivoDescuento}
-            <span className="ml-1">ℹ️</span>
-            <div className="absolute left-0 z-10 mt-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg max-w-xs">
-              El descuento se aplica automáticamente sobre la comisión total según tu historial.
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
-  // ---------- Fallback: lógica local (tu versión anterior) ----------
-  if (
-    feePercent === null ||
-    rate === null ||
-    orderCount === null ||
-    dynamicCommission === null
-  )
-    return null;
+  // ---------- Fallback local (sin quote) ----------
+  if (feePercent === null || rate === null || dynamicCommission === null) return null;
 
-  const baseRate =
-    selectedDestinationCurrency === "USDT"
-      ? (1 + feePercent / 100).toFixed(2)
-      : rate.toFixed(2);
+  const cotizacionBase = 1 + feePercent / 100;
+  const cotizacionConDescuento = 1 + dynamicCommission / 100;
 
-  const rateConDescuento =
-    selectedDestinationCurrency === "USDT"
-      ? (1 + dynamicCommission / 100).toFixed(2)
-      : rate.toFixed(2);
-
-  const descuento = Math.round(feePercent - dynamicCommission);
-  const currentOrderNumber = orderCount + 1;
-
-  let motivoDescuento = "";
-  if (currentOrderNumber === 1) {
-    motivoDescuento = "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!";
-  } else if (currentOrderNumber === 5) {
-    motivoDescuento = "🎉 ¡Obtuviste un 18% de descuento por tu quinta orden!";
-  } else if (currentOrderNumber >= 15) {
-    motivoDescuento = "🏅 ¡Gracias por tu fidelidad! Recibiste un 10% de descuento.";
-  }
+  const hasDiscountLocal = cotizacionConDescuento < cotizacionBase;
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-emerald-950 rounded-2xl p-4 sm:p-6 text-sm sm:text-base border border-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-green-500/60 mt-6 sm:mt-8 w-full">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4 items-start">
-        <div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-400 font-medium">Cotización base</span>
-            <span className="text-red-400 font-bold text-lg sm:text-xl">{baseRate}</span>
-          </div>
-
-          {descuento > 0 && (
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-emerald-400 font-medium">Cotización con descuento</span>
-              <span className="text-green-400 font-bold text-lg sm:text-xl">
-                {rateConDescuento}
+    <div className="w-full mt-6 sm:mt-8">
+      <div className="bg-gradient-to-br from-gray-900 to-emerald-950 rounded-2xl border border-gray-700 shadow-xl backdrop-blur-md transition-all duration-300 hover:border-green-500/60 p-4 sm:p-5 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 items-start">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400 font-medium text-sm sm:text-base">
+                Cotización base
+              </span>
+              <span
+                className={`font-bold text-lg sm:text-xl ${
+                  hasDiscountLocal
+                    ? "text-gray-400 line-through decoration-red-400 decoration-2"
+                    : "text-red-400"
+                }`}
+              >
+                {cotizacionBase.toFixed(2)}
               </span>
             </div>
-          )}
-        </div>
 
-        <div>
-          <span className="text-gray-300 font-medium block">Usted recibirá</span>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={montoRecibido.toFixed(2)}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.25 }}
-              className="text-green-400 text-3xl font-extrabold block"
-            >
-              {montoRecibido.toFixed(2)}
-              <span className="text-xl font-semibold ml-1">
-                {selectedDestinationCurrency}
+            {hasDiscountLocal && (
+              <div className="flex items-start justify-between">
+                <span className="text-emerald-400 font-medium text-sm sm:text-base">
+                  Cotización descuento
+                </span>
+                <div className="flex flex-col items-end -mt-1">
+                  <span className="text-[8px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-600 text-emerald-300">
+                    −{(100 * (cotizacionBase - cotizacionConDescuento)).toFixed(2)}%
+                  </span>
+                  <span className="text-green-400 font-bold text-lg sm:text-xl mt-1">
+                    {cotizacionConDescuento.toFixed(3)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400 font-medium text-sm sm:text-base">Tasa usada</span>
+              <span className="text-gray-200 font-semibold text-sm sm:text-base">
+                {selectedDestinationCurrency === "USDT" ? "1.00 (USDT)" : fmtRate(rate)}
               </span>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {descuento > 0 && motivoDescuento && (
-        <div className="relative group mt-4 text-sm sm:text-base text-emerald-400 leading-snug cursor-pointer w-fit">
-          {motivoDescuento}
-          <span className="ml-1">ℹ️</span>
-          <div className="absolute left-0 z-10 mt-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded-md shadow-lg max-w-xs">
-            Esto se calcula en base a tu historial de órdenes y se aplica sobre la comisión base.
+          <div className="md:text-right">
+            <span className="text-gray-300 font-medium block text-sm sm:text-base">
+              Usted recibirá
+            </span>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${montoRecibido}-${selectedDestinationCurrency}`}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.22 }}
+                className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold text-green-400 leading-tight"
+              >
+                <span className="whitespace-nowrap">
+                  {selectedDestinationCurrency === "USDT"
+                    ? fmtCrypto(montoRecibido)
+                    : fmtFiatVE(montoRecibido)}
+                </span>
+                <span className="text-xl sm:text-2xl font-semibold ml-1 align-top">
+                  {selectedDestinationCurrency}
+                </span>
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="text-[11px] sm:text-xs text-gray-400 mt-1">
+              Neto en USD:{" "}
+              <span className="text-gray-200 font-semibold">
+                {fmtUSD(monto * (1 - (dynamicCommission ?? 0) / 100))} USD
+              </span>
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

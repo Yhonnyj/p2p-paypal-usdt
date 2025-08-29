@@ -7,19 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserProfile {
-  id               String   @id @default(cuid())
-  userId           String   @unique // ID de Clerk
-  country          String
-  documentType     String
-  documentFrontUrl String
-  documentBackUrl  String
-  selfieUrl        String
-  status           String   @default("pending") // Estado del KYC
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-
 model Order {
   id     String @id @default(cuid())
   userId String
@@ -102,13 +89,6 @@ enum OrderStatus {
   CANCELLED
 }
 
-model AppConfig {
-  id         Int      @id @default(1)
-  feePercent Float    @default(13.0)
-  rate       Float    @default(1.13)
-  bsRate     Float    @default(40.0)   // USDT → BS ✅
-  updatedAt  DateTime @updatedAt
-}
 
 model ExchangeRate {
   id        String   @id @default(cuid())

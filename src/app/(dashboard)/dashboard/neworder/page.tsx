@@ -28,7 +28,7 @@ function PedidoFormContent() {
     form.setBsIdNumber("");
   };
 
- const handleContinuar = async () => {
+  const handleContinuar = async () => {
     // Si la moneda destino es FIAT, guardar cuenta antes de crear orden
     if (form.selectedDestinationCurrency !== "USDT" && fiatRef.current) {
       await fiatRef.current.saveFiatAccount();
@@ -78,7 +78,10 @@ function PedidoFormContent() {
                 }}
                 className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
-              <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <DollarSign
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
             </div>
 
             <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow-md">
@@ -91,20 +94,16 @@ function PedidoFormContent() {
 
           <SummaryCard />
 
-<button
-  onClick={handleContinuar}
-  disabled
-  className="w-full py-4 px-6 rounded-xl font-bold text-xl text-white bg-gray-600 cursor-not-allowed"
->
-  <span className="flex items-center justify-center gap-2">
-    Continuar
-    <ArrowRight size={22} className="invisible" aria-hidden />
-  </span>
-</button>
-
-
-
-
+          {/* Botón ACTIVADO */}
+          <button
+            onClick={handleContinuar}
+            className="w-full py-4 px-6 rounded-xl font-bold text-xl text-white bg-emerald-600 hover:bg-emerald-500 cursor-pointer shadow-lg shadow-emerald-600/20 transition"
+          >
+            <span className="flex items-center justify-center gap-2">
+              Continuar
+              <ArrowRight size={22} aria-hidden />
+            </span>
+          </button>
         </div>
       </div>
 

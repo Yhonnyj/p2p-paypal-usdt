@@ -9,13 +9,6 @@ interface Rate {
   rate: number;
 }
 
-type AppConfig = {
-  id: number;
-  feePercent: number;
-  rate: number;
-  bsRate: number;
-};
-
 type AdminChannel = {
   id: string;
   key: string;
@@ -28,7 +21,6 @@ type AdminChannel = {
   statusTextBuy: string | null;
   statusTextSell: string | null;
   sortOrder: number;
-  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -41,14 +33,7 @@ export default function AdminDashboardPage() {
   const [newRate, setNewRate] = useState(0);
   const [ratesSuccessMessage, setRatesSuccessMessage] = useState("");
 
-  // ---------- CONFIG ----------
-  const [config, setConfig] = useState<AppConfig | null>(null);
-  const [loadingConfig, setLoadingConfig] = useState(true);
-  const [savingConfig, setSavingConfig] = useState(false);
-  const [configError, setConfigError] = useState("");
-  const [configSuccess, setConfigSuccess] = useState("");
-
-  // ---------- PAYMENT CHANNELS (ADMIN) ----------
+  // ---------- PAYMENT CHANNELS ----------
   const [channels, setChannels] = useState<AdminChannel[]>([]);
   const [chEdit, setChEdit] = useState<Record<string, Partial<AdminChannel>>>({});
   const [loadingChannels, setLoadingChannels] = useState(false);
@@ -123,11 +108,10 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const getDisplayValue = (rate: Rate) => {
-    return rate.currency === "USD"
+  const getDisplayValue = (rate: Rate) =>
+    rate.currency === "USD"
       ? ((editingRates[rate.id] - 1) * 100).toFixed(2)
       : editingRates[rate.id];
-  };
 
   const handleRateInputChange = (id: string, value: string, isUsd: boolean) => {
     const parsed = parseFloat(value.replace(",", "."));
@@ -136,51 +120,6 @@ export default function AdminDashboardPage() {
         ...prev,
         [id]: isUsd ? 1 + parsed / 100 : parsed,
       }));
-    }
-  };
-
-  // --------- Config API ---------
-  const fetchConfig = async () => {
-    try {
-      const res = await fetch("/api/admin/config");
-      const data = await res.json();
-      if (res.ok) setConfig(data);
-      else setConfigError(data.error || "Error al cargar configuración");
-    } catch {
-      setConfigError("Error de red al obtener configuración");
-    } finally {
-      setLoadingConfig(false);
-    }
-  };
-
-  const handleSaveConfig = async () => {
-    if (!config) return;
-    setSavingConfig(true);
-    setConfigError("");
-    setConfigSuccess("");
-
-    try {
-      const res = await fetch("/api/admin/config", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          feePercent: config.feePercent,
-          rate: config.rate,
-          bsRate: config.bsRate,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setConfigSuccess("✅ Configuración actualizada correctamente");
-        setConfig(data);
-        setTimeout(() => setConfigSuccess(""), 3000);
-      } else {
-        setConfigError(data.error || "❌ Error al guardar cambios");
-      }
-    } catch {
-      setConfigError("❌ Error de red al guardar configuración");
-    } finally {
-      setSavingConfig(false);
     }
   };
 
@@ -271,18 +210,22 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const archiveChannel = async (id: string) => {
+  // 🔥 Borrar DEFINITIVAMENTE el método
+  const deleteChannel = async (id: string, label: string) => {
+    const ok = window.confirm(`¿Borrar el método "${label}" de forma permanente?`);
+    if (!ok) return;
+
     try {
       const res = await fetch(`/api/admin/payment-channels/${id}`, { method: "DELETE" });
       const data = await res.json();
       if (res.ok) {
-        setChMsg("🗂 Archivado");
+        setChMsg("🗑️ Método borrado");
         fetchChannels();
       } else {
-        setChMsg(data.error || "❌ Error archivando");
+        setChMsg(data.error || "❌ Error al borrar");
       }
     } catch {
-      setChMsg("❌ Error de red archivando");
+      setChMsg("❌ Error de red al borrar");
     } finally {
       setTimeout(() => setChMsg(""), 2000);
     }
@@ -291,62 +234,64 @@ export default function AdminDashboardPage() {
   // --------- Initial Load ---------
   useEffect(() => {
     fetchRates();
-    fetchConfig();
     fetchChannels();
   }, []);
 
   return (
-    <div className="relative min-h-screen px-6 py-10 bg-gray-950 text-white overflow-hidden">
-      {/* Fondo degradado animado */}
+    <div className="relative min-h-screen px-4 sm:px-6 py-6 sm:py-10 bg-gray-950 text-white overflow-hidden">
+      {/* Fondo */}
       <div
         className="absolute inset-0 z-0 opacity-10 animate-pulse-light pointer-events-none"
         style={{
           background:
-            'radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
+            "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
         }}
       />
 
-      <h1 className="text-4xl font-bold mb-10 text-center text-green-400">
-        🚀 Panel de Administración General
+      <h1 className="text-2xl sm:text-4xl font-extrabold mb-6 sm:mb-10 text-center text-green-400">
+        🚀 Panel de Administración
       </h1>
 
       {/* RATES */}
-      <div className="mb-12">
-        <h2 className="text-3xl font-bold mb-6 text-green-400 border-b border-gray-700 pb-3">
+      <section className="mb-10 sm:mb-12">
+        <h2 className="text-xl sm:text-3xl font-bold mb-4 sm:mb-6 text-green-400 border-b border-gray-700 pb-2 sm:pb-3">
           💱 Gestión de Tasas de Cambio
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {rates.map((rate) => (
             <div
               key={rate.id}
-              className="bg-gray-900 border border-gray-700 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4"
+              className="bg-gray-900 border border-gray-700 rounded-xl p-3 sm:p-4 flex flex-col gap-3 sm:gap-4"
             >
-              <div className="font-bold text-lg w-full md:w-20 text-center md:text-left">
-                {rate.currency}
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-base sm:text-lg">{rate.currency}</div>
+                <div className="text-xs text-gray-400">
+                  {rate.currency === "USD" ? "Δ% sobre 1.00" : "Tasa congelada"}
+                </div>
               </div>
 
-              <input
-                type="number"
-                value={getDisplayValue(rate)}
-                onChange={(e) =>
-                  handleRateInputChange(rate.id, e.target.value, rate.currency === "USD")
-                }
-                className="flex-1 p-2 rounded bg-gray-800 border border-gray-600 text-white w-full"
-                step={rate.currency === "USD" ? 0.01 : 0.0001}
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3">
+                <input
+                  type="number"
+                  value={getDisplayValue(rate)}
+                  onChange={(e) =>
+                    handleRateInputChange(rate.id, e.target.value, rate.currency === "USD")
+                  }
+                  className="p-2 rounded bg-gray-800 border border-gray-600 text-white w-full"
+                  step={rate.currency === "USD" ? 0.01 : 0.0001}
+                />
 
-              <div className="flex gap-2 w-full md:w-auto justify-center">
                 <button
                   onClick={() => handleSaveRate(rate)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2 flex-grow md:flex-none"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
                 >
                   <Save size={16} /> Guardar
                 </button>
 
                 <button
                   onClick={() => handleDeleteRate(rate.currency)}
-                  className="text-red-500 hover:text-red-700 px-4 py-2 rounded border border-red-500 hover:border-red-700 flex items-center gap-2 flex-grow md:flex-none justify-center"
+                  className="text-red-500 hover:text-red-700 px-4 py-2 rounded border border-red-500 hover:border-red-700 flex items-center justify-center gap-2"
                 >
                   <Trash2 size={18} /> Borrar
                 </button>
@@ -355,30 +300,30 @@ export default function AdminDashboardPage() {
           ))}
         </div>
 
-        <div className="mt-8 border-t border-gray-700 pt-6">
-          <h3 className="text-green-400 mb-4 font-semibold flex items-center gap-2">
+        <div className="mt-6 sm:mt-8 border-t border-gray-700 pt-4 sm:pt-6">
+          <h3 className="text-green-400 mb-3 sm:mb-4 font-semibold flex items-center gap-2">
             <PlusCircle size={18} /> Agregar nueva moneda
           </h3>
 
-          <div className="flex flex-col md:flex-row items-center gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-[140px_140px_auto] gap-3">
             <input
               type="text"
               placeholder="CÓDIGO (EJ: BS)"
               value={newCurrency}
               onChange={(e) => setNewCurrency(e.target.value)}
-              className="w-full md:w-32 p-2 rounded bg-gray-800 border border-gray-600 text-white"
+              className="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white"
             />
             <input
               type="number"
               placeholder="0"
               value={newRate}
               onChange={(e) => setNewRate(Number(e.target.value))}
-              className="w-full md:w-32 p-2 rounded bg-gray-800 border border-gray-600 text-white"
+              className="w-full p-2 rounded bg-gray-800 border border-gray-600 text-white"
               step={0.01}
             />
             <button
               onClick={handleAddRate}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full md:w-auto"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full"
             >
               + Agregar
             </button>
@@ -386,83 +331,38 @@ export default function AdminDashboardPage() {
         </div>
 
         {ratesSuccessMessage && (
-          <p className="text-green-400 mt-4 text-center">{ratesSuccessMessage}</p>
+          <p className="text-green-400 mt-4 text-center text-sm">{ratesSuccessMessage}</p>
         )}
-      </div>
-
-      {/* CONFIG */}
-      <div>
-        <h2 className="text-3xl font-bold mb-6 text-green-400 border-b border-gray-700 pb-3">
-          🛠 Configuración del Sistema
-        </h2>
-
-        {loadingConfig ? (
-          <div className="flex justify-center items-center h-40">
-            <Loader2 className="animate-spin w-8 h-8 text-white" />
-          </div>
-        ) : config ? (
-          <div className="space-y-6 max-w-md mx-auto">
-            <div>
-              <label className="block text-sm text-gray-300 mb-1">
-                Porcentaje de comisión (%) 🔧
-              </label>
-              <input
-                type="number"
-                value={config.feePercent}
-                onChange={(e) =>
-                  setConfig({ ...config, feePercent: parseFloat(e.target.value) })
-                }
-                className="w-full p-2 bg-gray-800 rounded border border-gray-600 text-white"
-                min={0}
-                step={0.01}
-              />
-            </div>
-
-            <button
-              onClick={handleSaveConfig}
-              disabled={savingConfig}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50 w-full"
-            >
-              {savingConfig ? "Guardando..." : "Guardar Cambios"}
-            </button>
-
-            {configError && <p className="text-red-500 text-sm mt-2 text-center">{configError}</p>}
-            {configSuccess && (
-              <p className="text-green-500 text-sm mt-2 text-center">{configSuccess}</p>
-            )}
-          </div>
-        ) : (
-          <p className="text-red-500 text-center">No se pudo cargar la configuración.</p>
-        )}
-      </div>
+      </section>
 
       {/* PAYMENT CHANNELS */}
-      <div className="mt-14">
-        <h2 className="text-3xl font-bold mb-6 text-green-400 border-b border-gray-700 pb-3">
+      <section className="mt-10 sm:mt-14">
+        <h2 className="text-xl sm:text-3xl font-bold mb-4 sm:mb-6 text-green-400 border-b border-gray-700 pb-2 sm:pb-3">
           💳 Métodos de Pago (Payment Channels)
         </h2>
 
         {/* Crear nuevo */}
-        <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 mb-6">
-          <h3 className="text-green-400 mb-4 font-semibold flex items-center gap-2">
+        <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 sm:p-5 mb-6">
+          <h3 className="text-green-400 mb-3 sm:mb-4 font-semibold flex items-center gap-2">
             <PlusCircle size={18} /> Crear nuevo método
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <input
-              className="p-2 rounded bg-gray-800 border border-gray-600"
+              className="p-2 rounded bg-gray-800 border border-gray-600 w-full"
               placeholder="KEY (EJ: PAYPAL)"
               value={newKey}
               onChange={(e) => setNewKey(e.target.value)}
             />
             <input
-              className="p-2 rounded bg-gray-800 border border-gray-600"
+              className="p-2 rounded bg-gray-800 border border-gray-600 w-full"
               placeholder="Label (EJ: PayPal)"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
             />
             <input
               type="number"
-              className="p-2 rounded bg-gray-800 border border-gray-600"
+              className="p-2 rounded bg-gray-800 border border-gray-600 w-full"
               placeholder="% Buy"
               value={newPctBuy}
               onChange={(e) => setNewPctBuy(Number(e.target.value))}
@@ -471,7 +371,7 @@ export default function AdminDashboardPage() {
             />
             <input
               type="number"
-              className="p-2 rounded bg-gray-800 border border-gray-600"
+              className="p-2 rounded bg-gray-800 border border-gray-600 w-full"
               placeholder="% Sell"
               value={newPctSell}
               onChange={(e) => setNewPctSell(Number(e.target.value))}
@@ -480,12 +380,12 @@ export default function AdminDashboardPage() {
             />
             <input
               type="number"
-              className="p-2 rounded bg-gray-800 border border-gray-600"
+              className="p-2 rounded bg-gray-800 border border-gray-600 w-full"
               placeholder="Sort"
               value={newSort}
               onChange={(e) => setNewSort(Number(e.target.value))}
             />
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4 p-2 rounded bg-gray-800 border border-gray-600">
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -512,10 +412,11 @@ export default function AdminDashboardPage() {
               </label>
             </div>
           </div>
+
           <div className="mt-3">
             <button
               onClick={createChannel}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full sm:w-auto"
             >
               + Agregar método
             </button>
@@ -536,111 +437,115 @@ export default function AdminDashboardPage() {
               return (
                 <div
                   key={c.id}
-                  className="bg-gray-900 border border-gray-700 rounded-xl p-4 flex flex-col md:flex-row items-center gap-4"
+                  className="bg-gray-900 border border-gray-700 rounded-xl p-4 sm:p-5 flex flex-col gap-4"
                 >
-                  <div className="w-full md:w-48">
-                    <div className="font-bold">{c.label}</div>
-                    <div className="text-xs text-gray-400">{c.key}</div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-lg">{c.label}</div>
+                      <div className="text-xs text-gray-400">{c.key}</div>
+                    </div>
                   </div>
 
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    className="w-full md:w-28 p-2 rounded bg-gray-800 border border-gray-600"
-                    value={buf.commissionBuyPercent ?? c.commissionBuyPercent}
-                    onChange={(e) =>
-                      setChEdit((prev) => ({
-                        ...prev,
-                        [c.id]: { ...prev[c.id], commissionBuyPercent: Number(e.target.value) },
-                      }))
-                    }
-                    placeholder="% Buy"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      className="w-full p-2 rounded bg-gray-800 border border-gray-600"
+                      value={buf.commissionBuyPercent ?? c.commissionBuyPercent}
+                      onChange={(e) =>
+                        setChEdit((prev) => ({
+                          ...prev,
+                          [c.id]: { ...prev[c.id], commissionBuyPercent: Number(e.target.value) },
+                        }))
+                      }
+                      placeholder="% Buy"
+                    />
 
-                  <input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    className="w-full md:w-28 p-2 rounded bg-gray-800 border border-gray-600"
-                    value={buf.commissionSellPercent ?? c.commissionSellPercent}
-                    onChange={(e) =>
-                      setChEdit((prev) => ({
-                        ...prev,
-                        [c.id]: { ...prev[c.id], commissionSellPercent: Number(e.target.value) },
-                      }))
-                    }
-                    placeholder="% Sell"
-                  />
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      className="w-full p-2 rounded bg-gray-800 border border-gray-600"
+                      value={buf.commissionSellPercent ?? c.commissionSellPercent}
+                      onChange={(e) =>
+                        setChEdit((prev) => ({
+                          ...prev,
+                          [c.id]: { ...prev[c.id], commissionSellPercent: Number(e.target.value) },
+                        }))
+                      }
+                      placeholder="% Sell"
+                    />
 
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={(buf.enabledBuy ?? c.enabledBuy) as boolean}
-                        onChange={(e) =>
-                          setChEdit((prev) => ({
-                            ...prev,
-                            [c.id]: { ...prev[c.id], enabledBuy: e.target.checked },
-                          }))
-                        }
-                      />
-                      Buy
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={(buf.enabledSell ?? c.enabledSell) as boolean}
-                        onChange={(e) =>
-                          setChEdit((prev) => ({
-                            ...prev,
-                            [c.id]: { ...prev[c.id], enabledSell: e.target.checked },
-                          }))
-                        }
-                      />
-                      Sell
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={(buf.visible ?? c.visible) as boolean}
-                        onChange={(e) =>
-                          setChEdit((prev) => ({
-                            ...prev,
-                            [c.id]: { ...prev[c.id], visible: e.target.checked },
-                          }))
-                        }
-                      />
-                      Visible
-                    </label>
-                  </div>
+                    <div className="flex items-center gap-4 p-2 rounded bg-gray-800 border border-gray-600">
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={(buf.enabledBuy ?? c.enabledBuy) as boolean}
+                          onChange={(e) =>
+                            setChEdit((prev) => ({
+                              ...prev,
+                              [c.id]: { ...prev[c.id], enabledBuy: e.target.checked },
+                            }))
+                          }
+                        />
+                        Buy
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={(buf.enabledSell ?? c.enabledSell) as boolean}
+                          onChange={(e) =>
+                            setChEdit((prev) => ({
+                              ...prev,
+                              [c.id]: { ...prev[c.id], enabledSell: e.target.checked },
+                            }))
+                          }
+                        />
+                        Sell
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={(buf.visible ?? c.visible) as boolean}
+                          onChange={(e) =>
+                            setChEdit((prev) => ({
+                              ...prev,
+                              [c.id]: { ...prev[c.id], visible: e.target.checked },
+                            }))
+                          }
+                        />
+                        Visible
+                      </label>
+                    </div>
 
-                  <input
-                    type="number"
-                    className="w-full md:w-20 p-2 rounded bg-gray-800 border border-gray-600"
-                    value={buf.sortOrder ?? c.sortOrder}
-                    onChange={(e) =>
-                      setChEdit((prev) => ({
-                        ...prev,
-                        [c.id]: { ...prev[c.id], sortOrder: Number(e.target.value) },
-                      }))
-                    }
-                    placeholder="Sort"
-                  />
+                    <input
+                      type="number"
+                      className="w-full p-2 rounded bg-gray-800 border border-gray-600"
+                      value={buf.sortOrder ?? c.sortOrder}
+                      onChange={(e) =>
+                        setChEdit((prev) => ({
+                          ...prev,
+                          [c.id]: { ...prev[c.id], sortOrder: Number(e.target.value) },
+                        }))
+                      }
+                      placeholder="Sort"
+                    />
 
-                  <div className="flex gap-2 ml-auto">
-                    <button
-                      onClick={() => patchChannel(c.id, chEdit[c.id] || {})}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded flex items-center gap-2"
-                    >
-                      <Save size={16} /> Guardar
-                    </button>
-                    <button
-                      onClick={() => archiveChannel(c.id)}
-                      className="text-red-500 hover:text-red-700 px-3 py-2 rounded border border-red-500 hover:border-red-700 flex items-center gap-2"
-                    >
-                      <Trash2 size={18} /> Archivar
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => patchChannel(c.id, chEdit[c.id] || {})}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded flex items-center justify-center gap-2"
+                      >
+                        <Save size={16} /> Guardar
+                      </button>
+                      <button
+                        onClick={() => deleteChannel(c.id, c.label)}
+                        className="text-red-500 hover:text-red-700 px-3 py-2 rounded border border-red-500 hover:border-red-700 flex items-center justify-center gap-2"
+                      >
+                        <Trash2 size={18} /> Borrar
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -649,7 +554,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {chMsg && <p className="text-center mt-4 text-sm text-green-400">{chMsg}</p>}
-      </div>
+      </section>
     </div>
   );
 }

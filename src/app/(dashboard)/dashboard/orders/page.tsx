@@ -25,19 +25,18 @@ type OrderStatus = "PENDING" | "COMPLETED" | "CANCELLED";
 type Order = {
   id: string;
   platform: string;
-  to: string;
+  to: string;                 // "USDT - TRC20" o "BS"
   amount: number;
   finalUsd: number;
   finalUsdt: number;
   status: OrderStatus;
   createdAt: string;
   paypalEmail: string;
-  wallet: string;
-  user: {
-    email: string;
-    fullName: string;
-  };
-  bankName?: string;
+  wallet: string;             // JSON string (para BS: { bankName, phoneNumber, idNumber })
+  user: { email: string; fullName: string };
+  bankName?: string;          // opcional (si el backend ya lo manda plano)
+  exchangeRateUsed?: number;  // opcional (tasa congelada)
+  appliedCommissionPct?: number;
 };
 
 const statusColors = {
@@ -67,21 +66,35 @@ const destinationLogos: Record<string, string> = {
   COP: "/images/cop.png",
 };
 
-// --- Formatear fecha en estilo "24 julio 2025, 21:15" ---
+// --- Formatters ---
+const fmtFiatVE = (v: number) =>
+  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+const fmtUS = (v: number) =>
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+// --- Fecha "24 julio 2025, 21:15" ---
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  const meses = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-  ];
-
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   const dia = date.getDate();
   const mes = meses[date.getMonth()];
   const año = date.getFullYear();
   const horas = date.getHours().toString().padStart(2, "0");
   const minutos = date.getMinutes().toString().padStart(2, "0");
-
   return `${dia} ${mes} ${año}, ${horas}:${minutos}`;
+}
+
+// Intenta leer bankName desde order.bankName o desde order.wallet (JSON)
+function getBankNameFromOrder(order: Order): string | null {
+  if (order.bankName && order.bankName.trim()) return order.bankName.trim();
+  try {
+    if (order.wallet) {
+      const parsed = JSON.parse(order.wallet);
+      if (parsed?.bankName) return String(parsed.bankName);
+    }
+  } catch {}
+  return null;
 }
 
 function OrdersContent() {
@@ -90,24 +103,16 @@ function OrdersContent() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
   const [chatOrderId, setChatOrderId] = useState<string | null>(null);
-  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(
-    null
-  );
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
 
   const fetchOrders = async (status?: OrderStatus | "ALL") => {
     setLoading(true);
     try {
-      const url =
-        status && status !== "ALL"
-          ? `/api/orders?status=${status}`
-          : `/api/orders`;
+      const url = status && status !== "ALL" ? `/api/orders?status=${status}` : `/api/orders`;
       const res = await fetch(url);
       const data: Order[] = await res.json();
-      if (res.ok) {
-        setOrders(data);
-      } else {
-        console.error("❌ Error cargando órdenes:", data);
-      }
+      if (res.ok) setOrders(data);
+      else console.error("❌ Error cargando órdenes:", data);
     } catch (error) {
       console.error("❌ Error general:", error);
     } finally {
@@ -125,7 +130,6 @@ function OrdersContent() {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
     });
-
     const channel = pusher.subscribe("orders-channel");
 
     channel.bind("order-created", (newOrder: Order) => {
@@ -134,11 +138,7 @@ function OrdersContent() {
 
     channel.bind("order-updated", (updatedOrder: Order) => {
       setOrders((prev) =>
-        prev.map((order) =>
-          order.id === updatedOrder.id
-            ? { ...order, status: updatedOrder.status }
-            : order
-        )
+        prev.map((order) => (order.id === updatedOrder.id ? { ...order, status: updatedOrder.status } : order))
       );
     });
 
@@ -200,14 +200,10 @@ function OrdersContent() {
 
         {/* Filtro */}
         <div className="mb-6 text-center">
-          <label className="text-sm text-gray-400 mr-2 font-semibold">
-            Filtrar por estado:
-          </label>
+          <label className="text-sm text-gray-400 mr-2 font-semibold">Filtrar por estado:</label>
           <select
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as OrderStatus | "ALL")
-            }
+            onChange={(e) => setStatusFilter(e.target.value as OrderStatus | "ALL")}
             className="bg-gray-800 border border-gray-600 text-white rounded-md px-4 py-2"
           >
             <option value="ALL">Todos</option>
@@ -230,29 +226,37 @@ function OrdersContent() {
         ) : (
           <div className="space-y-4">
             {orders.map((order, index) => {
+              // Si viene "USDT - TRC20", separamos; si viene "BS", destination=""
               const [mainCurrency, destination] = order.to.includes("-")
                 ? order.to.split("-").map((s) => s.trim())
                 : [order.to, ""];
 
-              let montoRecibido = order.finalUsd || 0;
+              // --- moneda destino + monto recibido formateado ---
               let currencyLabel = "USDT";
+              let montoRecibido = order.finalUsd;
 
               if (order.to.includes("USDT")) {
                 currencyLabel = "USDT";
+                if (typeof order.finalUsdt === "number" && order.finalUsdt > 0) {
+                  montoRecibido = order.finalUsdt;
+                }
               } else {
-                const fiatRate =
-                  exchangeRates.find((r) => r.currency === order.to)?.rate ?? 1;
-                montoRecibido = order.finalUsd * fiatRate;
-                currencyLabel = order.to;
+                currencyLabel = order.to; // "BS", "COP", etc.
+                // Usa la tasa congelada si la orden la trae; sino, fallback a rate actual
+                const frozen = typeof order.exchangeRateUsed === "number" ? order.exchangeRateUsed : null;
+                const fallback = exchangeRates.find((r) => r.currency === order.to)?.rate ?? 1;
+                const rateToUse = frozen ?? fallback;
+                montoRecibido = order.finalUsd * rateToUse;
               }
 
-              // --- Mostrar logo de banco si destino es BS ---
-              let bankLogo = null;
-              if (destination === "BS" && order.bankName) {
+              // --- Banco (si destino es BS) ---
+              const parsedBankName = getBankNameFromOrder(order);
+              let bankLogo: string | null = null;
+              if ((order.to === "BS" || destination === "BS") && parsedBankName) {
                 const bank = bankOptions.find(
                   (b) =>
-                    b.value.toLowerCase() === order.bankName?.toLowerCase() ||
-                    b.label.toLowerCase() === order.bankName?.toLowerCase()
+                    b.value.toLowerCase() === parsedBankName.toLowerCase() ||
+                    b.label.toLowerCase() === parsedBankName.toLowerCase()
                 );
                 bankLogo = bank?.img || destinationLogos.BS;
               }
@@ -265,22 +269,17 @@ function OrdersContent() {
                 >
                   {/* Fecha y estado */}
                   <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-700/50">
-                    <span className="text-sm text-gray-400 font-medium">
-                      {formatDate(order.createdAt)}
-                    </span>
-                    <span
-                      className={`flex items-center gap-2 text-base font-semibold px-3 py-1 rounded-full ${statusColors[order.status]} bg-gray-700/50`}
-                    >
+                    <span className="text-sm text-gray-400 font-medium">{formatDate(order.createdAt)}</span>
+                    <span className={`flex items-center gap-2 text-base font-semibold px-3 py-1 rounded-full ${statusColors[order.status]} bg-gray-700/50`}>
                       {statusIcons[order.status]} {order.status}
                     </span>
                   </div>
 
                   {/* Info */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    {/* Plataforma */}
                     <div>
-                      <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">
-                        Plataforma
-                      </span>
+                      <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">Plataforma</span>
                       <Image
                         src={platformLogos[order.platform] || "/images/default.png"}
                         alt={order.platform}
@@ -289,65 +288,67 @@ function OrdersContent() {
                         className="object-contain rounded-full"
                       />
                     </div>
-                    <div>
-                      <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">
-                        Destino
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {mainCurrency && (
-                          <Image
-                            src={platformLogos[mainCurrency] || "/images/BS.png"}
-                            alt={mainCurrency}
-                            width={28}
-                            height={28}
-                            className="object-contain rounded-full"
-                          />
-                        )}
-                        <span>→</span>
 
-                        {destination === "BS" ? (
-                          <span className="flex items-center gap-2">
+                    {/* Destino */}
+                    <div>
+                      <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">Destino</span>
+                      <div className="flex items-center gap-2">
+                        {/* Caso especial: destino BS → mostrar BS → banco */}
+                        {order.to === "BS" ? (
+                          <>
+                            <Image src={destinationLogos.BS} alt="BS" width={28} height={28} className="object-contain rounded-full" />
+                            <span>→</span>
                             <Image
                               src={bankLogo || destinationLogos.BS}
-                              alt={order.bankName || "BS"}
+                              alt={parsedBankName || "Banco"}
                               width={28}
                               height={28}
                               className="object-contain rounded-full"
                             />
-                            <span className="text-sm text-gray-200">
-                              {order.bankName || "Bolívares"}
-                            </span>
-                          </span>
+                            {parsedBankName && <span className="text-sm text-gray-200 ml-1">{parsedBankName}</span>}
+                          </>
                         ) : (
-                          destination && (
-                            <Image
-                              src={
-                                destinationLogos[destination] ||
-                                "/images/default-dest.png"
-                              }
-                              alt={destination}
-                              width={28}
-                              height={28}
-                              className="object-contain rounded-full"
-                            />
-                          )
+                          // Resto: e.g. "USDT - TRC20"
+                          <>
+                            {mainCurrency && (
+                              <Image
+                                src={platformLogos[mainCurrency] || "/images/default.png"}
+                                alt={mainCurrency}
+                                width={28}
+                                height={28}
+                                className="object-contain rounded-full"
+                              />
+                            )}
+                            {destination && <span>→</span>}
+                            {destination && (
+                              <Image
+                                src={destinationLogos[destination] || "/images/default-dest.png"}
+                                alt={destination}
+                                width={28}
+                                height={28}
+                                className="object-contain rounded-full"
+                              />
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
+
+                    {/* Monto enviado */}
                     <div>
-                      <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">
-                        Monto Enviado
-                      </span>
-                      <span className="font-medium text-white text-base">
-                        {order.amount.toFixed(2)} USD
-                      </span>
+                      <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">Monto Enviado</span>
+                      <span className="font-medium text-white text-base">{fmtUS(order.amount)} USD</span>
                     </div>
+
+                    {/* Recibidos */}
                     <div className="sm:col-span-2 md:col-span-1">
                       <span className="block text-gray-400 text-xs uppercase font-semibold mb-1">
                         {currencyLabel} RECIBIDOS
                       </span>
                       <span className="font-bold text-emerald-400 text-base">
-                        {montoRecibido.toFixed(2)} {currencyLabel}
+                        {currencyLabel === "USDT"
+                          ? `${fmtUS(montoRecibido)} USDT`
+                          : `${fmtFiatVE(montoRecibido)} ${currencyLabel}`}
                       </span>
                     </div>
                   </div>

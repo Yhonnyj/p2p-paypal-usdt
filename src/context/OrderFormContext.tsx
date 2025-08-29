@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { pusherClient } from "@/lib/pusher";
 import { useRouter } from "next/navigation";
 
@@ -12,13 +12,15 @@ export interface ExchangeRate {
 }
 
 type PublicChannel = {
-  key: string;            // "PAYPAL"
-  label: string;          // "PayPal"
+  key: string;               // "PAYPAL"
+  label: string;             // "PayPal"
   commissionPercent: number; // según side=BUY
   available: boolean;
-  displayStatus: string;  // "Disponible" | "No disponible" | "Mantenimiento"
+  displayStatus: string;     // "Disponible" | "No disponible" | "Mantenimiento"
   sortOrder: number;
 };
+
+type Milestone = "FIRST" | "FIFTH" | "FIFTEEN_PLUS" | null;
 
 type QuoteResponse = {
   side: "BUY" | "SELL";
@@ -26,17 +28,25 @@ type QuoteResponse = {
   channelLabel: string;
   destinationCurrency: string;
   amountUsd: number;
-  commissionPercent: number;
-  baseFeePercent: number;
-  userDiscountPercent: number;
-  totalPct: number;
+
+  // Detalles de comisiones / descuento
+  commissionPercent: number;    // % canal
+  baseFeePercent: number;       // % base global (si se usa)
+  preDiscountPercent: number;   // % antes de descuento (para “Cotización base”)
+  userDiscountPercent: number;  // % fidelidad aplicado
+  totalPct: number;             // % total aplicado (ya con descuento)
+
+  // Montos resultantes
   netUsd: number;
-  exchangeRateUsed: number;
-  totalInDestination: number;
+  exchangeRateUsed: number;     // 1 si USDT, o tasa fiat
+  totalInDestination: number;   // netUsd * tasa (si USDT => == netUsd)
+
+  // UX helper
+  milestone: Milestone;
 };
 
 interface OrderFormContextProps {
-  // existing
+  // básicos
   monto: number;
   setMonto: (v: number) => void;
   paypalEmail: string;
@@ -47,17 +57,21 @@ interface OrderFormContextProps {
   setWallet: (v: string) => void;
   loading: boolean;
   setLoading: (v: boolean) => void;
+
+  // config/rates (para fallback visual)
   feePercent: number | null;
   finalCommission: number | null;
-  dynamicCommission: number | null;
+  dynamicCommission: number | null; // = feePercent (sin milestones)
   exchangeRates: ExchangeRate[];
+
   selectedDestinationCurrency: string;
   setSelectedDestinationCurrency: (v: string) => void;
 
-  // mantenemos por compatibilidad visual con tu selector actual
+  // compat visual con selector actual
   selectedPlatform: string;
   setSelectedPlatform: (v: string) => void;
 
+  // datos destino fiat/usdt
   bsPhoneNumber: string;
   setBsPhoneNumber: (v: string) => void;
   bsIdNumber: string;
@@ -70,23 +84,30 @@ interface OrderFormContextProps {
   setCopAccountHolder: (v: string) => void;
   selectedAccountId: string | null;
   setSelectedAccountId: (v: string | null) => void;
+
+  // alertas
   showAlert: boolean;
   alertMessage: string;
   alertType: AlertType;
   setShowAlert: (v: boolean) => void;
   displayAlert: (message: string, type?: AlertType) => void;
+
+  // cálculos UI
   rate: number | null;
   montoRecibido: number;
-  handleCrearOrden: () => Promise<void>;
-  baseFeePercent: number | null;
-  orderCount: number | null;
 
-  // 🔹 NUEVO: métodos dinámicos y selección real
+  // acciones
+  handleCrearOrden: () => Promise<void>;
+
+  // opcional config base
+  baseFeePercent: number | null;
+
+  // métodos de pago (dinámicos)
   channels: PublicChannel[];
   selectedChannelKey: string | null;
   setSelectedChannelKey: (v: string | null) => void;
 
-  // 🔹 NUEVO: cotización oficial desde backend
+  // cotización oficial desde backend
   quote: QuoteResponse | null;
 }
 
@@ -95,64 +116,42 @@ const OrderFormContext = createContext<OrderFormContextProps | undefined>(undefi
 export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  // --------- STATE EXISTENTE ---------
+  // --------- STATE ---------
   const [monto, setMonto] = useState(100);
   const [paypalEmail, setPaypalEmail] = useState("");
   const [network, setNetwork] = useState("TRC20");
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
-  const [feePercent, setFeePercent] = useState<number | null>(null);
+
+  const [feePercent, setFeePercent] = useState<number | null>(null); // para fallback
   const [baseFeePercent] = useState<number | null>(null);
   const [finalCommission, setFinalCommission] = useState<number | null>(null);
-  const [orderCount, setOrderCount] = useState<number | null>(null);
+
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
   const [selectedDestinationCurrency, setSelectedDestinationCurrency] = useState("USDT");
 
-  // 👉 Legacy visual: lo mantengo para que tu UI no se rompa
+  // compat visual (label)
   const [selectedPlatform, setSelectedPlatform] = useState("PayPal");
 
+  // datos destino
   const [bsPhoneNumber, setBsPhoneNumber] = useState("");
   const [bsIdNumber, setBsIdNumber] = useState("");
   const [bankName, setBankName] = useState("");
   const [copAccountNumber, setCopAccountNumber] = useState("");
   const [copAccountHolder, setCopAccountHolder] = useState("");
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
+  // alertas
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<AlertType>("error");
 
-  // --------- NUEVO: MÉTODOS PÚBLICOS Y SELECCIÓN REAL ---------
+  // métodos dinámicos
   const [channels, setChannels] = useState<PublicChannel[]>([]);
   const [selectedChannelKey, setSelectedChannelKey] = useState<string | null>(null);
 
-  // --------- NUEVO: COTIZACIÓN DESDE BACKEND ---------
+  // quote backend-first
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
-
-  // --------- CÁLCULOS EXISTENTES (se mantienen para compatibilidad) ---------
-  const rate =
-    selectedDestinationCurrency === "USDT"
-      ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
-      : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
-
-  const dynamicCommission =
-    typeof finalCommission === "number"
-      ? finalCommission
-      : feePercent !== null && orderCount !== null
-      ? orderCount === 0
-        ? feePercent * 0.5
-        : orderCount === 4
-        ? feePercent * 0.82
-        : orderCount >= 14
-        ? feePercent * 0.9
-        : feePercent
-      : null;
-
-  const montoRecibido =
-    dynamicCommission !== null && rate !== null
-      ? selectedDestinationCurrency === "USDT"
-        ? monto * (1 - dynamicCommission / 100)
-        : monto * (1 - dynamicCommission / 100) * rate
-      : 0;
 
   const displayAlert = (message: string, type: AlertType = "error") => {
     setAlertMessage(message);
@@ -160,36 +159,109 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     setShowAlert(true);
   };
 
-  // --------- NUEVO: CARGAR MÉTODOS DINÁMICOS (BUY) ---------
+  // --------- TIPO DE CAMBIO (rate) ---------
+  const localRate = useMemo(() => {
+    return selectedDestinationCurrency === "USDT"
+      ? exchangeRates.find((r) => r.currency === "USD")?.rate ?? 1
+      : exchangeRates.find((r) => r.currency === selectedDestinationCurrency)?.rate ?? null;
+  }, [exchangeRates, selectedDestinationCurrency]);
+
+  // Preferimos la tasa de la quote si existe (backend-first)
+  const rate = quote ? quote.exchangeRateUsed : localRate;
+
+  // --------- COMMISSION LOCAL (LEGACY SIN COUNT) ---------
+  // Si por algún motivo no hay quote, usamos solo feePercent como % total (sin milestones).
+  const dynamicCommission = useMemo(() => {
+    if (typeof finalCommission === "number") return finalCommission;
+    if (feePercent !== null) return feePercent;
+    return null;
+  }, [finalCommission, feePercent]);
+
+  // --------- MONTO RECIBIDO (preferir backend) ---------
+  const montoRecibido = useMemo(() => {
+    if (quote) return quote.totalInDestination;
+    if (dynamicCommission !== null && rate !== null) {
+      return selectedDestinationCurrency === "USDT"
+        ? monto * (1 - dynamicCommission / 100)
+        : monto * (1 - dynamicCommission / 100) * rate;
+    }
+    return 0;
+  }, [quote, dynamicCommission, rate, selectedDestinationCurrency, monto]);
+
+  // --------- CARGAR MÉTODOS DINÁMICOS (BUY) ---------
   useEffect(() => {
+    let cancelled = false;
     const loadChannels = async () => {
       try {
         const res = await fetch("/api/payment-channels?side=BUY", { cache: "no-store" });
-        const data = await res.json();
-        if (res.ok) {
-          setChannels(data);
-          // Selección por defecto: primer disponible
-          const firstAvail = (data as PublicChannel[]).find((c) => c.available);
-          if (firstAvail && !selectedChannelKey) {
+        const data: PublicChannel[] = await res.json();
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          displayAlert((data as any)?.error || "No se pudieron cargar los métodos.");
+          return;
+        }
+
+        console.log("[channels] BUY ->", data); // 👈 depuración
+        setChannels(data);
+
+        // elegir/ajustar el método seleccionado si hace falta
+        const firstAvail = data.find((c) => c.available);
+        const stillExists = selectedChannelKey
+          ? data.some((c) => c.key === selectedChannelKey)
+          : false;
+
+        if (!stillExists) {
+          if (firstAvail) {
             setSelectedChannelKey(firstAvail.key);
-            // sincroniza legacy visual si tu dropdown está en base a 'selectedPlatform'
-            setSelectedPlatform(firstAvail.label);
+            setSelectedPlatform(firstAvail.label); // compat UI
+          } else {
+            setSelectedChannelKey(null);
+            setSelectedPlatform("Selecciona");
           }
-        } else {
-          displayAlert(data.error || "No se pudieron cargar los métodos.");
         }
       } catch {
-        displayAlert("Error de conexión al cargar métodos.");
+        if (!cancelled) displayAlert("Error de conexión al cargar métodos.");
       }
     };
     loadChannels();
-  }, [selectedChannelKey]); // una vez al inicio (y si no hay selección)
+    return () => {
+      cancelled = true;
+    };
+    // Solo al inicio
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // --------- NUEVO: COTIZAR CADA VEZ QUE CAMBIA ALGO IMPORTANTE ---------
+  // Si cambian los canales y el seleccionado ya no existe, re-elige uno válido
   useEffect(() => {
+    if (!channels.length) return;
+
+    const exists = selectedChannelKey && channels.some((c) => c.key === selectedChannelKey);
+    if (!exists) {
+      const firstAvail = channels.find((c) => c.available) || channels[0];
+      if (firstAvail) {
+        setSelectedChannelKey(firstAvail.key);
+        setSelectedPlatform(firstAvail.label);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channels]);
+
+  // --------- SINCRONIZAR selectedPlatform CUANDO CAMBIA EL CANAL ---------
+  useEffect(() => {
+    if (!selectedChannelKey) return;
+    const ch = channels.find((c) => c.key === selectedChannelKey);
+    if (ch) setSelectedPlatform(ch.label);
+  }, [selectedChannelKey, channels]);
+
+  // --------- COTIZAR CADA VEZ QUE CAMBIA ALGO IMPORTANTE ---------
+  useEffect(() => {
+    let aborted = false;
+
     const runQuote = async () => {
-      // requiere selección y monto válido
-      if (!selectedChannelKey || !monto || monto <= 0) {
+      // Requiere selección y monto >= 0 (permitimos 0 para preview)
+      if (!selectedChannelKey || monto < 0) {
         setQuote(null);
         return;
       }
@@ -202,42 +274,44 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
             channelKey: selectedChannelKey,
             amountUsd: monto,
             destinationCurrency: selectedDestinationCurrency,
-            // puedes activar estas si las usas:
-            // includeBaseFee: true,
-            // userDiscountPercent: 0,
+            // includeBaseFee: true, // actívalo si usas fee base global
           }),
         });
         const data = await res.json();
-        if (res.ok) {
-          setQuote(data as QuoteResponse);
-        } else {
-          setQuote(null);
-          displayAlert(data.error || "No se pudo obtener la cotización.");
+        if (!aborted) {
+          if (res.ok) {
+            setQuote(data as QuoteResponse);
+          } else {
+            setQuote(null);
+            displayAlert(data.error || "No se pudo obtener la cotización.");
+          }
         }
       } catch {
-        setQuote(null);
-        displayAlert("Error de conexión al cotizar.");
+        if (!aborted) {
+          setQuote(null);
+          displayAlert("Error de conexión al cotizar.");
+        }
       }
     };
+
     runQuote();
+    return () => {
+      aborted = true;
+    };
   }, [selectedChannelKey, monto, selectedDestinationCurrency]);
 
-  // --------- CREAR ORDEN (ACTUALIZADO) ---------
+  // --------- CREAR ORDEN ---------
   const handleCrearOrden = async () => {
-    // validaciones mínimas
     if (!selectedChannelKey) {
       displayAlert("Selecciona un método de pago.");
       return;
     }
-
-    // legacy visual: si tu UI sólo muestra PayPal, evita bloquear por label
-    // (quitamos el check anterior de “Solo PayPal está disponible”)
     if (!paypalEmail) {
       displayAlert("Completa el correo PayPal.");
       return;
     }
 
-    // Guardar cuenta PayPal automáticamente si no existe (igual que antes)
+    // Guardar cuenta PayPal automáticamente si no existe
     try {
       const methodsRes = await fetch("/api/payment-methods");
       if (methodsRes.ok) {
@@ -292,11 +366,10 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Payload actualizado: enviamos side + channelKey + destino
     const payload = {
-      // legacy: mantiene 'platform' para no romper backend viejo
+      // legacy
       platform: selectedPlatform,
-      // nuevo
+      // nuevos
       side: "BUY" as const,
       channelKey: selectedChannelKey,
       destinationCurrency: selectedDestinationCurrency,
@@ -315,8 +388,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
       if (res.ok) {
-        // el backend debe recalcular y devolver finalCommission si aplica
-        setFinalCommission(data.finalCommission ?? null);
+        setFinalCommission(data.finalCommission ?? null); // compat si lo devuelve
         router.push(`/dashboard/orders?chat=open&id=${data.id}`);
         return;
       } else {
@@ -330,39 +402,49 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // --------- CARGAS INICIALES ORIGINALES ---------
+  // --------- CARGAS INICIALES + PUSHER ---------
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
-        const configRes = await fetch("/api/config");
-        const ratesRes = await fetch("/api/rates");
-        const orderCountRes = await fetch("/api/orders/count");
-        const configData = await configRes.json();
-        const ratesData = await ratesRes.json();
-        const orderCountData = await orderCountRes.json();
-        if (configRes.ok) setFeePercent(configData.feePercent);
-        if (ratesRes.ok) setExchangeRates(ratesData);
-        if (orderCountRes.ok) setOrderCount(orderCountData.count);
-        else displayAlert("Error al obtener cantidad de órdenes.");
+        const [configRes, ratesRes] = await Promise.all([
+          fetch("/api/config"),
+          fetch("/api/rates"),
+        ]);
+
+        const [configData, ratesData] = await Promise.all([
+          configRes.json(),
+          ratesRes.json(),
+        ]);
+
+        if (!cancelled) {
+          if (configRes.ok) setFeePercent(configData.feePercent);
+          if (ratesRes.ok) setExchangeRates(ratesData);
+        }
       } catch {
-        displayAlert("Error de conexión.");
+        if (!cancelled) displayAlert("Error de conexión.");
       }
     };
+
     fetchData();
 
-    const channel1 = pusherClient.subscribe("exchange-rates");
-    channel1.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
+    const chRates = pusherClient.subscribe("exchange-rates");
+    chRates.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
       setExchangeRates(data.rates);
     });
-    const channel2 = pusherClient.subscribe("app-config");
-    channel2.bind("config-updated", (data: { feePercent: number }) => {
+
+    const chConfig = pusherClient.subscribe("app-config");
+    chConfig.bind("config-updated", (data: { feePercent: number }) => {
       setFeePercent(data.feePercent);
     });
+
     return () => {
-      channel1.unbind_all();
-      channel1.unsubscribe();
-      channel2.unbind_all();
-      channel2.unsubscribe();
+      cancelled = true;
+      chRates.unbind_all();
+      chRates.unsubscribe();
+      chConfig.unbind_all();
+      chConfig.unsubscribe();
     };
   }, []);
 
@@ -379,14 +461,18 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         setWallet,
         loading,
         setLoading,
+
         feePercent,
         finalCommission,
         dynamicCommission,
         exchangeRates,
+
         selectedDestinationCurrency,
         setSelectedDestinationCurrency,
+
         selectedPlatform,
         setSelectedPlatform,
+
         bsPhoneNumber,
         setBsPhoneNumber,
         bsIdNumber,
@@ -399,21 +485,22 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         setCopAccountHolder,
         selectedAccountId,
         setSelectedAccountId,
+
         showAlert,
         alertMessage,
         alertType,
         setShowAlert,
         displayAlert,
+
         rate,
         montoRecibido,
         handleCrearOrden,
         baseFeePercent,
-        orderCount,
 
-        // nuevos
         channels,
         selectedChannelKey,
         setSelectedChannelKey,
+
         quote,
       }}
     >

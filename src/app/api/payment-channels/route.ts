@@ -43,13 +43,10 @@ export async function GET(req: Request) {
         available: !!enabled,
         displayStatus: enabled ? "Disponible" : (statusText || "No disponible"),
         sortOrder: r.sortOrder,
-        // (opcional) si tu cliente quiere ver ambas a la vez:
-        // commissionBuyPercent: r.commissionBuyPercent,
-        // commissionSellPercent: r.commissionSellPercent,
       };
     });
 
-    return NextResponse.json(items);
+    return NextResponse.json(items, { status: 200 });
   } catch (error) {
     console.error("Error listando canales públicos:", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
