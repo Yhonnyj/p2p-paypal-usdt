@@ -26,8 +26,7 @@ export default function SummaryCard() {
     selectedDestinationCurrency,
     montoRecibido,
     monto,
-  } = useOrderForm() as any;
-
+  } = useOrderForm() as ReturnType<typeof useOrderForm>;
   // ---------- Con quote del backend ----------
   if (quote) {
     const {

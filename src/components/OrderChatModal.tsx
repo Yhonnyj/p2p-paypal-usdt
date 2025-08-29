@@ -139,20 +139,21 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
   const [hasClicked, setHasClicked] = useState(false);
   const [clientEmail, setClientEmail] = useState<string | null>(null);
 
-  const fetchMessages = useCallback(async () => {
-    setFetchingMessages(true);
-    try {
-      const res = await fetch(`/api/orders/${orderId}/messages`);
-      if (!res.ok) throw new Error("Failed to fetch messages");
-      const { order, messages } = await res.json();
-      if (order?.user?.email) setClientEmail(order.user.email);
-      setMessages(messages);
-    } catch (error) {
-      toast.error("Error al cargar mensajes.");
-    } finally {
-      setFetchingMessages(false);
-    }
-  }, [orderId]);
+const fetchMessages = useCallback(async () => {
+  setFetchingMessages(true);
+  try {
+    const res = await fetch(`/api/orders/${orderId}/messages`);
+    if (!res.ok) throw new Error("Failed to fetch messages");
+    const { order, messages } = await res.json();
+    if (order?.user?.email) setClientEmail(order.user.email);
+    setMessages(messages);
+  } catch {
+    toast.error("Error al cargar mensajes.");
+  } finally {
+    setFetchingMessages(false);
+  }
+}, [orderId]);
+
 
   useEffect(() => {
     const handleFocus = () => (windowFocusedRef.current = true);
@@ -299,7 +300,7 @@ export default function OrderChatModal({ orderId, isOpen, onClose, orderData }: 
         e.target.value = "";
         return;
       }
-      const MAX_FILE_SIZE_MB = 5;
+      const MAX_FILE_SIZE_MB = 10;
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
         toast.error(`La imagen es demasiado grande. Máximo ${MAX_FILE_SIZE_MB}MB.`);
         e.target.value = "";

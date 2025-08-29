@@ -1,12 +1,27 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 // 🔐 Admin dinámico según entorno
 const ADMIN_CLERK_ID =
   process.env.APP_ENV === "production"
     ? process.env.ADMIN_CLERK_ID_PROD
     : process.env.ADMIN_CLERK_ID_STAGING;
+
+// ==== Tipos de ayuda ====
+type PatchBody = Partial<{
+  label: string;
+  commissionBuyPercent: number | string;
+  commissionSellPercent: number | string;
+  enabledBuy: boolean;
+  enabledSell: boolean;
+  visible: boolean;
+  statusTextBuy: string | null;
+  statusTextSell: string | null;
+  sortOrder: number | string;
+  // key?: string; // evitar cambiarlo salvo necesidad
+}>;
 
 // PATCH /api/admin/payment-channels/[id] → actualizar campos puntuales
 export async function PATCH(
@@ -18,31 +33,38 @@ export async function PATCH(
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const id = params.id;
-  try {
-    const body = await req.json();
+  const { id } = params;
 
-    // Sanitizar numéricos si vienen como string
-    const data: any = {
+  try {
+    const body = (await req.json()) as PatchBody;
+
+    // Construimos un objeto tipado para Prisma
+    const data: Prisma.PaymentChannelUpdateInput = {
       label: body.label ?? undefined,
       commissionBuyPercent:
         body.commissionBuyPercent != null
-          ? parseFloat(body.commissionBuyPercent)
+          ? Number(body.commissionBuyPercent)
           : undefined,
       commissionSellPercent:
         body.commissionSellPercent != null
-          ? parseFloat(body.commissionSellPercent)
+          ? Number(body.commissionSellPercent)
           : undefined,
       enabledBuy:
         typeof body.enabledBuy === "boolean" ? body.enabledBuy : undefined,
       enabledSell:
         typeof body.enabledSell === "boolean" ? body.enabledSell : undefined,
       visible: typeof body.visible === "boolean" ? body.visible : undefined,
-      statusTextBuy: body.statusTextBuy ?? undefined,
-      statusTextSell: body.statusTextSell ?? undefined,
-      sortOrder: body.sortOrder != null ? Number(body.sortOrder) : undefined,
-      // 🔑 Nota: `key` es único, evita cambiarlo salvo que sea necesario.
-      // key: body.key ? String(body.key).toUpperCase() : undefined,
+      statusTextBuy:
+        body.statusTextBuy === null
+          ? null
+          : body.statusTextBuy ?? undefined,
+      statusTextSell:
+        body.statusTextSell === null
+          ? null
+          : body.statusTextSell ?? undefined,
+      sortOrder:
+        body.sortOrder != null ? Number(body.sortOrder) : undefined,
+      // key: body.key ? String(body.key).toUpperCase() : undefined, // evitar cambiarlo salvo necesidad
     };
 
     const updated = await prisma.paymentChannel.update({
@@ -51,12 +73,9 @@ export async function PATCH(
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error actualizando PaymentChannel:", error);
-    return NextResponse.json(
-      { error: "Error del servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
 
@@ -70,15 +89,19 @@ export async function DELETE(
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const id = params.id;
+  const { id } = params;
 
   try {
     await prisma.paymentChannel.delete({ where: { id } });
     return NextResponse.json({ ok: true, deleted: "hard" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error eliminando PaymentChannel:", error);
 
-    if (error?.code === "P2003") {
+    // Manejo fino de errores Prisma (foreign keys, etc.)
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003"
+    ) {
       return NextResponse.json(
         {
           error:
@@ -88,9 +111,6 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json(
-      { error: "Error del servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }

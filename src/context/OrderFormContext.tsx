@@ -14,7 +14,7 @@ export interface ExchangeRate {
 type PublicChannel = {
   key: string;               // "PAYPAL"
   label: string;             // "PayPal"
-  commissionPercent: number; // según side=BUY
+  commissionPercent: number; // según side=BUY (para UI)
   available: boolean;
   displayStatus: string;     // "Disponible" | "No disponible" | "Mantenimiento"
   sortOrder: number;
@@ -31,7 +31,7 @@ type QuoteResponse = {
 
   // Detalles de comisiones / descuento
   commissionPercent: number;    // % canal
-  baseFeePercent: number;       // % base global (si se usa)
+  baseFeePercent: number;       // % base global (si se usa en backend)
   preDiscountPercent: number;   // % antes de descuento (para “Cotización base”)
   userDiscountPercent: number;  // % fidelidad aplicado
   totalPct: number;             // % total aplicado (ya con descuento)
@@ -44,6 +44,26 @@ type QuoteResponse = {
   // UX helper
   milestone: Milestone;
 };
+
+// Datos que enviamos en la creación de orden (sin any)
+type RecipientDetailsInput =
+  | {
+      type: "USDT";
+      currency: "USDT";
+      wallet: string;
+      network: string;
+    }
+  | {
+      type: "FIAT";
+      currency: string; // "BS" | "COP" | etc
+      bankName: string;
+      selectedAccountId: string | null;
+      // Campos opcionales según moneda FIAT
+      phoneNumber?: string;   // BS
+      idNumber?: string;      // BS
+      accountNumber?: string; // COP
+      accountHolder?: string; // COP
+    };
 
 interface OrderFormContextProps {
   // básicos
@@ -58,7 +78,7 @@ interface OrderFormContextProps {
   loading: boolean;
   setLoading: (v: boolean) => void;
 
-  // config/rates (para fallback visual)
+  // config/rates (fallback visual)
   feePercent: number | null;
   finalCommission: number | null;
   dynamicCommission: number | null; // = feePercent (sin milestones)
@@ -99,7 +119,7 @@ interface OrderFormContextProps {
   // acciones
   handleCrearOrden: () => Promise<void>;
 
-  // opcional config base
+  // mantenemos por compatibilidad (si no hay quote)
   baseFeePercent: number | null;
 
   // métodos de pago (dinámicos)
@@ -123,7 +143,8 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [feePercent, setFeePercent] = useState<number | null>(null); // para fallback
+  // feePercent queda como fallback visual si NO llega quote; ya no se lee de AppConfig
+  const [feePercent] = useState<number | null>(null);
   const [baseFeePercent] = useState<number | null>(null);
   const [finalCommission, setFinalCommission] = useState<number | null>(null);
 
@@ -194,22 +215,21 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     const loadChannels = async () => {
       try {
         const res = await fetch("/api/payment-channels?side=BUY", { cache: "no-store" });
-        const data: PublicChannel[] = await res.json();
+        const data: PublicChannel[] | { error: string } = await res.json();
 
         if (cancelled) return;
 
         if (!res.ok) {
-          displayAlert((data as any)?.error || "No se pudieron cargar los métodos.");
+          displayAlert("error" in data ? data.error : "No se pudieron cargar los métodos.");
           return;
         }
 
-        console.log("[channels] BUY ->", data); // 👈 depuración
-        setChannels(data);
+        setChannels(data as PublicChannel[]);
 
         // elegir/ajustar el método seleccionado si hace falta
-        const firstAvail = data.find((c) => c.available);
+        const firstAvail = (data as PublicChannel[]).find((c) => c.available);
         const stillExists = selectedChannelKey
-          ? data.some((c) => c.key === selectedChannelKey)
+          ? (data as PublicChannel[]).some((c) => c.key === selectedChannelKey)
           : false;
 
         if (!stillExists) {
@@ -260,7 +280,6 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     let aborted = false;
 
     const runQuote = async () => {
-      // Requiere selección y monto >= 0 (permitimos 0 para preview)
       if (!selectedChannelKey || monto < 0) {
         setQuote(null);
         return;
@@ -274,7 +293,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
             channelKey: selectedChannelKey,
             amountUsd: monto,
             destinationCurrency: selectedDestinationCurrency,
-            // includeBaseFee: true, // actívalo si usas fee base global
+            // includeBaseFee: true, // si tu backend lo usa
           }),
         });
         const data = await res.json();
@@ -283,7 +302,8 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
             setQuote(data as QuoteResponse);
           } else {
             setQuote(null);
-            displayAlert(data.error || "No se pudo obtener la cotización.");
+            const msg: string = (data && data.error) || "No se pudo obtener la cotización.";
+            displayAlert(msg);
           }
         }
       } catch {
@@ -300,6 +320,34 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     };
   }, [selectedChannelKey, monto, selectedDestinationCurrency]);
 
+  // --------- CARGAS INICIALES + PUSHER (SOLO RATES) ---------
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchRates = async () => {
+      try {
+        const ratesRes = await fetch("/api/rates");
+        const ratesData: ExchangeRate[] = await ratesRes.json();
+        if (!cancelled && ratesRes.ok) setExchangeRates(ratesData);
+      } catch {
+        if (!cancelled) displayAlert("Error de conexión.");
+      }
+    };
+
+    fetchRates();
+
+    const chRates = pusherClient.subscribe("exchange-rates");
+    chRates.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
+      setExchangeRates(data.rates);
+    });
+
+    return () => {
+      cancelled = true;
+      chRates.unbind_all();
+      chRates.unsubscribe();
+    };
+  }, []);
+
   // --------- CREAR ORDEN ---------
   const handleCrearOrden = async () => {
     if (!selectedChannelKey) {
@@ -315,11 +363,10 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     try {
       const methodsRes = await fetch("/api/payment-methods");
       if (methodsRes.ok) {
-        const methodsData = await methodsRes.json();
+        const methodsData: Array<{ type: string; details: { email?: string } }> =
+          await methodsRes.json();
         const paypalExists = methodsData.some(
-          (m: Record<string, unknown>) =>
-            (m as { type: string; details: { email?: string } }).type === "PayPal" &&
-            (m as { type: string; details: { email?: string } }).details.email === paypalEmail
+          (m) => m.type === "PayPal" && m.details.email === paypalEmail
         );
 
         if (!paypalExists) {
@@ -328,14 +375,14 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
           });
-          console.log("Cuenta PayPal guardada automáticamente:", paypalEmail);
+          // (no console noisy en build)
         }
       }
-    } catch (err) {
-      console.error("Error guardando cuenta PayPal:", err);
+    } catch {
+      // silencioso para no romper UX
     }
 
-    let recipientDetails: Record<string, unknown> = {};
+    let recipientDetails: RecipientDetailsInput;
 
     if (selectedDestinationCurrency === "USDT") {
       if (!wallet) {
@@ -348,21 +395,33 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         displayAlert("Selecciona una cuenta bancaria.");
         return;
       }
-      recipientDetails = {
+      // base para FIAT
+      const fiatBase: RecipientDetailsInput = {
         type: "FIAT",
         currency: selectedDestinationCurrency,
         bankName,
         selectedAccountId,
       };
 
+      // completar según moneda
       if (selectedDestinationCurrency === "BS") {
-        (recipientDetails as any).phoneNumber = bsPhoneNumber;
-        (recipientDetails as any).idNumber = bsIdNumber;
-      }
-
-      if (selectedDestinationCurrency === "COP") {
-        (recipientDetails as any).accountNumber = copAccountNumber;
-        (recipientDetails as any).accountHolder = copAccountHolder;
+        if (!bsPhoneNumber || !bsIdNumber) {
+          displayAlert("Completa teléfono e identificación para BS.");
+          return;
+        }
+        recipientDetails = {
+          ...fiatBase,
+          phoneNumber: bsPhoneNumber,
+          idNumber: bsIdNumber,
+        };
+      } else if (selectedDestinationCurrency === "COP") {
+        recipientDetails = {
+          ...fiatBase,
+          accountNumber: copAccountNumber,
+          accountHolder: copAccountHolder,
+        };
+      } else {
+        recipientDetails = fiatBase;
       }
     }
 
@@ -386,67 +445,21 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      const data: { id: string; finalCommission?: number; error?: string } = await res.json();
       if (res.ok) {
-        setFinalCommission(data.finalCommission ?? null); // compat si lo devuelve
+        if (typeof data.finalCommission === "number") {
+          setFinalCommission(data.finalCommission);
+        }
         router.push(`/dashboard/orders?chat=open&id=${data.id}`);
-        return;
       } else {
         displayAlert("Error: " + (data.error || "Algo salió mal."), "error");
       }
-    } catch (err) {
-      console.error("❌ Error al crear orden:", err);
+    } catch {
       displayAlert("Error al crear la orden.");
     } finally {
       setLoading(false);
     }
   };
-
-  // --------- CARGAS INICIALES + PUSHER ---------
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        const [configRes, ratesRes] = await Promise.all([
-          fetch("/api/config"),
-          fetch("/api/rates"),
-        ]);
-
-        const [configData, ratesData] = await Promise.all([
-          configRes.json(),
-          ratesRes.json(),
-        ]);
-
-        if (!cancelled) {
-          if (configRes.ok) setFeePercent(configData.feePercent);
-          if (ratesRes.ok) setExchangeRates(ratesData);
-        }
-      } catch {
-        if (!cancelled) displayAlert("Error de conexión.");
-      }
-    };
-
-    fetchData();
-
-    const chRates = pusherClient.subscribe("exchange-rates");
-    chRates.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
-      setExchangeRates(data.rates);
-    });
-
-    const chConfig = pusherClient.subscribe("app-config");
-    chConfig.bind("config-updated", (data: { feePercent: number }) => {
-      setFeePercent(data.feePercent);
-    });
-
-    return () => {
-      cancelled = true;
-      chRates.unbind_all();
-      chRates.unsubscribe();
-      chConfig.unbind_all();
-      chConfig.unsubscribe();
-    };
-  }, []);
 
   return (
     <OrderFormContext.Provider
