@@ -268,26 +268,25 @@ if (!user) {
       Crear Nueva Orden
     </button>
 
-    <div className="mt-4 flex flex-col items-center">
+    <div className="mt-2 flex flex-col items-center">
       <img
-        src="/images/capi-constructor.png"
+        src="/images/capi-duerme.png"
         alt="Capi Constructor"
       />
 
       <p className="text-yellow-300 text-sm font-medium text-center mt-3">
-        🚨 Aviso Importante 🚨  
-        Nuestros proveedores externos de cripto y pago móvil están presentando fallas de red fuera de nuestro control.  
-        <br /><br />
-        Nuestro equipo (y nuestro capybara 🦫) ya está trabajando para resolverlo junto a ellos.  
-        En pocos minutos el servicio volverá a estar disponible. 🙏  
-        <br /><br />
-        ¡Gracias por tu paciencia y confianza!
-      </p>
+    Tu capibara favorito está descansando.  
+    <br /><br />
+    Volveremos mañana martes. 🙏  
+    <br /><br />
+    ¡Gracias por tu confianza!
+  </p>
 
-      <p className="text-gray-400 text-xs mt-2">
-        Podrás crear nuevas órdenes en  <span className="text-yellow-300">unos minutos</span>.
-      </p>
-    </div>
+  <p className="text-gray-400 text-xs mt-2">
+    Podrás crear nuevas órdenes mañana martes a  
+    <span className="text-yellow-300"> partir de las 10 AM</span>.
+  </p>
+</div>
   </div>
 )}
 
