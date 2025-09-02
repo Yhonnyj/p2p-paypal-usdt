@@ -284,7 +284,7 @@ if (!user) {
 
   <p className="text-gray-400 text-xs mt-2">
     Podrás crear nuevas órdenes mañana martes a  
-    <span className="text-yellow-300"> partir de las 10 AM</span>.
+    <span className="text-yellow-300"> partir de las 12 PM</span>.
   </p>
 </div>
   </div>

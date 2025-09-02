@@ -34,29 +34,24 @@ export default function AdminSidebar({
   const router = useRouter();
   const { signOut } = useClerk();
 
-  const [pendingVerifications,] = useState(0);
-  const sidebarRef = useRef<HTMLDivElement>(null); // 👈 Referencia al sidebar
+  const [pendingVerifications] = useState(0);
+  // aside -> HTMLElement (evita warning de tipos)
+  const sidebarRef = useRef<HTMLElement | null>(null);
 
-
+  // Flag para evitar hydration mismatch (reemplaza typeof window === 'undefined')
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // ✅ Cierra el sidebar si se hace clic fuera
   useEffect(() => {
+    if (!isOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, setIsOpen]);
 
   const handleLogout = async () => {
@@ -71,9 +66,9 @@ export default function AdminSidebar({
 
   return (
     <AnimatePresence>
-      {(isOpen || typeof window !== "undefined") && (
+      {(isOpen || mounted) && (
         <motion.aside
-          ref={sidebarRef} // 👈 Referencia asignada aquí
+          ref={sidebarRef}
           initial={{ x: -300 }}
           animate={{ x: 0 }}
           exit={{ x: -300 }}
@@ -107,9 +102,7 @@ export default function AdminSidebar({
               initial="hidden"
               animate="visible"
               variants={{
-                visible: {
-                  transition: { staggerChildren: 0.07, delayChildren: 0.1 },
-                },
+                visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
               }}
               className="space-y-3"
             >
@@ -133,15 +126,8 @@ export default function AdminSidebar({
                         {isVerification && pendingVerifications > 0 ? (
                           <motion.div
                             className="relative flex items-center"
-                            animate={{
-                              scale: [1, 1.1, 1],
-                              opacity: [1, 0.8, 1],
-                            }}
-                            transition={{
-                              repeat: Infinity,
-                              duration: 1.5,
-                              ease: "easeInOut",
-                            }}
+                            animate={{ scale: [1, 1.1, 1], opacity: [1, 0.8, 1] }}
+                            transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
                           >
                             <BellRing className="w-5 h-5 text-red-400" />
                             <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center border border-red-700 shadow-sm">
@@ -168,7 +154,7 @@ export default function AdminSidebar({
           >
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105 active:scale-98 relative overflow-hidden"
+              className="group w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold shadow-lg shadow-red-500/30 transition-all duration-300 transform hover:scale-105 active:scale-98 relative overflow-hidden"
             >
               <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <LogOut className="w-4 h-4 relative z-10" />

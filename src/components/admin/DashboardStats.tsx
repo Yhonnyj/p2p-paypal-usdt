@@ -1,9 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import { useAdminStats, type RangeOption } from "@/hooks/useAdminStats";
 
-const ranges: { label: string; value: RangeOption }[] = [
+/* Recharts sin SSR */
+const ResponsiveContainer = dynamic(() => import("recharts").then(m => m.ResponsiveContainer), { ssr: false });
+const LineChart = dynamic(() => import("recharts").then(m => m.LineChart), { ssr: false });
+const Line = dynamic(() => import("recharts").then(m => m.Line), { ssr: false });
+const XAxis = dynamic(() => import("recharts").then(m => m.XAxis), { ssr: false });
+const YAxis = dynamic(() => import("recharts").then(m => m.YAxis), { ssr: false });
+const Tooltip = dynamic(() => import("recharts").then(m => m.Tooltip), { ssr: false });
+
+/* Formato */
+const nf = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 });
+const cf = new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+const fmtCurrency = (v: number) => cf.format(v || 0);
+const fmtNumber = (v: number) => nf.format(v || 0);
+
+/* Rango */
+const baseRanges: { label: string; value: RangeOption }[] = [
   { label: "7 días", value: "7d" },
   { label: "15 días", value: "15d" },
   { label: "Mes", value: "month" },
@@ -12,60 +29,185 @@ const ranges: { label: string; value: RangeOption }[] = [
 
 export default function AdminDashboardStats() {
   const [range, setRange] = useState<RangeOption>("month");
-  const { data, loading } = useAdminStats(range);
+  const [showCustom, setShowCustom] = useState(false);
+  const [start, setStart] = useState<string>(""); // YYYY-MM-DD
+  const [end, setEnd] = useState<string>("");     // YYYY-MM-DD
 
-  if (loading) {
-    return <div className="text-center text-sm text-muted-foreground">Cargando estadísticas...</div>;
-  }
+  // Si es custom, pasamos start/end; pedimos timeseries=day
+  const { data, loading, error } =
+    range === "custom"
+      ? useAdminStats(range, start, end, { series: "day" })
+      : useAdminStats(range, undefined, undefined, { series: "day" });
 
-  if (!data) {
-    return <div className="text-red-500 text-center">Error al cargar estadísticas</div>;
-  }
+  // ⚠️ hooks arriba
+  const times = data?.timeseries ?? [];
+  const seriesUSD = useMemo(() => times.map(d => ({ name: d.label, usd: Number(d.totalUSD || 0) })), [times]);
+  const seriesUSDT = useMemo(() => times.map(d => ({ name: d.label, usdt: Number(d.totalUSDT || 0) })), [times]);
+  const seriesBS = useMemo(() => times.map(d => ({ name: d.label, bs: Number(d.totalBS || 0) })), [times]);
+
+  if (loading) return <SkeletonGrid />;
+  if (error || !data) return <div className="text-red-500 text-center font-medium">❌ Error al cargar estadísticas</div>;
 
   const {
     totalUSD = 0,
     totalUSDT = 0,
-    totalBS = 0, // ✅ CAMBIADO para que coincida con la API
+    totalBS = 0,
     stats: { COMPLETED = 0, PENDING = 0, CANCELLED = 0 } = {},
   } = data;
 
   return (
-    <div className="mt-6">
-      {/* Botones de rango */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {ranges.map(({ label, value }) => (
+    <div className="mt-6 space-y-8">
+      {/* Controles de rango */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-wrap gap-3" role="tablist" aria-label="Rango del reporte">
+          {baseRanges.map(({ label, value }) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={range === value}
+              onClick={() => { setRange(value); setShowCustom(false); }}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all shadow-sm ${
+                range === value ? "bg-emerald-500 text-white shadow-lg scale-105" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
           <button
-            key={value}
-            onClick={() => setRange(value)}
-            className={`px-3 py-1.5 text-sm rounded-full border transition ${
-              range === value
-                ? "bg-white text-black font-semibold"
-                : "bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700"
+            role="tab"
+            aria-selected={range === "custom"}
+            onClick={() => { setShowCustom(v => !v); setRange("custom"); }}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all shadow-sm ${
+              range === "custom" ? "bg-emerald-500 text-white shadow-lg scale-105" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
             }`}
           >
-            {label}
+            Personalizado
           </button>
-        ))}
+        </div>
+
+        {/* Picker personalizado */}
+        {showCustom && (
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm text-zinc-400">Inicio</label>
+            <input
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500/40"
+            />
+            <label className="text-sm text-zinc-400">Fin</label>
+            <input
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500/40"
+            />
+            <button
+              onClick={() => setRange("custom")}
+              disabled={!start || !end}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                start && end
+                  ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                  : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+              }`}
+            >
+              Aplicar
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card title="💰 Total USD recibidos" value={`$${totalUSD.toFixed(2)}`} />
-        <Card title="🪙 Total USDT enviados" value={`${totalUSDT.toFixed(2)} USDT`} />
-        <Card title="🇻🇪 Total BS (USD)" value={`$${totalBS.toFixed(2)}`} />
-        <Card title="✅ Completadas" value={COMPLETED.toString()} />
-        <Card title="🕒 Pendientes" value={PENDING.toString()} />
-        <Card title="❌ Canceladas" value={CANCELLED.toString()} />
+      {/* Tarjetas principales */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StatCard title="💰 Total USD recibidos" value={fmtCurrency(totalUSD)} gradient="from-emerald-500/20 to-emerald-500/5" />
+        <StatCard title="🪙 Total USDT enviados" value={`${fmtNumber(totalUSDT)} USDT`} gradient="from-blue-500/20 to-blue-500/5" />
+        <StatCard title="🇻🇪 Total BS (USD)" value={fmtCurrency(totalBS)} gradient="from-yellow-500/20 to-yellow-500/5" />
+        <StatCard title="✅ Completadas" value={fmtNumber(COMPLETED)} gradient="from-emerald-400/20 to-emerald-400/5" />
+        <StatCard title="🕒 Pendientes" value={fmtNumber(PENDING)} gradient="from-orange-400/20 to-orange-400/5" />
+        <StatCard title="❌ Canceladas" value={fmtNumber(CANCELLED)} gradient="from-red-500/20 to-red-500/5" />
       </div>
+
+      {/* Gráficas (se muestran solo si hay timeseries) */}
+      {times.length > 1 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <ChartCard title="Tendencia USD recibidos">
+            <ChartSparkline dataKey="usd" stroke="#10b981" data={seriesUSD} />
+          </ChartCard>
+
+          <ChartCard title="Tendencia USDT enviados">
+            <ChartSparkline dataKey="usdt" stroke="#60a5fa" data={seriesUSDT} />
+          </ChartCard>
+
+          <ChartCard title="Tendencia BS (USD)">
+            <ChartSparkline dataKey="bs" stroke="#f59e0b" data={seriesBS} />
+          </ChartCard>
+        </div>
+      )}
     </div>
   );
 }
 
-function Card({ title, value }: { title: string; value: string }) {
+/* ====== Cards ====== */
+function StatCard({ title, value, gradient }: { title: string; value: string | number; gradient: string }) {
   return (
-    <div className="bg-zinc-900 rounded-2xl shadow-lg p-4 border border-zinc-800">
-      <div className="text-sm text-muted-foreground">{title}</div>
-      <div className="text-2xl font-bold mt-1 text-white">{value}</div>
+    <motion.div
+      whileHover={{ scale: 1.03 }}
+      transition={{ type: "spring", stiffness: 200, damping: 16 }}
+      className={`rounded-2xl border border-zinc-800 bg-gradient-to-br ${gradient} p-5 shadow-lg`}
+    >
+      <div className="text-sm text-zinc-400">{title}</div>
+      <div className="text-3xl font-bold mt-2 text-white tracking-tight">{value}</div>
+    </motion.div>
+  );
+}
+
+/* ====== Chart wrappers ====== */
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 shadow-lg">
+      <div className="text-sm text-zinc-400 mb-3">{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function ChartSparkline<T extends Record<string, any>>({
+  data,
+  dataKey,
+  stroke,
+}: {
+  data: T[];
+  dataKey: keyof T;
+  stroke: string;
+}) {
+  return (
+    <div className="h-40">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+          <XAxis dataKey="name" hide />
+          <YAxis hide />
+          <Tooltip
+            cursor={{ strokeWidth: 0 }}
+            contentStyle={{ background: "#0b0f16", border: "1px solid #27272a", borderRadius: "10px", color: "#fff" }}
+            formatter={(val: any) => [fmtNumber(Number(val) || 0), ""]}
+            labelStyle={{ color: "#a1a1aa" }}
+          />
+          <Line type="monotone" dataKey={dataKey as string} stroke={stroke} strokeWidth={2} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+/* ====== Skeleton ====== */
+function SkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="h-28 rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden">
+          <div className="h-full w-full animate-pulse bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900" />
+        </div>
+      ))}
     </div>
   );
 }
