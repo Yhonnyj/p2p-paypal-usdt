@@ -1,3 +1,4 @@
+// src/components/admin/DashboardStats.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -31,13 +32,11 @@ const baseRanges: { label: string; value: RangeOption }[] = [
 type TimesPoint = { label: string; totalUSD?: number; totalUSDT?: number; totalBS?: number; totalProfit?: number };
 
 export default function AdminDashboardStats() {
-  // ⚠️ Hooks SIEMPRE arriba y en el mismo orden
   const [range, setRange]       = useState<RangeOption>("month");
   const [start, setStart]       = useState<string>(""); // YYYY-MM-DD
   const [end, setEnd]           = useState<string>("");
   const isCustom                = range === "custom";
 
-  // Un SOLO hook para datos; pasamos start/end sólo si hace falta
   const { data, loading, error } = useAdminStats(
     range,
     isCustom ? start : undefined,
@@ -45,7 +44,6 @@ export default function AdminDashboardStats() {
     { series: "day" }
   );
 
-  // Series: derivadas SIEMPRE con useMemo (no condicionales)
   const times: TimesPoint[] = (data?.timeseries as TimesPoint[]) ?? [];
 
   const seriesUSD    = useMemo(() => times.map(d => ({ name: d.label, usd:    Number(d.totalUSD    || 0) })), [times]);
@@ -60,7 +58,7 @@ export default function AdminDashboardStats() {
     totalUSD     = 0,
     totalUSDT    = 0,
     totalBS      = 0,
-    totalProfit  = 0, // <- nuevo
+    totalProfit  = 0,
     stats: { COMPLETED = 0, PENDING = 0, CANCELLED = 0 } = {},
   } = data as unknown as {
     totalUSD: number; totalUSDT: number; totalBS: number; totalProfit?: number;
@@ -89,7 +87,7 @@ export default function AdminDashboardStats() {
           ))}
         </div>
 
-        {/* Picker personalizado (NO mueve hooks) */}
+        {/* Picker personalizado */}
         {isCustom && (
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm text-zinc-400">Inicio</label>
@@ -110,7 +108,7 @@ export default function AdminDashboardStats() {
         )}
       </div>
 
-      {/* Tarjetas principales (incluye Profit) */}
+      {/* Tarjetas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="💰 Total USD recibidos"  value={fmtCurrency(totalUSD)}                         gradient="from-emerald-500/20 to-emerald-500/5" />
         <StatCard title="🪙 Total USDT enviados"  value={`${fmtNumber(totalUSDT)} USDT`}               gradient="from-blue-500/20 to-blue-500/5" />
@@ -121,7 +119,7 @@ export default function AdminDashboardStats() {
         <StatCard title="❌ Canceladas"           value={fmtNumber(CANCELLED)}                          gradient="from-red-500/20 to-red-500/5" />
       </div>
 
-      {/* Gráficas (si hay timeseries) */}
+      {/* Gráficas */}
       {times.length > 1 && (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <ChartCard title="Tendencia USD recibidos">
@@ -169,7 +167,8 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function ChartSparkline<T extends Record<string, any>>({
+/* ✅ sin `any` en el genérico */
+function ChartSparkline<T extends Record<string, unknown>>({
   data,
   dataKey,
   stroke,
@@ -201,7 +200,7 @@ function ChartSparkline<T extends Record<string, any>>({
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {[...Array(8)].map((_, i) => (
+      {[...Array(8)].map((_: unknown, i: number) => (
         <div key={i} className="h-28 rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden">
           <div className="h-full w-full animate-pulse bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900" />
         </div>

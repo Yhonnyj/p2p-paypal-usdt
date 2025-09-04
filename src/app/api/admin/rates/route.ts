@@ -14,7 +14,7 @@ export async function GET() {
   if (userId !== ADMIN_CLERK_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
- 
+
   try {
     const rates = await prisma.exchangeRate.findMany({
       orderBy: { currency: "asc" },
@@ -37,32 +37,52 @@ export async function POST(req: Request) {
   if (userId !== ADMIN_CLERK_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
- 
+
   try {
-    const body = await req.json();
-    const { currency, rate, buyRate, sellRate } = body;
-    
+    const body: unknown = await req.json();
+    const { currency, rate, buyRate, sellRate } = body as {
+      currency?: string;
+      rate?: number | string;
+      buyRate?: number | string;
+      sellRate?: number | string;
+    };
+
     if (!currency) {
       return NextResponse.json({ error: "Currency requerido" }, { status: 400 });
     }
 
-    // Validar que al menos una tasa sea proporcionada
     if (!rate && !buyRate && !sellRate) {
-      return NextResponse.json({ error: "Al menos una tasa debe ser proporcionada" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Al menos una tasa debe ser proporcionada" },
+        { status: 400 }
+      );
     }
 
-    // Preparar datos para upsert
-    const updateData: any = {};
-    if (rate !== undefined && rate !== null) updateData.rate = parseFloat(rate);
-    if (buyRate !== undefined && buyRate !== null) updateData.buyRate = parseFloat(buyRate);
-    if (sellRate !== undefined && sellRate !== null) updateData.sellRate = parseFloat(sellRate);
-
-    const createData: any = {
-      currency: currency.toUpperCase(),
-      rate: rate ? parseFloat(rate) : 0, // Mantener compatibilidad
+    // ✅ sin any: tipos explícitos
+    type UpdateData = { rate?: number; buyRate?: number; sellRate?: number };
+    type CreateData = {
+      currency: string;
+      rate: number;
+      buyRate?: number;
+      sellRate?: number;
     };
-    if (buyRate !== undefined && buyRate !== null) createData.buyRate = parseFloat(buyRate);
-    if (sellRate !== undefined && sellRate !== null) createData.sellRate = parseFloat(sellRate);
+
+    const updateData: UpdateData = {};
+    if (rate !== undefined && rate !== null)
+      updateData.rate = parseFloat(String(rate));
+    if (buyRate !== undefined && buyRate !== null)
+      updateData.buyRate = parseFloat(String(buyRate));
+    if (sellRate !== undefined && sellRate !== null)
+      updateData.sellRate = parseFloat(String(sellRate));
+
+    const createData: CreateData = {
+      currency: currency.toUpperCase(),
+      rate: rate ? parseFloat(String(rate)) : 0, // compat
+    };
+    if (buyRate !== undefined && buyRate !== null)
+      createData.buyRate = parseFloat(String(buyRate));
+    if (sellRate !== undefined && sellRate !== null)
+      createData.sellRate = parseFloat(String(sellRate));
 
     const newRate = await prisma.exchangeRate.upsert({
       where: { currency: currency.toUpperCase() },
@@ -70,7 +90,6 @@ export async function POST(req: Request) {
       create: createData,
     });
 
-    // Emitir evento a todos los clientes conectados
     const allRates = await prisma.exchangeRate.findMany();
     await pusherServer.trigger("exchange-rates", "rates-updated", {
       rates: allRates,

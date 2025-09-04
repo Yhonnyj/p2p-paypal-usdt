@@ -16,19 +16,26 @@ export async function PATCH(
   if (userId !== ADMIN_CLERK_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
- 
+
   const currency = context.params.currency.toUpperCase();
   const body = await req.json();
-  const { rate, buyRate, sellRate } = body;
+  const { rate, buyRate, sellRate } = body as {
+    rate?: number;
+    buyRate?: number;
+    sellRate?: number;
+  };
 
   // Validar que al menos un campo sea proporcionado
   if (rate === undefined && buyRate === undefined && sellRate === undefined) {
-    return NextResponse.json({ error: "Al menos una tasa debe ser proporcionada" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Al menos una tasa debe ser proporcionada" },
+      { status: 400 }
+    );
   }
 
   try {
-    // Preparar datos a actualizar solo con los campos proporcionados
-    const updateData: any = {};
+    // SOLO cambio: tipar sin any
+    const updateData: { rate?: number; buyRate?: number; sellRate?: number } = {};
     if (rate !== undefined && rate !== null) {
       if (typeof rate !== "number") {
         return NextResponse.json({ error: "Rate debe ser un número" }, { status: 400 });
@@ -83,7 +90,7 @@ export async function DELETE(
   if (userId !== ADMIN_CLERK_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
-   
+
   const currency = context.params.currency.toUpperCase();
   try {
     await prisma.exchangeRate.delete({

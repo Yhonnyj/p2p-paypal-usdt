@@ -177,7 +177,6 @@ export async function POST(req: Request) {
       const nthOrder = completedCount + 1;
       const rule = milestoneDiscount(nthOrder);
       userDiscountPercent = rule.percent;
-      milestone = rule.milestone;
     }
 
     // % final aplicado al cliente (ya con descuento)
