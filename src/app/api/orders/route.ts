@@ -167,17 +167,18 @@ export async function POST(req: Request) {
     const commissionPercent =
       sideU === "BUY" ? channel.commissionBuyPercent : channel.commissionSellPercent;
 
-    // -------- Descuento fidelidad: SOLO BUY --------
-    let userDiscountPercent = 0;
-    let milestone: Milestone = null;
-    if (sideU === "BUY") {
-      const completedCount = await prisma.order.count({
-        where: { userId: dbUser.id, status: "COMPLETED" },
-      });
-      const nthOrder = completedCount + 1;
-      const rule = milestoneDiscount(nthOrder);
-      userDiscountPercent = rule.percent;
-    }
+   // -------- Descuento fidelidad: SOLO BUY --------
+let userDiscountPercent = 0;
+
+if (sideU === "BUY") {
+  const completedCount = await prisma.order.count({
+    where: { userId: dbUser.id, status: "COMPLETED" },
+  });
+  const nthOrder = completedCount + 1;
+  const rule = milestoneDiscount(nthOrder);
+  userDiscountPercent = rule.percent;
+}
+
 
     // % final aplicado al cliente (ya con descuento)
     const appliedCommissionPct = commissionPercent * (1 - userDiscountPercent / 100);
