@@ -259,42 +259,60 @@ if (!user) {
             Verificar Identidad
           </button>
         )}
-    {verificationStatus === 'APPROVED' && (
-  <div className="flex flex-col items-center">
-    <button
-      disabled
-      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
-    >
-      Crear Nueva Orden
-    </button>
+   {verificationStatus === 'APPROVED' && (
 
-    <div className="mt-2 flex flex-col items-center">
-      <img
-        src="/images/capi-duerme.png"
-        alt="Capi Constructor"
-      />
 
-      <p className="text-yellow-300 text-sm font-medium text-center mt-3">
-    Tu capibara favorito está descansando.  
-    <br /><br />
-    Volveremos mañana martes. 🙏  
-    <br /><br />
-    ¡Gracias por tu confianza!
-  </p>
 
-  <p className="text-gray-400 text-xs mt-2">
-    Podrás crear nuevas órdenes mañana martes a  
-    <span className="text-yellow-300"> partir de las 12 PM</span>.
-  </p>
-</div>
-  </div>
-)}
+
+          <button
+
+
+
+
+            onClick={() => {
+
+
+
+
+              router.push('/dashboard/neworder');
+
+
+
+
+            }}
+
+
+
+
+            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+
+
+
+
+          >
+
+
+
+
+            Crear Nueva Orden
+
+
+
+
+          </button>
+
+
+
+
+        )}
+
 
 
 
 
 
 </section>
+
 
 
       
