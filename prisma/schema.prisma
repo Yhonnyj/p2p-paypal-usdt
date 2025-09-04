@@ -19,31 +19,31 @@ enum OrderStatus {
 }
 
 model Order {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Compatibilidad y nuevo modelo de canales
-  paymentChannelKey String?              // legacy (compat)
-  paymentChannelId  String?              // nueva relación opcional
-  paymentChannel    PaymentChannel?      @relation(fields: [paymentChannelId], references: [id])
+  paymentChannelKey String? // legacy (compat)
+  paymentChannelId  String? // nueva relación opcional
+  paymentChannel    PaymentChannel? @relation(fields: [paymentChannelId], references: [id])
 
   // Operación
-  side       OrderSide?
-  to         String                       // Ej: "USDT - TRC20"
-  platform   String?                      // Ej: "PayPal" (si quieres mantenerlo)
+  side     OrderSide?
+  to       String // Ej: "USDT - TRC20"
+  platform String? // Ej: "PayPal" (si quieres mantenerlo)
 
   // Montos y snapshots
   amount               Float
   finalUsd             Float
   finalUsdt            Float
-  finalCommission      Float            @default(0)
+  finalCommission      Float  @default(0)
   appliedCommissionPct Float?
   appliedFixedFee      Float?
   exchangeRateUsed     Float?
   profit               Float?
   // La columna existe en DB; si no la usas, ignórala, pero conserva el map para integridad.
-  realProfit           Float?           @map("realProfit") @ignore
+  realProfit           Float? @map("realProfit") @ignore
 
   // Operativo
   paypalEmail     String?
@@ -66,41 +66,41 @@ model Order {
 }
 
 model PaymentChannel {
-  id                    String   @id @default(cuid())
-  key                   String   @unique      // "PAYPAL", "ZELLE", etc.
-  label                 String               // Visible: "PayPal"
+  id    String @id @default(cuid())
+  key   String @unique // "PAYPAL", "ZELLE", etc.
+  label String // Visible: "PayPal"
 
   // % por lado
   commissionBuyPercent  Float
   commissionSellPercent Float
-  providerFeePercent    Float    @default(0)
+  providerFeePercent    Float @default(0)
 
   // Disponibilidad por lado
-  enabledBuy            Boolean  @default(true)
-  enabledSell           Boolean  @default(true)
+  enabledBuy  Boolean @default(true)
+  enabledSell Boolean @default(true)
 
   // Visibilidad y mensajes
-  visible               Boolean  @default(true)
-  statusTextBuy         String?
-  statusTextSell        String?
+  visible        Boolean @default(true)
+  statusTextBuy  String?
+  statusTextSell String?
 
   // Utilidades
-  sortOrder             Int      @default(0)
-  archivedAt            DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  sortOrder  Int       @default(0)
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   // Back-relation
-  orders                Order[]
+  orders Order[]
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
 
-  senderId  String
-  sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   content   String?  @db.Text
   imageUrl  String?  @db.Text
@@ -108,31 +108,36 @@ model Message {
 }
 
 model User {
-  id              String            @id @default(cuid())
-  clerkId         String            @unique
-  email           String            @unique
-  fullName        String?
-  orders          Order[]
-  messages        Message[]         @relation("UserMessages")
-  verifications   Verification[]
-  paymentMethods  PaymentMethod[]
-  expoPushToken   String?
+  id             String          @id @default(cuid())
+  clerkId        String          @unique
+  email          String          @unique
+  fullName       String?
+  orders         Order[]
+  messages       Message[]       @relation("UserMessages")
+  verifications  Verification[]
+  paymentMethods PaymentMethod[]
+  expoPushToken  String?
 
   // Referidos (self-relation)
-  referrerId       String?
-  referrer         User?            @relation("UserReferrals", fields: [referrerId], references: [id])
-  referrals        User[]           @relation("UserReferrals")
+  referrerId String?
+  referrer   User?   @relation("UserReferrals", fields: [referrerId], references: [id])
+  referrals  User[]  @relation("UserReferrals")
 
   // Ganancias por referidos
   referralEarnings ReferralEarning[]
   // Back-relation para referredUser en ReferralEarning
   referredUsers    ReferralEarning[] @relation("ReferredUsers")
+
+  // 👇 NUEVO: back-relations para Trusted*
+  trustedIntakes TrustedIntake[] @relation("UserToTrustedIntakes")
+  trustedProfile TrustedProfile? @relation("UserToTrustedProfile")
+  trustedAudits  TrustedAudit[]  @relation("UserToTrustedAudits")
 }
 
 model ReferralEarning {
   id             String   @id @default(cuid())
-  userId         String   // quien gana la comisión
-  referredUserId String   // quien generó la orden
+  userId         String // quien gana la comisión
+  referredUserId String // quien generó la orden
   amount         Float    @default(5.0)
   createdAt      DateTime @default(now())
 
@@ -142,10 +147,10 @@ model ReferralEarning {
 
 model ExchangeRate {
   id        String   @id @default(cuid())
-  currency  String   @unique   // "BS", "COP", etc.
-  rate      Float               // LEGACY
-  buyRate   Float?              // Tasa para BUY
-  sellRate  Float?              // Tasa para SELL
+  currency  String   @unique // "BS", "COP", etc.
+  rate      Float // LEGACY
+  buyRate   Float? // Tasa para BUY
+  sellRate  Float? // Tasa para SELL
   updatedAt DateTime @updatedAt
 }
 
@@ -164,9 +169,106 @@ model Verification {
 model PaymentMethod {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // "PayPal", "PagoMovil", "USDT", etc.
-  details   Json     // Objeto dinámico según el tipo
+  type      String // "PayPal", "PagoMovil", "USDT", etc.
+  details   Json // Objeto dinámico según el tipo
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+///////////
+
+enum ContributorType {
+  COMPANY
+  FREELANCER
+}
+
+enum ClientsType {
+  PERSONS
+  COMPANIES
+  MIXED
+}
+
+enum TrustedStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model TrustedIntake {
+  id     String @id @default(cuid())
+  userId String
+
+  // Relación con User (back-relation: User.trustedIntakes)
+  user User @relation("UserToTrustedIntakes", fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName                  String
+  lastName                   String
+  email                      String
+  username                   String
+  phone                      String?
+  occupation                 String
+  contributorType            ContributorType
+  companyName                String?
+  website                    String?
+  country                    String
+  txPerMonth                 Int
+  avgPerTxUsd                Decimal         @db.Decimal(10, 2)
+  rangeMinUsd                Decimal?        @db.Decimal(10, 2)
+  rangeMaxUsd                Decimal?        @db.Decimal(10, 2)
+  monthlyTotalUsd            Decimal         @db.Decimal(12, 2)
+  serviceDescription         String
+  clientsType                ClientsType?
+  clientsCountries           String?
+  acceptsChargebackLiability Boolean
+  acceptsAllowedUse          Boolean
+  acceptsDataProcessing      Boolean
+  ip                         String?
+  userAgent                  String?
+  status                     TrustedStatus   @default(PENDING)
+  reviewerId                 String?
+  decisionAt                 DateTime?
+  createdAt                  DateTime        @default(now())
+  updatedAt                  DateTime        @updatedAt
+
+  // Relación con TrustedAudit (lado opuesto: TrustedAudit.intake)
+  audits TrustedAudit[] @relation("IntakeToAudits")
+
+  @@index([userId, createdAt])
+}
+
+model TrustedProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Relación con User (back-relation: User.trustedProfile)
+  user User @relation("UserToTrustedProfile", fields: [userId], references: [id], onDelete: Cascade)
+
+  enabled       Boolean       @default(false) // acceso activo al flujo
+  status        TrustedStatus @default(APPROVED) // estado de confianza
+  maxPerTxUsd   Decimal       @default(200.00) @db.Decimal(10, 2)
+  maxMonthlyUsd Decimal       @default(1000.00) @db.Decimal(12, 2)
+  holdHours     Int           @default(48) // retención antifraude
+  notes         String?
+  reviewerId    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status])
+}
+
+model TrustedAudit {
+  id        String   @id @default(cuid())
+  userId    String
+  intakeId  String?
+  action    String // "INTAKE_SUBMITTED" | "APPROVED" | "REJECTED" | "LIMITS_SET" | "LIMITS_UPDATED"
+  details   Json?
+  createdAt DateTime @default(now())
+
+  // Relación con User (back-relation: User.trustedAudits)
+  user   User           @relation("UserToTrustedAudits", fields: [userId], references: [id], onDelete: Cascade)
+  // Relación con TrustedIntake (back-relation: TrustedIntake.audits)
+  intake TrustedIntake? @relation("IntakeToAudits", fields: [intakeId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
 }

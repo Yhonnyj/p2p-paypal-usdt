@@ -137,18 +137,13 @@ function PedidoFormContent() {
 
           <SummaryCard />
 
-          <button
-            onClick={handleContinuar}
-            disabled={!canContinue}
-            className={`w-full py-4 px-6 rounded-xl font-bold text-xl text-white shadow-lg transition flex items-center justify-center gap-2 ${
-              canContinue
-                ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20 cursor-pointer"
-                : "bg-emerald-900/40 cursor-not-allowed"
-            }`}
-          >
-            {form.loading ? "Procesando..." : "Continuar"}
-            {!form.loading && <ArrowRight size={22} aria-hidden />}
-          </button>
+      <button
+  disabled
+  className="w-full py-4 px-6 rounded-xl font-bold text-xl text-white bg-gray-600 cursor-not-allowed"
+>
+  Continuar
+</button>
+
         </div>
       </div>
 
