@@ -5,14 +5,21 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // ---------- Helpers de formato ----------
 const fmtFiatVE = (v: number) =>
-  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    Number.isFinite(v) ? v : 0
+  );
 
 const fmtUSD = (v: number) =>
-  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    Number.isFinite(v) ? v : 0
+  );
 
-const fmtCrypto = (v: number) => v.toFixed(2); // USDT a 2 decimales
+const fmtCrypto = (v: number) => (Number.isFinite(v) ? v : 0).toFixed(2); // USDT a 2 decimales
+
 const fmtRate = (v: number) =>
-  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+  new Intl.NumberFormat("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    Number.isFinite(v) ? v : 0
+  );
 
 export default function SummaryCard() {
   const {
@@ -26,12 +33,13 @@ export default function SummaryCard() {
     selectedDestinationCurrency,
     montoRecibido,
     monto,
-  } = useOrderForm() as ReturnType<typeof useOrderForm>;
+  } = useOrderForm();
+
   // ---------- Con quote del backend ----------
   if (quote) {
     const {
-      preDiscountPercent,
-      totalPct,
+      preDiscountPercent, // % base del canal (BUY/SELL)
+      totalPct,           // % total aplicado tras descuento
       userDiscountPercent = 0,
       exchangeRateUsed,
       destinationCurrency,
@@ -43,7 +51,7 @@ export default function SummaryCard() {
     const cotizacionBase = 1 + preDiscountPercent / 100;
     const cotizacionConDescuento = 1 + totalPct / 100;
 
-    // Siempre 3 decimales para resaltar el descuento (ej: 1.065)
+    // Siempre 2/3 decimales para resaltar el descuento
     const fmtBase = (x: number) => x.toFixed(2);
     const fmtDesc = (x: number) => x.toFixed(3);
 
@@ -84,7 +92,6 @@ export default function SummaryCard() {
               </div>
 
               {hasDiscount && (
-                // ⬇️ Badge arriba, número debajo, MISMAS TAMAÑOS
                 <div className="flex items-start justify-between">
                   <span className="text-emerald-400 font-medium text-sm sm:text-base">
                     Cotización con descuento
@@ -116,7 +123,7 @@ export default function SummaryCard() {
 
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`${totalInDestination.toFixed(2)}-${destinationCurrency}`}
+                  key={`${(totalInDestination || 0).toFixed(2)}-${destinationCurrency}`}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.98 }}
@@ -158,9 +165,8 @@ export default function SummaryCard() {
   // ---------- Fallback local (sin quote) ----------
   if (feePercent === null || rate === null || dynamicCommission === null) return null;
 
-  const cotizacionBase = 1 + feePercent / 100;
-  const cotizacionConDescuento = 1 + dynamicCommission / 100;
-
+  const cotizacionBase = 1 + (feePercent ?? 0) / 100;
+  const cotizacionConDescuento = 1 + (dynamicCommission ?? 0) / 100;
   const hasDiscountLocal = cotizacionConDescuento < cotizacionBase;
 
   return (

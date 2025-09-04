@@ -13,26 +13,47 @@ export async function PATCH(
   context: { params: { currency: string } }
 ) {
   const { userId } = await auth();
- if (userId !== ADMIN_CLERK_ID) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
-  
-
+  if (userId !== ADMIN_CLERK_ID) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+ 
   const currency = context.params.currency.toUpperCase();
   const body = await req.json();
-  const { rate } = body;
+  const { rate, buyRate, sellRate } = body;
 
-  if (!rate || typeof rate !== "number") {
-    return NextResponse.json({ error: "Tasa inválida" }, { status: 400 });
+  // Validar que al menos un campo sea proporcionado
+  if (rate === undefined && buyRate === undefined && sellRate === undefined) {
+    return NextResponse.json({ error: "Al menos una tasa debe ser proporcionada" }, { status: 400 });
   }
 
   try {
+    // Preparar datos a actualizar solo con los campos proporcionados
+    const updateData: any = {};
+    if (rate !== undefined && rate !== null) {
+      if (typeof rate !== "number") {
+        return NextResponse.json({ error: "Rate debe ser un número" }, { status: 400 });
+      }
+      updateData.rate = rate;
+    }
+    if (buyRate !== undefined && buyRate !== null) {
+      if (typeof buyRate !== "number") {
+        return NextResponse.json({ error: "BuyRate debe ser un número" }, { status: 400 });
+      }
+      updateData.buyRate = buyRate;
+    }
+    if (sellRate !== undefined && sellRate !== null) {
+      if (typeof sellRate !== "number") {
+        return NextResponse.json({ error: "SellRate debe ser un número" }, { status: 400 });
+      }
+      updateData.sellRate = sellRate;
+    }
+
     const updated = await prisma.exchangeRate.update({
       where: { currency },
-      data: { rate },
+      data: updateData,
     });
 
-    // 🔔 Notificar a todos los clientes conectados
+    // Notificar a todos los clientes conectados
     const allRates = await prisma.exchangeRate.findMany();
     await pusherServer.trigger("exchange-rates", "rates-updated", {
       rates: allRates,
@@ -59,23 +80,18 @@ export async function DELETE(
   context: { params: { currency: string } }
 ) {
   const { userId } = await auth();
-
   if (userId !== ADMIN_CLERK_ID) {
-       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-     }
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
    
-
   const currency = context.params.currency.toUpperCase();
-
   try {
     await prisma.exchangeRate.delete({
       where: { currency },
     });
-
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Error al eliminar tasa:", err);
-
     if (
       err instanceof Error &&
       typeof err === "object" &&
@@ -89,14 +105,12 @@ export async function DELETE(
         { status: 404 }
       );
     }
-
     if (err instanceof Error) {
       return NextResponse.json(
         { error: err.message || "No se pudo eliminar la moneda" },
         { status: 500 }
       );
     }
-
     return NextResponse.json(
       { error: "No se pudo eliminar la moneda" },
       { status: 500 }

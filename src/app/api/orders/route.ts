@@ -1,3 +1,4 @@
+// app/api/orders/route.ts
 export const dynamic = "force-dynamic";
 
 import { auth } from "@clerk/nextjs/server";
@@ -22,14 +23,13 @@ interface RecipientDetails {
 }
 
 interface OrderRequestBody {
-  platform: string;               // (legacy UI)
-  side: Side;                     // BUY | SELL
-  channelKey: string;             // Ej: "PAYPAL"
-  destinationCurrency: string;    // Ej: "USDT" | "BS" | "COP"
-  amount: number;                 // USD
-  paypalEmail: string;
+  platform: string;            // (legacy UI)
+  side: Side;                  // BUY | SELL
+  channelKey: string;          // "PAYPAL", "ZELLE", ...
+  destinationCurrency: string; // "USDT" | "BS" | "COP" | "USD" | ...
+  amount: number;              // USD
+  paypalEmail?: string;        // requerido SOLO si canal = PAYPAL
   recipientDetails: RecipientDetails;
-  includeBaseFee?: boolean;       // Ignorado (ya no hay AppConfig)
 }
 
 function milestoneDiscount(nthOrder: number): { percent: number; milestone: Milestone } {
@@ -68,15 +68,12 @@ export async function POST(req: Request) {
     if (!channelKeyU) return NextResponse.json({ error: "Falta 'channelKey'" }, { status: 400 });
 
     const destCurrencyU = String(destinationCurrency || "").toUpperCase().trim();
-    if (!destCurrencyU) {
-      return NextResponse.json({ error: "Falta 'destinationCurrency'" }, { status: 400 });
-    }
+    if (!destCurrencyU) return NextResponse.json({ error: "Falta 'destinationCurrency'" }, { status: 400 });
 
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json({ error: "Monto inválido" }, { status: 400 });
     }
 
-    if (!paypalEmail) return NextResponse.json({ error: "Falta 'paypalEmail'" }, { status: 400 });
     if (!recipientDetails?.type || !recipientDetails.currency) {
       return NextResponse.json({ error: "Datos de destino incompletos" }, { status: 400 });
     }
@@ -85,13 +82,16 @@ export async function POST(req: Request) {
     const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
     if (!dbUser) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
-    // -------- Canal --------
+    // -------- Canal (con ID y providerFeePercent) --------
     const channel = await prisma.paymentChannel.findUnique({
       where: { key: channelKeyU },
       select: {
+        id: true,
         key: true,
+        label: true,
         commissionBuyPercent: true,
         commissionSellPercent: true,
+        providerFeePercent: true,
         enabledBuy: true,
         enabledSell: true,
         visible: true,
@@ -107,11 +107,21 @@ export async function POST(req: Request) {
 
     const channelEnabled = sideU === "BUY" ? channel.enabledBuy : channel.enabledSell;
     if (!channel.visible || !channelEnabled) {
-      return NextResponse.json({ error: "Método no disponible" }, { status: 400 });
+      const statusText = sideU === "BUY" ? channel.statusTextBuy : channel.statusTextSell;
+      return NextResponse.json({ error: statusText || "Método no disponible" }, { status: 400 });
+    }
+
+    // PayPal: exigir email solo si el canal es PAYPAL
+    if (channel.key === "PAYPAL" && !paypalEmail) {
+      return NextResponse.json({ error: "Falta 'paypalEmail' para PayPal" }, { status: 400 });
     }
 
     // -------- Armar destino (to / wallet) --------
-    const orderDetails: { to: string; wallet: string | null } = { to: "", wallet: null };
+    const orderDetails: { to: string; wallet: string | null; paypalEmail: string | null } = {
+      to: "",
+      wallet: null,
+      paypalEmail: paypalEmail ?? null,
+    };
 
     if (recipientDetails.type === "USDT") {
       if (!recipientDetails.wallet || !recipientDetails.network) {
@@ -153,34 +163,50 @@ export async function POST(req: Request) {
       orderDetails.wallet = JSON.stringify(fiatData);
     }
 
-    // -------- Comisión desde PaymentChannel (sin AppConfig) --------
-    const channelPercent =
+    // -------- % del canal (SIN AppConfig) --------
+    const commissionPercent =
       sideU === "BUY" ? channel.commissionBuyPercent : channel.commissionSellPercent;
 
-    // Ya no usamos fee base global (AppConfig eliminado)
-    const baseFeePercent = 0;
-
-    const preDiscountPercent = channelPercent + baseFeePercent;
-
-    // -------- Descuento fidelidad --------
-    const completedCount = await prisma.order.count({
-      where: { userId: dbUser.id, status: "COMPLETED" },
-    });
-    const nthOrder = completedCount + 1;
-    const { percent: userDiscountPercent } = milestoneDiscount(nthOrder);
-
-    const totalPct = preDiscountPercent * (1 - userDiscountPercent / 100);
-
-    // -------- Tasa --------
-    let exchangeRateUsed = 1;
-    if (destCurrencyU !== "USDT") {
-      const fx = await prisma.exchangeRate.findUnique({ where: { currency: destCurrencyU } });
-      if (!fx) return NextResponse.json({ error: `No hay tasa para ${destCurrencyU}` }, { status: 400 });
-      exchangeRateUsed = fx.rate;
+    // -------- Descuento fidelidad: SOLO BUY --------
+    let userDiscountPercent = 0;
+    let milestone: Milestone = null;
+    if (sideU === "BUY") {
+      const completedCount = await prisma.order.count({
+        where: { userId: dbUser.id, status: "COMPLETED" },
+      });
+      const nthOrder = completedCount + 1;
+      const rule = milestoneDiscount(nthOrder);
+      userDiscountPercent = rule.percent;
+      milestone = rule.milestone;
     }
 
-    // -------- Montos --------
-    const netUsd = amount * (1 - totalPct / 100);
+    // % final aplicado al cliente (ya con descuento)
+    const appliedCommissionPct = commissionPercent * (1 - userDiscountPercent / 100);
+
+    // -------- Tasa (buy/sell con fallback a rate). USD/USDT = 1 --------
+    let exchangeRateUsed = 1;
+    if (destCurrencyU !== "USDT" && destCurrencyU !== "USD") {
+      const fx = await prisma.exchangeRate.findUnique({
+        where: { currency: destCurrencyU },
+        select: { rate: true, buyRate: true, sellRate: true },
+      });
+      if (!fx) return NextResponse.json({ error: `No hay tasa para ${destCurrencyU}` }, { status: 400 });
+
+      const sideRate = sideU === "BUY" ? fx.buyRate : fx.sellRate;
+      const picked = Number(sideRate ?? fx.rate);
+      if (!Number.isFinite(picked) || picked <= 0) {
+        return NextResponse.json({ error: `Tasa inválida para ${destCurrencyU}` }, { status: 400 });
+      }
+      exchangeRateUsed = picked;
+    }
+
+    // -------- Montos (USD) --------
+    const appliedFixedFee = 0; // si algún canal tiene fee fijo, cámbialo aquí según channel.key
+    const finalCommissionUsd = +(amount * appliedCommissionPct / 100).toFixed(2);
+    const providerCostUsd = +(((channel.providerFeePercent ?? 0) * amount) / 100).toFixed(2);
+    const profitUsd = +(finalCommissionUsd - appliedFixedFee - providerCostUsd).toFixed(2);
+
+    const netUsd = +(amount - finalCommissionUsd).toFixed(2); // lo que recibe el cliente en USD antes de tasa
     const finalUsd = netUsd;
     const finalUsdt = destCurrencyU === "USDT" ? netUsd : 0;
 
@@ -190,48 +216,53 @@ export async function POST(req: Request) {
         user: { connect: { id: dbUser.id } },
         platform, // legacy
         side: sideU,
-        paymentChannelKey: channel.key,
+        paymentChannel: { connect: { id: channel.id } }, // FK real
+        paymentChannelKey: channel.key,                   // snapshot compat (opcional)
         amount,
-        paypalEmail,
+        paypalEmail: orderDetails.paypalEmail,
         status: "PENDING",
         to: orderDetails.to,
         wallet: orderDetails.wallet,
-        finalUsd,
-        finalUsdt,
-        appliedCommissionPct: totalPct,
-        exchangeRateUsed,
-        finalCommission: totalPct, // snapshot para compat
+
+        // Snapshots y resultados
+        appliedCommissionPct,              // % aplicado al cliente
+        appliedFixedFee,                   // fee fijo snapshot
+        exchangeRateUsed,                  // 1 si USDT/USD o tasa fiat
+        finalCommission: finalCommissionUsd, // comisión cobrada (USD)
+        finalUsd,                          // USD neto
+        finalUsdt,                         // USDT neto (si corresponde)
+        profit: profitUsd,                 // ganancia estimada (USD)
       },
-      include: { user: true },
+      include: { user: true, paymentChannel: { select: { key: true } } },
     });
 
-    // -------- Factura PayPal --------
-    // Usamos el origin del request para evitar problemas en Vercel
+    // -------- Factura PayPal (si corresponde) --------
     const origin = new URL(req.url).origin;
-    try {
-      const paypalRes = await fetch(`${origin}/api/paypal/invoice`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: order.paypalEmail, amount: order.amount }),
-        cache: "no-store",
-      });
-      const paypalData = await paypalRes.json().catch(() => ({}));
-      if (paypalRes.ok && paypalData?.invoiceId) {
-        await prisma.order.update({
-          where: { id: order.id },
-          data: { paypalInvoiceId: paypalData.invoiceId },
+    if (order.paymentChannel?.key === "PAYPAL" && order.paypalEmail) {
+      try {
+        const paypalRes = await fetch(`${origin}/api/paypal/invoice`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: order.paypalEmail, amount: order.amount }),
+          cache: "no-store",
         });
+        const paypalData = await paypalRes.json().catch(() => ({} as { invoiceId?: string }));
+        if (paypalRes.ok && paypalData?.invoiceId) {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { paypalInvoiceId: paypalData.invoiceId },
+          });
+        }
+      } catch (e) {
+        console.warn("No se pudo crear factura PayPal:", e);
       }
-    } catch (e) {
-      // No bloqueamos la creación de la orden por fallar la factura
-      console.warn("No se pudo crear factura PayPal:", e);
     }
 
     // -------- Mensaje automático en el chat --------
     await prisma.message.create({
       data: {
         content:
-          "Gracias por preferir nuestra plataforma, tu orden está siendo procesada y la factura ha sido enviada a tu cuenta PayPal.",
+          "Gracias por preferir nuestra plataforma, tu orden está siendo procesada y la factura ha sido enviada si corresponde.",
         senderId: "cmclws6rl0000vh38t04argqp", // bot / soporte automático
         orderId: order.id,
       },
@@ -254,7 +285,7 @@ export async function POST(req: Request) {
 
     await pusherServer.trigger("orders-channel", "order-created", order);
 
-    // -------- Notificación email (si RESEND_API_KEY está configurada) --------
+    // -------- Notificación email (opcional) --------
     try {
       if (process.env.RESEND_API_KEY) {
         await resend.emails.send({

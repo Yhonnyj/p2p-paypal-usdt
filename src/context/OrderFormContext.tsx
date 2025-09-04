@@ -5,6 +5,7 @@ import { pusherClient } from "@/lib/pusher";
 import { useRouter } from "next/navigation";
 
 export type AlertType = "success" | "error";
+type Side = "BUY" | "SELL";
 
 export interface ExchangeRate {
   currency: string;
@@ -14,7 +15,7 @@ export interface ExchangeRate {
 type PublicChannel = {
   key: string;               // "PAYPAL"
   label: string;             // "PayPal"
-  commissionPercent: number; // según side=BUY (para UI)
+  commissionPercent: number; // según side (BUY/SELL)
   available: boolean;
   displayStatus: string;     // "Disponible" | "No disponible" | "Mantenimiento"
   sortOrder: number;
@@ -23,23 +24,22 @@ type PublicChannel = {
 type Milestone = "FIRST" | "FIFTH" | "FIFTEEN_PLUS" | null;
 
 type QuoteResponse = {
-  side: "BUY" | "SELL";
+  side: Side;
   channelKey: string;
   channelLabel: string;
   destinationCurrency: string;
   amountUsd: number;
 
-  // Detalles de comisiones / descuento
-  commissionPercent: number;    // % canal
-  baseFeePercent: number;       // % base global (si se usa en backend)
-  preDiscountPercent: number;   // % antes de descuento (para “Cotización base”)
-  userDiscountPercent: number;  // % fidelidad aplicado
-  totalPct: number;             // % total aplicado (ya con descuento)
+  // Detalles de comisiones / descuento (SIN AppConfig)
+  commissionPercent: number;   // % canal (base)
+  preDiscountPercent: number;  // igual a commissionPercent
+  userDiscountPercent: number; // % fidelidad aplicado (0 en SELL)
+  totalPct: number;            // % total aplicado (ya con descuento)
 
   // Montos resultantes
   netUsd: number;
-  exchangeRateUsed: number;     // 1 si USDT, o tasa fiat
-  totalInDestination: number;   // netUsd * tasa (si USDT => == netUsd)
+  exchangeRateUsed: number;    // 1 si USDT, o tasa fiat
+  totalInDestination: number;  // netUsd * tasa
 
   // UX helper
   milestone: Milestone;
@@ -66,6 +66,9 @@ type RecipientDetailsInput =
     };
 
 interface OrderFormContextProps {
+  // lado actual (expuesto por si la UI lo necesita)
+  side: Side;
+
   // básicos
   monto: number;
   setMonto: (v: number) => void;
@@ -119,9 +122,6 @@ interface OrderFormContextProps {
   // acciones
   handleCrearOrden: () => Promise<void>;
 
-  // mantenemos por compatibilidad (si no hay quote)
-  baseFeePercent: number | null;
-
   // métodos de pago (dinámicos)
   channels: PublicChannel[];
   selectedChannelKey: string | null;
@@ -133,7 +133,13 @@ interface OrderFormContextProps {
 
 const OrderFormContext = createContext<OrderFormContextProps | undefined>(undefined);
 
-export function OrderFormProvider({ children }: { children: React.ReactNode }) {
+export function OrderFormProvider({
+  children,
+  side = "BUY",
+}: {
+  children: React.ReactNode;
+  side?: Side;
+}) {
   const router = useRouter();
 
   // --------- STATE ---------
@@ -143,13 +149,15 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // feePercent queda como fallback visual si NO llega quote; ya no se lee de AppConfig
+  // fallback visual si NO llega quote; no usamos AppConfig
   const [feePercent] = useState<number | null>(null);
-  const [baseFeePercent] = useState<number | null>(null);
   const [finalCommission, setFinalCommission] = useState<number | null>(null);
 
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
-  const [selectedDestinationCurrency, setSelectedDestinationCurrency] = useState("USDT");
+  // BUY por defecto a USDT; SELL a USD
+  const [selectedDestinationCurrency, setSelectedDestinationCurrency] = useState(
+    side === "SELL" ? "USD" : "USDT"
+  );
 
   // compat visual (label)
   const [selectedPlatform, setSelectedPlatform] = useState("PayPal");
@@ -191,7 +199,6 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   const rate = quote ? quote.exchangeRateUsed : localRate;
 
   // --------- COMMISSION LOCAL (LEGACY SIN COUNT) ---------
-  // Si por algún motivo no hay quote, usamos solo feePercent como % total (sin milestones).
   const dynamicCommission = useMemo(() => {
     if (typeof finalCommission === "number") return finalCommission;
     if (feePercent !== null) return feePercent;
@@ -209,14 +216,13 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     return 0;
   }, [quote, dynamicCommission, rate, selectedDestinationCurrency, monto]);
 
-  // --------- CARGAR MÉTODOS DINÁMICOS (BUY) ---------
+  // --------- CARGAR MÉTODOS DINÁMICOS por lado ---------
   useEffect(() => {
     let cancelled = false;
     const loadChannels = async () => {
       try {
-        const res = await fetch("/api/payment-channels?side=BUY", { cache: "no-store" });
+        const res = await fetch(`/api/payment-channels?side=${side}`, { cache: "no-store" });
         const data: PublicChannel[] | { error: string } = await res.json();
-
         if (cancelled) return;
 
         if (!res.ok) {
@@ -224,13 +230,12 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        setChannels(data as PublicChannel[]);
+        const list = data as PublicChannel[];
+        setChannels(list);
 
         // elegir/ajustar el método seleccionado si hace falta
-        const firstAvail = (data as PublicChannel[]).find((c) => c.available);
-        const stillExists = selectedChannelKey
-          ? (data as PublicChannel[]).some((c) => c.key === selectedChannelKey)
-          : false;
+        const firstAvail = list.find((c) => c.available);
+        const stillExists = selectedChannelKey ? list.some((c) => c.key === selectedChannelKey) : false;
 
         if (!stillExists) {
           if (firstAvail) {
@@ -249,9 +254,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-    // Solo al inicio
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [side, selectedChannelKey]);
 
   // Si cambian los canales y el seleccionado ya no existe, re-elige uno válido
   useEffect(() => {
@@ -265,8 +268,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         setSelectedPlatform(firstAvail.label);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channels]);
+  }, [channels, selectedChannelKey]);
 
   // --------- SINCRONIZAR selectedPlatform CUANDO CAMBIA EL CANAL ---------
   useEffect(() => {
@@ -275,7 +277,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     if (ch) setSelectedPlatform(ch.label);
   }, [selectedChannelKey, channels]);
 
-  // --------- COTIZAR CADA VEZ QUE CAMBIA ALGO IMPORTANTE ---------
+  // --------- COTIZAR (envía side) ---------
   useEffect(() => {
     let aborted = false;
 
@@ -289,20 +291,19 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            side: "BUY",
+            side, // BUY | SELL
             channelKey: selectedChannelKey,
             amountUsd: monto,
             destinationCurrency: selectedDestinationCurrency,
-            // includeBaseFee: true, // si tu backend lo usa
           }),
         });
-        const data = await res.json();
+        const data: QuoteResponse | { error?: string } = await res.json();
         if (!aborted) {
           if (res.ok) {
             setQuote(data as QuoteResponse);
           } else {
             setQuote(null);
-            const msg: string = (data && data.error) || "No se pudo obtener la cotización.";
+            const msg = "error" in data && data.error ? data.error : "No se pudo obtener la cotización.";
             displayAlert(msg);
           }
         }
@@ -318,15 +319,15 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     return () => {
       aborted = true;
     };
-  }, [selectedChannelKey, monto, selectedDestinationCurrency]);
+  }, [selectedChannelKey, monto, selectedDestinationCurrency, side]);
 
-  // --------- CARGAS INICIALES + PUSHER (SOLO RATES) ---------
+  // --------- CARGAR TASAS (por lado) + PUSHER ---------
   useEffect(() => {
     let cancelled = false;
 
     const fetchRates = async () => {
       try {
-        const ratesRes = await fetch("/api/rates");
+        const ratesRes = await fetch(`/api/rates?side=${side}`);
         const ratesData: ExchangeRate[] = await ratesRes.json();
         if (!cancelled && ratesRes.ok) setExchangeRates(ratesData);
       } catch {
@@ -338,6 +339,7 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
 
     const chRates = pusherClient.subscribe("exchange-rates");
     chRates.bind("rates-updated", (data: { rates: ExchangeRate[] }) => {
+      // Si tu evento no distingue lado, igual preferimos quote > localRate
       setExchangeRates(data.rates);
     });
 
@@ -346,36 +348,38 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
       chRates.unbind_all();
       chRates.unsubscribe();
     };
-  }, []);
+  }, [side]);
 
-  // --------- CREAR ORDEN ---------
+  // --------- CREAR ORDEN (envía side) ---------
   const handleCrearOrden = async () => {
     if (!selectedChannelKey) {
       displayAlert("Selecciona un método de pago.");
       return;
     }
-    if (!paypalEmail) {
+
+    // PayPal: exigir correo solo si el canal elegido es PAYPAL
+    if (selectedChannelKey === "PAYPAL" && !paypalEmail) {
       displayAlert("Completa el correo PayPal.");
       return;
     }
 
-    // Guardar cuenta PayPal automáticamente si no existe
+    // Guardar cuenta PayPal automáticamente si no existe (solo cuando aplica)
     try {
-      const methodsRes = await fetch("/api/payment-methods");
-      if (methodsRes.ok) {
-        const methodsData: Array<{ type: string; details: { email?: string } }> =
-          await methodsRes.json();
-        const paypalExists = methodsData.some(
-          (m) => m.type === "PayPal" && m.details.email === paypalEmail
-        );
-
-        if (!paypalExists) {
-          await fetch("/api/payment-methods", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
-          });
-          // (no console noisy en build)
+      if (selectedChannelKey === "PAYPAL" && paypalEmail) {
+        const methodsRes = await fetch("/api/payment-methods");
+        if (methodsRes.ok) {
+          const methodsData: Array<{ type: string; details: { email?: string } }> =
+            await methodsRes.json();
+          const paypalExists = methodsData.some(
+            (m) => m.type === "PayPal" && m.details.email === paypalEmail
+          );
+          if (!paypalExists) {
+            await fetch("/api/payment-methods", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ type: "PayPal", details: { email: paypalEmail } }),
+            });
+          }
         }
       }
     } catch {
@@ -426,15 +430,12 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
     }
 
     const payload = {
-      // legacy
       platform: selectedPlatform,
-      // nuevos
-      side: "BUY" as const,
+      side, // BUY | SELL
       channelKey: selectedChannelKey,
       destinationCurrency: selectedDestinationCurrency,
-
       amount: monto,
-      paypalEmail,
+      paypalEmail: selectedChannelKey === "PAYPAL" ? paypalEmail : undefined,
       recipientDetails,
     };
 
@@ -464,6 +465,8 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
   return (
     <OrderFormContext.Provider
       value={{
+        side,
+
         monto,
         setMonto,
         paypalEmail,
@@ -508,7 +511,6 @@ export function OrderFormProvider({ children }: { children: React.ReactNode }) {
         rate,
         montoRecibido,
         handleCrearOrden,
-        baseFeePercent,
 
         channels,
         selectedChannelKey,

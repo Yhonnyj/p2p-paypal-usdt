@@ -7,81 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Order {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // --- NUEVOS CAMPOS ---
-  side                 String?  // "BUY" | "SELL"
-  paymentChannelKey    String?  // referencia al método (PaymentChannel.key)
-  appliedCommissionPct Float?   // % usado en ese momento
-  exchangeRateUsed     Float?   // tasa congelada usada para esta orden
-
-  platform  String // Ej: PayPal  (⚠️ en el futuro podrías migrar todo a paymentChannelKey)
-  to        String // Ej: USDT - TRC20
-  amount    Float
-  finalUsd  Float
-  finalUsdt Float
-  finalCommission Float @default(0)
-
-  paypalEmail String
-  wallet      String
-
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  messages Message[] @relation("OrderMessages")
-  paypalInvoiceId String?
-  realProfit Float?
+enum OrderSide {
+  BUY
+  SELL
 }
-
-
-model Message {
-  id        String    @id @default(cuid())
-  orderId   String
-  order     Order     @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
-
-  senderId  String
-  sender    User      @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
-
-  content   String?   @db.Text // <-- CAMBIADO: '?' lo hace opcional. @db.Text para mensajes largos
-  imageUrl  String?   @db.Text // <-- ¡NUEVO CAMPO!: '?' lo hace opcional para imágenes
-  createdAt DateTime  @default(now())
-}
-
-model User {
-  id              String         @id @default(cuid())
-  clerkId         String         @unique
-  email           String         @unique
-  fullName        String?
-  orders          Order[]
-  messages        Message[]      @relation("UserMessages")
-  verifications   Verification[]
-  paymentMethods  PaymentMethod[]
-  expoPushToken   String?
-
-  // 👇 Campos nuevos para referidos
-  referrerId      String?
-  referrer        User?          @relation("UserReferrals", fields: [referrerId], references: [id])
-  referrals       User[]         @relation("UserReferrals")
-  referralEarnings ReferralEarning[]
-  referredUsers     ReferralEarning[]  @relation("ReferredUsers")
-}
-
-
-model ReferralEarning {
-  id             String   @id @default(cuid())
-  userId         String   // → el que gana la comisión
-  referredUserId String   // → el que generó la orden
-  amount         Float    @default(5.0)
-  createdAt      DateTime @default(now())
-
-  user           User     @relation(fields: [userId], references: [id])
-  referredUser   User     @relation("ReferredUsers", fields: [referredUserId], references: [id])
-}
-
 
 enum OrderStatus {
   PENDING
@@ -89,14 +18,136 @@ enum OrderStatus {
   CANCELLED
 }
 
+model Order {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Compatibilidad y nuevo modelo de canales
+  paymentChannelKey String?              // legacy (compat)
+  paymentChannelId  String?              // nueva relación opcional
+  paymentChannel    PaymentChannel?      @relation(fields: [paymentChannelId], references: [id])
+
+  // Operación
+  side       OrderSide?
+  to         String                       // Ej: "USDT - TRC20"
+  platform   String?                      // Ej: "PayPal" (si quieres mantenerlo)
+
+  // Montos y snapshots
+  amount               Float
+  finalUsd             Float
+  finalUsdt            Float
+  finalCommission      Float            @default(0)
+  appliedCommissionPct Float?
+  appliedFixedFee      Float?
+  exchangeRateUsed     Float?
+  profit               Float?
+  // La columna existe en DB; si no la usas, ignórala, pero conserva el map para integridad.
+  realProfit           Float?           @map("realProfit") @ignore
+
+  // Operativo
+  paypalEmail     String?
+  wallet          String?
+  paypalInvoiceId String?
+
+  // Estado y trazabilidad
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relación con mensajes
+  messages Message[] @relation("OrderMessages")
+
+  // Índices útiles
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@index([paymentChannelId, createdAt])
+}
+
+model PaymentChannel {
+  id                    String   @id @default(cuid())
+  key                   String   @unique      // "PAYPAL", "ZELLE", etc.
+  label                 String               // Visible: "PayPal"
+
+  // % por lado
+  commissionBuyPercent  Float
+  commissionSellPercent Float
+  providerFeePercent    Float    @default(0)
+
+  // Disponibilidad por lado
+  enabledBuy            Boolean  @default(true)
+  enabledSell           Boolean  @default(true)
+
+  // Visibilidad y mensajes
+  visible               Boolean  @default(true)
+  statusTextBuy         String?
+  statusTextSell        String?
+
+  // Utilidades
+  sortOrder             Int      @default(0)
+  archivedAt            DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Back-relation
+  orders                Order[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation("OrderMessages", fields: [orderId], references: [id], onDelete: Cascade)
+
+  senderId  String
+  sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  content   String?  @db.Text
+  imageUrl  String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id              String            @id @default(cuid())
+  clerkId         String            @unique
+  email           String            @unique
+  fullName        String?
+  orders          Order[]
+  messages        Message[]         @relation("UserMessages")
+  verifications   Verification[]
+  paymentMethods  PaymentMethod[]
+  expoPushToken   String?
+
+  // Referidos (self-relation)
+  referrerId       String?
+  referrer         User?            @relation("UserReferrals", fields: [referrerId], references: [id])
+  referrals        User[]           @relation("UserReferrals")
+
+  // Ganancias por referidos
+  referralEarnings ReferralEarning[]
+  // Back-relation para referredUser en ReferralEarning
+  referredUsers    ReferralEarning[] @relation("ReferredUsers")
+}
+
+model ReferralEarning {
+  id             String   @id @default(cuid())
+  userId         String   // quien gana la comisión
+  referredUserId String   // quien generó la orden
+  amount         Float    @default(5.0)
+  createdAt      DateTime @default(now())
+
+  user         User @relation(fields: [userId], references: [id])
+  referredUser User @relation("ReferredUsers", fields: [referredUserId], references: [id])
+}
 
 model ExchangeRate {
   id        String   @id @default(cuid())
-  currency  String   @unique // Ej: "BS", "USD", "ARS", etc.
-  rate      Float
+  currency  String   @unique   // "BS", "COP", etc.
+  rate      Float               // LEGACY
+  buyRate   Float?              // Tasa para BUY
+  sellRate  Float?              // Tasa para SELL
   updatedAt DateTime @updatedAt
 }
-
 
 model Verification {
   id          String   @id @default(cuid())
@@ -113,35 +164,9 @@ model Verification {
 model PaymentMethod {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // Ej: "PayPal", "PagoMovil", "USDT", "Zelle", etc.
+  type      String   // "PayPal", "PagoMovil", "USDT", etc.
   details   Json     // Objeto dinámico según el tipo
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-
-model PaymentChannel {
-  id                    String   @id @default(cuid())
-  key                   String   @unique     // "PAYPAL", "ZELLE", "ZINLI"...
-  label                 String               // Nombre visible: "PayPal"
-
-  // % por lado
-  commissionBuyPercent  Float
-  commissionSellPercent Float
-
-  // Disponibilidad por lado
-  enabledBuy            Boolean  @default(true)
-  enabledSell           Boolean  @default(true)
-
-  // Visibilidad y mensajes
-  visible               Boolean  @default(true)
-  statusTextBuy         String?
-  statusTextSell        String?
-
-  // Utilidades
-  sortOrder             Int      @default(0)
-  archivedAt            DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
 }

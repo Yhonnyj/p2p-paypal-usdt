@@ -28,9 +28,11 @@ export default function PlatformSelector() {
     [channels]
   );
 
+  // Selección efectiva: el actual; si no, el primer "available"; si no, null
   const selected =
-    sorted.find((c) => c.key === selectedChannelKey) ||
-    (sorted.length > 0 ? sorted[0] : null);
+    sorted.find((c) => c.key === selectedChannelKey) ??
+    sorted.find((c) => c.available) ??
+    null;
 
   const effectiveLabel = selected?.label ?? selectedPlatform ?? "Selecciona";
 
@@ -78,11 +80,12 @@ export default function PlatformSelector() {
                     key={p.key}
                     value={p.key}
                     disabled={!p.available}
-                    className={({ active }) =>
+                    className={({ active, disabled }) =>
                       `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                         active ? "bg-emerald-700 text-white" : "text-gray-200"
-                      } ${!p.available ? "opacity-50 cursor-not-allowed" : ""}`
+                      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`
                     }
+                    aria-disabled={!p.available}
                   >
                     <span className="flex items-center gap-3">
                       <Image

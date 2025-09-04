@@ -9,7 +9,6 @@ const ADMIN_CLERK_ID =
 
 export async function GET() {
   const { userId } = await auth();
-
   if (userId !== ADMIN_CLERK_ID) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
@@ -21,16 +20,15 @@ export async function GET() {
         user: {
           select: {
             email: true,
-            fullName: true, // ← nombre del cliente
+            fullName: true,
           },
         },
       },
     });
 
     return NextResponse.json(orders);
-  } catch (error: unknown) { // FIX: Tipado 'unknown' para el error
+  } catch (error: unknown) {
     console.error("Error obteniendo órdenes admin:", error);
-    // FIX: Verificación de tipo para acceder a 'message' de forma segura
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
     }

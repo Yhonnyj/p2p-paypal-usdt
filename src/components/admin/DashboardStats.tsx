@@ -7,53 +7,65 @@ import { useAdminStats, type RangeOption } from "@/hooks/useAdminStats";
 
 /* Recharts sin SSR */
 const ResponsiveContainer = dynamic(() => import("recharts").then(m => m.ResponsiveContainer), { ssr: false });
-const LineChart = dynamic(() => import("recharts").then(m => m.LineChart), { ssr: false });
-const Line = dynamic(() => import("recharts").then(m => m.Line), { ssr: false });
-const XAxis = dynamic(() => import("recharts").then(m => m.XAxis), { ssr: false });
-const YAxis = dynamic(() => import("recharts").then(m => m.YAxis), { ssr: false });
-const Tooltip = dynamic(() => import("recharts").then(m => m.Tooltip), { ssr: false });
+const LineChart           = dynamic(() => import("recharts").then(m => m.LineChart),           { ssr: false });
+const Line                = dynamic(() => import("recharts").then(m => m.Line),                { ssr: false });
+const XAxis               = dynamic(() => import("recharts").then(m => m.XAxis),               { ssr: false });
+const YAxis               = dynamic(() => import("recharts").then(m => m.YAxis),               { ssr: false });
+const Tooltip             = dynamic(() => import("recharts").then(m => m.Tooltip),             { ssr: false });
 
 /* Formato */
 const nf = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 });
 const cf = new Intl.NumberFormat("es-ES", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 const fmtCurrency = (v: number) => cf.format(v || 0);
-const fmtNumber = (v: number) => nf.format(v || 0);
+const fmtNumber   = (v: number) => nf.format(v || 0);
 
 /* Rango */
 const baseRanges: { label: string; value: RangeOption }[] = [
-  { label: "7 días", value: "7d" },
-  { label: "15 días", value: "15d" },
-  { label: "Mes", value: "month" },
-  { label: "Todo", value: "all" },
+  { label: "7 días",   value: "7d" },
+  { label: "15 días",  value: "15d" },
+  { label: "Mes",      value: "month" },
+  { label: "Todo",     value: "all" },
+  { label: "Personalizado", value: "custom" },
 ];
 
+type TimesPoint = { label: string; totalUSD?: number; totalUSDT?: number; totalBS?: number; totalProfit?: number };
+
 export default function AdminDashboardStats() {
-  const [range, setRange] = useState<RangeOption>("month");
-  const [showCustom, setShowCustom] = useState(false);
-  const [start, setStart] = useState<string>(""); // YYYY-MM-DD
-  const [end, setEnd] = useState<string>("");     // YYYY-MM-DD
+  // ⚠️ Hooks SIEMPRE arriba y en el mismo orden
+  const [range, setRange]       = useState<RangeOption>("month");
+  const [start, setStart]       = useState<string>(""); // YYYY-MM-DD
+  const [end, setEnd]           = useState<string>("");
+  const isCustom                = range === "custom";
 
-  // Si es custom, pasamos start/end; pedimos timeseries=day
-  const { data, loading, error } =
-    range === "custom"
-      ? useAdminStats(range, start, end, { series: "day" })
-      : useAdminStats(range, undefined, undefined, { series: "day" });
+  // Un SOLO hook para datos; pasamos start/end sólo si hace falta
+  const { data, loading, error } = useAdminStats(
+    range,
+    isCustom ? start : undefined,
+    isCustom ? end   : undefined,
+    { series: "day" }
+  );
 
-  // ⚠️ hooks arriba
-  const times = data?.timeseries ?? [];
-  const seriesUSD = useMemo(() => times.map(d => ({ name: d.label, usd: Number(d.totalUSD || 0) })), [times]);
-  const seriesUSDT = useMemo(() => times.map(d => ({ name: d.label, usdt: Number(d.totalUSDT || 0) })), [times]);
-  const seriesBS = useMemo(() => times.map(d => ({ name: d.label, bs: Number(d.totalBS || 0) })), [times]);
+  // Series: derivadas SIEMPRE con useMemo (no condicionales)
+  const times: TimesPoint[] = (data?.timeseries as TimesPoint[]) ?? [];
+
+  const seriesUSD    = useMemo(() => times.map(d => ({ name: d.label, usd:    Number(d.totalUSD    || 0) })), [times]);
+  const seriesUSDT   = useMemo(() => times.map(d => ({ name: d.label, usdt:   Number(d.totalUSDT   || 0) })), [times]);
+  const seriesBS     = useMemo(() => times.map(d => ({ name: d.label, bs:     Number(d.totalBS     || 0) })), [times]);
+  const seriesProfit = useMemo(() => times.map(d => ({ name: d.label, profit: Number(d.totalProfit || 0) })), [times]);
 
   if (loading) return <SkeletonGrid />;
   if (error || !data) return <div className="text-red-500 text-center font-medium">❌ Error al cargar estadísticas</div>;
 
   const {
-    totalUSD = 0,
-    totalUSDT = 0,
-    totalBS = 0,
+    totalUSD     = 0,
+    totalUSDT    = 0,
+    totalBS      = 0,
+    totalProfit  = 0, // <- nuevo
     stats: { COMPLETED = 0, PENDING = 0, CANCELLED = 0 } = {},
-  } = data;
+  } = data as unknown as {
+    totalUSD: number; totalUSDT: number; totalBS: number; totalProfit?: number;
+    stats: { COMPLETED: number; PENDING: number; CANCELLED: number };
+  };
 
   return (
     <div className="mt-6 space-y-8">
@@ -65,28 +77,20 @@ export default function AdminDashboardStats() {
               key={value}
               role="tab"
               aria-selected={range === value}
-              onClick={() => { setRange(value); setShowCustom(false); }}
+              onClick={() => setRange(value)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all shadow-sm ${
-                range === value ? "bg-emerald-500 text-white shadow-lg scale-105" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
+                range === value
+                  ? "bg-emerald-500 text-white shadow-lg scale-105"
+                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
               }`}
             >
               {label}
             </button>
           ))}
-          <button
-            role="tab"
-            aria-selected={range === "custom"}
-            onClick={() => { setShowCustom(v => !v); setRange("custom"); }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all shadow-sm ${
-              range === "custom" ? "bg-emerald-500 text-white shadow-lg scale-105" : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
-            }`}
-          >
-            Personalizado
-          </button>
         </div>
 
-        {/* Picker personalizado */}
-        {showCustom && (
+        {/* Picker personalizado (NO mueve hooks) */}
+        {isCustom && (
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm text-zinc-400">Inicio</label>
             <input
@@ -102,44 +106,38 @@ export default function AdminDashboardStats() {
               onChange={(e) => setEnd(e.target.value)}
               className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500/40"
             />
-            <button
-              onClick={() => setRange("custom")}
-              disabled={!start || !end}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                start && end
-                  ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                  : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              }`}
-            >
-              Aplicar
-            </button>
           </div>
         )}
       </div>
 
-      {/* Tarjetas principales */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard title="💰 Total USD recibidos" value={fmtCurrency(totalUSD)} gradient="from-emerald-500/20 to-emerald-500/5" />
-        <StatCard title="🪙 Total USDT enviados" value={`${fmtNumber(totalUSDT)} USDT`} gradient="from-blue-500/20 to-blue-500/5" />
-        <StatCard title="🇻🇪 Total BS (USD)" value={fmtCurrency(totalBS)} gradient="from-yellow-500/20 to-yellow-500/5" />
-        <StatCard title="✅ Completadas" value={fmtNumber(COMPLETED)} gradient="from-emerald-400/20 to-emerald-400/5" />
-        <StatCard title="🕒 Pendientes" value={fmtNumber(PENDING)} gradient="from-orange-400/20 to-orange-400/5" />
-        <StatCard title="❌ Canceladas" value={fmtNumber(CANCELLED)} gradient="from-red-500/20 to-red-500/5" />
+      {/* Tarjetas principales (incluye Profit) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="💰 Total USD recibidos"  value={fmtCurrency(totalUSD)}                         gradient="from-emerald-500/20 to-emerald-500/5" />
+        <StatCard title="🪙 Total USDT enviados"  value={`${fmtNumber(totalUSDT)} USDT`}               gradient="from-blue-500/20 to-blue-500/5" />
+        <StatCard title="🇻🇪 Total BS (USD)"      value={fmtCurrency(totalBS)}                          gradient="from-yellow-500/20 to-yellow-500/5" />
+        <StatCard title="📈 Profit total (USD)"   value={fmtCurrency(totalProfit || 0)}                 gradient="from-fuchsia-500/20 to-fuchsia-500/5" />
+        <StatCard title="✅ Completadas"          value={fmtNumber(COMPLETED)}                          gradient="from-emerald-400/20 to-emerald-400/5" />
+        <StatCard title="🕒 Pendientes"           value={fmtNumber(PENDING)}                            gradient="from-orange-400/20 to-orange-400/5" />
+        <StatCard title="❌ Canceladas"           value={fmtNumber(CANCELLED)}                          gradient="from-red-500/20 to-red-500/5" />
       </div>
 
-      {/* Gráficas (se muestran solo si hay timeseries) */}
+      {/* Gráficas (si hay timeseries) */}
       {times.length > 1 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <ChartCard title="Tendencia USD recibidos">
-            <ChartSparkline dataKey="usd" stroke="#10b981" data={seriesUSD} />
+            <ChartSparkline dataKey="usd"    stroke="#10b981" data={seriesUSD} />
           </ChartCard>
 
           <ChartCard title="Tendencia USDT enviados">
-            <ChartSparkline dataKey="usdt" stroke="#60a5fa" data={seriesUSDT} />
+            <ChartSparkline dataKey="usdt"   stroke="#60a5fa" data={seriesUSDT} />
           </ChartCard>
 
           <ChartCard title="Tendencia BS (USD)">
-            <ChartSparkline dataKey="bs" stroke="#f59e0b" data={seriesBS} />
+            <ChartSparkline dataKey="bs"     stroke="#f59e0b" data={seriesBS} />
+          </ChartCard>
+
+          <ChartCard title="Tendencia Profit (USD)">
+            <ChartSparkline dataKey="profit" stroke="#a78bfa" data={seriesProfit} />
           </ChartCard>
         </div>
       )}
@@ -189,7 +187,7 @@ function ChartSparkline<T extends Record<string, any>>({
           <Tooltip
             cursor={{ strokeWidth: 0 }}
             contentStyle={{ background: "#0b0f16", border: "1px solid #27272a", borderRadius: "10px", color: "#fff" }}
-            formatter={(val: any) => [fmtNumber(Number(val) || 0), ""]}
+            formatter={(val: unknown) => [fmtNumber(Number(val) || 0), ""]}
             labelStyle={{ color: "#a1a1aa" }}
           />
           <Line type="monotone" dataKey={dataKey as string} stroke={stroke} strokeWidth={2} dot={false} />
@@ -202,8 +200,8 @@ function ChartSparkline<T extends Record<string, any>>({
 /* ====== Skeleton ====== */
 function SkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, i) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {[...Array(8)].map((_, i) => (
         <div key={i} className="h-28 rounded-2xl bg-zinc-900 border border-zinc-800 overflow-hidden">
           <div className="h-full w-full animate-pulse bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900" />
         </div>

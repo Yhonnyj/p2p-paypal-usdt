@@ -7,10 +7,9 @@ type Side = "BUY" | "SELL";
 
 type QuoteRequest = {
   side: Side;                   // "BUY" | "SELL"
-  channelKey: string;           // ej: "PAYPAL", "ZELLE"
-  amountUsd: number;            // monto en USD que ingresa el usuario (permite 0 para preview)
-  destinationCurrency: string;  // "USDT" o fiat ("BS", "COP", ...)
-  includeBaseFee?: boolean;     // si quieres sumar AppConfig.feePercent
+  channelKey: string;           // "PAYPAL", "ZELLE", ...
+  amountUsd: number;            // permite 0 para previsualizar
+  destinationCurrency: string;  // "USDT" | "USD" | "BS" | "COP" | ...
 };
 
 type Milestone = "FIRST" | "FIFTH" | "FIFTEEN_PLUS" | null;
@@ -32,38 +31,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Parámetro 'side' inválido" }, { status: 400 });
     }
 
-    const channelKey = String(body.channelKey || "").toUpperCase();
+    const channelKey = String(body.channelKey || "").toUpperCase().trim();
     if (!channelKey) {
       return NextResponse.json({ error: "Falta 'channelKey'" }, { status: 400 });
     }
 
     const amountUsd = Number(body.amountUsd);
-    // Permitimos 0 para previsualizar; solo invalidamos negativos o NaN.
     if (!Number.isFinite(amountUsd) || amountUsd < 0) {
       return NextResponse.json({ error: "Monto USD inválido" }, { status: 400 });
     }
 
-    const destinationCurrency = String(body.destinationCurrency || "").toUpperCase();
+    const destinationCurrency = String(body.destinationCurrency || "").toUpperCase().trim();
     if (!destinationCurrency) {
       return NextResponse.json({ error: "Falta 'destinationCurrency'" }, { status: 400 });
     }
 
-    const includeBaseFee = Boolean(body.includeBaseFee);
-
-    // -------- Identificar usuario (Clerk) y calcular descuento fidelidad --------
+    // -------- Descuento fidelidad (solo BUY; SELL = 0) --------
     const { userId } = await auth();
     let userDiscountPercent = 0;
     let milestone: Milestone = null;
 
-    if (userId) {
-      // Busca tu usuario interno por clerkId (ajusta si tu modelo usa otro campo)
+    if (side === "BUY" && userId) {
       const dbUser = await prisma.user.findUnique({
         where: { clerkId: userId },
         select: { id: true },
       });
 
       if (dbUser) {
-        // Contar SOLO órdenes COMPLETED del usuario (ajusta nombre del campo si difiere)
         const completedCount = await prisma.order.count({
           where: { userId: dbUser.id, status: "COMPLETED" },
         });
@@ -72,14 +66,9 @@ export async function POST(req: Request) {
         userDiscountPercent = rule.percent;
         milestone = rule.milestone;
       }
-      // Si no hay dbUser, dejamos descuento en 0 (usuario no registrado en tu tabla interna)
-    } else {
-      // Usuario no logueado → 0% (puedes agregar un flag tipo needsAuth: true si quieres)
-      userDiscountPercent = 0;
-      milestone = null;
     }
 
-    // -------- Buscar canal de pago --------
+    // -------- Canal de pago --------
     const channel = await prisma.paymentChannel.findUnique({
       where: { key: channelKey },
       select: {
@@ -87,6 +76,7 @@ export async function POST(req: Request) {
         label: true,
         commissionBuyPercent: true,
         commissionSellPercent: true,
+        providerFeePercent: true, // informativo: no afecta neto del cliente aquí
         enabledBuy: true,
         enabledSell: true,
         visible: true,
@@ -100,54 +90,48 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Método no encontrado" }, { status: 404 });
     }
 
-    // disponibilidad por lado
     const enabled = side === "BUY" ? channel.enabledBuy : channel.enabledSell;
     if (!channel.visible || !enabled) {
       const statusText = side === "BUY" ? channel.statusTextBuy : channel.statusTextSell;
-      return NextResponse.json(
-        { error: statusText || "Método no disponible" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: statusText || "Método no disponible" }, { status: 400 });
     }
 
-    // -------- Comisión por lado --------
+    // -------- % del canal por lado (sin AppConfig) --------
     const channelPercent =
       side === "BUY" ? channel.commissionBuyPercent : channel.commissionSellPercent;
 
-    // (Opcional) Fee base desde AppConfig si lo quieres sumar
-    let baseFeePercent = 0;
-    if (includeBaseFee) {
-      const app = await prisma.appConfig.findFirst(); // más robusto que id fijo
-      baseFeePercent = Number(app?.feePercent ?? 0);
-    }
-
-    // -------- Descuento (correcto, multiplicativo) --------
-    const preDiscountPercent = channelPercent + baseFeePercent;
+    // % total (multiplicativo con descuento de fidelidad)
+    const preDiscountPercent = channelPercent;
     const totalPct = preDiscountPercent * (1 - userDiscountPercent / 100);
 
-    // -------- Exchange rate --------
-    let exchangeRateUsed = 1; // USDT por defecto
-    if (destinationCurrency !== "USDT") {
+    // -------- Tasa de cambio (buy/sell con fallback a rate) --------
+    let exchangeRateUsed = 1; // 1 para USDT y también para USD
+    if (destinationCurrency !== "USDT" && destinationCurrency !== "USD") {
       const fx = await prisma.exchangeRate.findUnique({
         where: { currency: destinationCurrency },
-        select: { rate: true },
+        select: { rate: true, buyRate: true, sellRate: true },
       });
+
       if (!fx) {
         return NextResponse.json(
           { error: `No hay tasa para ${destinationCurrency}` },
           { status: 400 }
         );
       }
-      exchangeRateUsed = Number(fx.rate);
-      if (!Number.isFinite(exchangeRateUsed) || exchangeRateUsed <= 0) {
+
+      const sideRate = side === "BUY" ? fx.buyRate : fx.sellRate;
+      const picked = Number(sideRate ?? fx.rate);
+
+      if (!Number.isFinite(picked) || picked <= 0) {
         return NextResponse.json(
           { error: `Tasa inválida para ${destinationCurrency}` },
           { status: 400 }
         );
       }
+      exchangeRateUsed = picked;
     }
 
-    // -------- Cálculo de montos --------
+    // -------- Montos --------
     const netUsd = amountUsd * (1 - totalPct / 100);
     const totalInDestination = netUsd * exchangeRateUsed;
 
@@ -159,20 +143,22 @@ export async function POST(req: Request) {
       destinationCurrency,
       amountUsd,
 
-      // Detalle de comisiones/desc.
-      commissionPercent: channelPercent,   // % del canal (lado)
-      baseFeePercent,                      // % base global opcional
-      preDiscountPercent,                  // % antes de descuento (para “Cotización base”)
-      userDiscountPercent,                 // % por fidelidad según milestones
-      totalPct,                            // % total aplicado (ya con descuento)
+      // % detallados
+      commissionPercent: channelPercent,
+      preDiscountPercent,
+      userDiscountPercent, // 0 en SELL
+      totalPct,
 
-      // Montos resultantes
-      netUsd,                              // USD neto
-      exchangeRateUsed,                    // 1 si USDT, o tasa fiat
-      totalInDestination,                  // netUsd * tasa (si USDT → == netUsd)
+      // montos
+      netUsd,
+      exchangeRateUsed,
+      totalInDestination,
 
-      // UI/UX helpers
-      milestone,                           // "FIRST" | "FIFTH" | "FIFTEEN_PLUS" | null
+      // informativo
+      providerFeePercent: channel.providerFeePercent ?? 0,
+
+      // UX
+      milestone, // null en SELL
     });
   } catch (err) {
     console.error("Error en /api/quote:", err);
