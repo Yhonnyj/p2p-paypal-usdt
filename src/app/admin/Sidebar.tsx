@@ -11,6 +11,7 @@ import {
   BellRing,
   X,
   FileSpreadsheet,
+  FolderLock, // 👈 icono para el botón pequeño
 } from "lucide-react";
 import { useClerk } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,14 +36,12 @@ export default function AdminSidebar({
   const { signOut } = useClerk();
 
   const [pendingVerifications] = useState(0);
-  // aside -> HTMLElement (evita warning de tipos)
   const sidebarRef = useRef<HTMLElement | null>(null);
 
-  // Flag para evitar hydration mismatch (reemplaza typeof window === 'undefined')
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // ✅ Cierra el sidebar si se hace clic fuera
+  // Cierra el sidebar si se hace clic fuera
   useEffect(() => {
     if (!isOpen) return;
     function handleClickOutside(event: MouseEvent) {
@@ -77,6 +76,7 @@ export default function AdminSidebar({
             isOpen ? "block" : "hidden md:block"
           }`}
         >
+          {/* Top bar (mobile) */}
           <div className="flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-800 md:hidden">
             <h2 className="text-xl font-bold">Admin Panel</h2>
             <button onClick={() => setIsOpen(false)}>
@@ -84,6 +84,7 @@ export default function AdminSidebar({
             </button>
           </div>
 
+          {/* Logo */}
           <div className="hidden md:flex flex-col items-center py-6 bg-gray-900 border-b border-gray-800">
             <Image
               src="/tu-capi-logo2.png"
@@ -97,6 +98,7 @@ export default function AdminSidebar({
             </h2>
           </div>
 
+          {/* Nav */}
           <nav className="flex-1 px-4 py-6 overflow-y-auto">
             <motion.ul
               initial="hidden"
@@ -146,6 +148,23 @@ export default function AdminSidebar({
             </motion.ul>
           </nav>
 
+          {/* Botón pequeño (solo icono) abajo a la derecha */}
+          <div className="px-4 pb-2">
+            <div className="flex justify-end">
+              <Link
+                href="/admin/thirdform"
+                onClick={() => setIsOpen(false)}
+                title=" "
+                className="inline-flex items-center justify-center w-9 h-9 rounded-lg
+                           bg-gray-800/60 hover:bg-gray-700 border border-gray-700
+                           text-gray-300 hover:text-emerald-300 transition-colors"
+              >
+                <FolderLock className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Logout */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

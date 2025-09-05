@@ -311,19 +311,14 @@ if (!user) {
 
       />
 
- <p className="text-yellow-300 text-sm font-medium text-center">
+<p className="text-yellow-300 text-sm font-medium text-center">
+  Tu Capibara favorito está descansando
+</p>
 
+<p className="text-gray-400 text-xs mt-1">
+  Volvemos mañana viernes a partir de <span className="text-yellow-300">las 9:00 AM</span>.
+</p>
 
-
-      🛠 Estamos presentando fallas de red, nuestro capybara está afinando tu plataforma favorita.      </p>
-
-
-
-      <p className="text-gray-400 text-xs mt-1">
-
-
-
-      En unos minutos podras crear nuevas órdenes a partir del <span className="text-yellow-300"></span>.      </p>
 
 
 </div>

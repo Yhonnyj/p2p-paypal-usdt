@@ -198,10 +198,7 @@ enum TrustedStatus {
 model TrustedIntake {
   id     String @id @default(cuid())
   userId String
-
-  // Relación con User (back-relation: User.trustedIntakes)
   user User @relation("UserToTrustedIntakes", fields: [userId], references: [id], onDelete: Cascade)
-
   firstName                  String
   lastName                   String
   email                      String
@@ -225,15 +222,18 @@ model TrustedIntake {
   acceptsDataProcessing      Boolean
   ip                         String?
   userAgent                  String?
+  
+  // Agregar estos 3 campos nuevos:
+  ipCountry                  String?
+  ipCity                     String?
+  ipRegion                   String?
+  
   status                     TrustedStatus   @default(PENDING)
   reviewerId                 String?
   decisionAt                 DateTime?
   createdAt                  DateTime        @default(now())
   updatedAt                  DateTime        @updatedAt
-
-  // Relación con TrustedAudit (lado opuesto: TrustedAudit.intake)
   audits TrustedAudit[] @relation("IntakeToAudits")
-
   @@index([userId, createdAt])
 }
 

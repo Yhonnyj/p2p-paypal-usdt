@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Sidebar from "./Sidebar";
 
+const ADMIN_EMAIL = "info@caibo.ca"; // si prefieres: process.env.NEXT_PUBLIC_ADMIN_EMAIL
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -14,13 +16,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const hideSidebar = pathname === "/admin/login";
 
   useEffect(() => {
-    if (isLoaded && user) {
-      const email = user.emailAddresses[0]?.emailAddress;
-      if (email !== "info@caibo.ca") {
-        router.push("/dashboard");
-      }
+    // esperamos a Clerk
+    if (!isLoaded) return;
+
+    const email = user?.primaryEmailAddress?.emailAddress;
+
+    // 1) sin sesión -> al login del admin
+    if (!user) {
+      if (pathname !== "/admin/login") router.replace("/admin/login");
+      return;
     }
-  }, [user, isLoaded, router]);
+
+    // 2) con sesión pero no es admin -> mándalo a dashboard
+    if (email !== ADMIN_EMAIL) {
+      router.replace("/dashboard");
+      return;
+    }
+  }, [user, isLoaded, pathname, router]);
 
   return (
     <div className="relative min-h-screen bg-gray-950 text-white overflow-x-hidden font-inter">
@@ -33,11 +45,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }}
       />
 
-      {/* Contenedor principal sobre fondo */}
+      {/* Contenedor principal */}
       <div className="relative z-10 flex min-h-screen">
-        {!hideSidebar && (
-          <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-        )}
+        {!hideSidebar && <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />}
 
         <main className="flex-1 p-4 md:p-6">
           {!hideSidebar && (

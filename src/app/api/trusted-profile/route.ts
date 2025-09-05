@@ -1,25 +1,39 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({ where: { clerkId } });
-  if (!user) return NextResponse.json({ error: "User not synced" }, { status: 404 });
+  // Auto-sync del usuario en DB
+  const cu = await currentUser();
+  const email =
+    cu?.primaryEmailAddress?.emailAddress ?? `${userId}@unknown.local`;
+  const fullName =
+    [cu?.firstName, cu?.lastName].filter(Boolean).join(" ") ||
+    cu?.username ||
+    null;
 
-  const profile = await prisma.trustedProfile.findUnique({ where: { userId: user.id } });
+  const user = await prisma.user.upsert({
+    where: { clerkId: userId },
+    update: { email, fullName },
+    create: { clerkId: userId, email, fullName },
+  });
+
+  const prof = await prisma.trustedProfile.findUnique({ where: { userId: user.id } });
+  if (!prof) return NextResponse.json({ ok: true, profile: null });
+
   return NextResponse.json({
     ok: true,
-    profile: profile ? {
-      enabled: profile.enabled,
-      status: profile.status,
-      maxPerTxUsd: profile.maxPerTxUsd.toString(),
-      maxMonthlyUsd: profile.maxMonthlyUsd.toString(),
-      holdHours: profile.holdHours,
-      notes: profile.notes ?? null,
-      updatedAt: profile.updatedAt
-    } : null
+    profile: {
+      enabled: prof.enabled,
+      status: prof.status,
+      maxPerTxUsd: prof.maxPerTxUsd.toString(),
+      maxMonthlyUsd: prof.maxMonthlyUsd.toString(),
+      holdHours: prof.holdHours,
+      notes: prof.notes ?? null,
+      updatedAt: prof.updatedAt,
+    },
   });
 }
