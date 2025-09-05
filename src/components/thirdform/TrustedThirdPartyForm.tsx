@@ -82,8 +82,9 @@ export default function TrustedThirdPartyForm() {
       if (!res.ok) throw new Error(j?.error || "No se pudo enviar");
       setOkMsg("Solicitud enviada. Te confirmaremos por este medio.");
       (e.currentTarget as HTMLFormElement).reset();
-    } catch (err: any) {
-      setErrMsg(err?.message || "Error inesperado");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error inesperado";
+      setErrMsg(errorMessage);
     } finally {
       setLoading(false);
     }
