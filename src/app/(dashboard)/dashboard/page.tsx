@@ -289,7 +289,7 @@ if (!user) {
 
 
 
-    <div className="mt-4 flex flex-col items-center">
+    <div className="mt-6 flex flex-col items-center">
 
 
 
@@ -297,7 +297,7 @@ if (!user) {
 
 
 
-        src="/images/capi-constructor.png"
+        src="/images/capi-duerme.png"
 
 
 
@@ -305,7 +305,7 @@ if (!user) {
 
 
 
-        className="w-24 h-24 mb-2 object-contain"
+        className="w-28 h-28 mb-2 object-contain"
 
 
 
