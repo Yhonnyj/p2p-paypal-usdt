@@ -1,69 +1,68 @@
 "use client";
+import { useSignIn } from "@clerk/nextjs";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
-import Sidebar from "./Sidebar";
-
-const ADMIN_EMAIL = "info@caibo.ca"; // si prefieres: process.env.NEXT_PUBLIC_ADMIN_EMAIL
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+export default function AdminLoginPage() {
+  const { signIn, setActive } = useSignIn();
   const router = useRouter();
-  const { user, isLoaded } = useUser();
+  const [email] = useState("info@caibo.ca"); // ← correo del admin
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const hideSidebar = pathname === "/admin/login";
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
 
-  useEffect(() => {
-    // esperamos a Clerk
-    if (!isLoaded) return;
+    try {
+      if (!signIn) {
+        setError("Error interno: signIn no está disponible");
+        return;
+      }
 
-    const email = user?.primaryEmailAddress?.emailAddress;
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
 
-    // 1) sin sesión -> al login del admin
-    if (!user) {
-      if (pathname !== "/admin/login") router.replace("/admin/login");
-      return;
+      if (result.status === "complete" && setActive) {
+        await setActive({ session: result.createdSessionId });
+        router.push("/admin/orders");
+      }
+    } catch (err) {
+      setError("Credenciales inválidas");
+      console.error(err);
     }
-
-    // 2) con sesión pero no es admin -> mándalo a dashboard
-    if (email !== ADMIN_EMAIL) {
-      router.replace("/dashboard");
-      return;
-    }
-  }, [user, isLoaded, pathname, router]);
+  };
 
   return (
-    <div className="relative min-h-screen bg-gray-950 text-white overflow-x-hidden font-inter">
-      {/* Fondo degradado animado */}
-      <div
-        className="absolute inset-0 z-0 opacity-10 animate-pulse-light"
-        style={{
-          background:
-            "radial-gradient(circle at top left, #10B981, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)",
-        }}
-      />
-
-      {/* Contenedor principal */}
-      <div className="relative z-10 flex min-h-screen">
-        {!hideSidebar && <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />}
-
-        <main className="flex-1 p-4 md:p-6">
-          {!hideSidebar && (
-            <div className="md:hidden mb-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="text-white bg-gray-800 px-4 py-2 rounded shadow hover:bg-gray-700"
-              >
-                Menú
-              </button>
-            </div>
-          )}
-
-          {children}
-        </main>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <form
+        onSubmit={handleLogin}
+        className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-md space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center text-green-400">Login Admin</h2>
+        <input
+          type="email"
+          value={email}
+          disabled
+          className="w-full p-3 rounded bg-gray-800 border border-gray-700"
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 rounded bg-gray-800 border border-gray-700"
+        />
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <button
+          type="submit"
+          className="w-full p-3 bg-green-600 hover:bg-green-700 rounded font-semibold"
+        >
+          Ingresar
+        </button>
+      </form>
     </div>
   );
 }

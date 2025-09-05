@@ -2,15 +2,9 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import dynamic from "next/dynamic";
+import Sidebar from "./Sidebar";
 
-// Importación dinámica del Sidebar - solo se carga cuando se necesita
-const Sidebar = dynamic(() => import("./Sidebar"), {
-  ssr: false,
-  loading: () => <div className="w-64 bg-gray-900 animate-pulse" />
-});
-
-const ADMIN_EMAIL = "info@caibo.ca";
+const ADMIN_EMAIL = "info@caibo.ca"; // si prefieres: process.env.NEXT_PUBLIC_ADMIN_EMAIL
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
