@@ -320,7 +320,7 @@ if (!user) {
 
 
 
-        alt="Capi Constructor"
+        alt="Capi Durmiendo"
 
 
 
@@ -334,13 +334,13 @@ if (!user) {
 
 
 <p className="text-yellow-300 text-sm font-medium text-center">
-  Estamos presentando un alto volumen de órdenes
+  Tu Capibara favorito está descansando, les deseamos un feliz fin de semana.
+</p> 
+
+<p className="text-gray-400 text-xs mt-1">
+  Volvemos el lunes a partir de <span className="text-yellow-300">las 11:00 AM</span>.
 </p>
 
-<p className="text-gray-400 text-xs mt-1 text-center">
-  En unos minutos se podrá <span className="text-yellow-300">crear una nueva orden</span>.  
-  Gracias por su paciencia 🙏
-</p>
 
 
 
