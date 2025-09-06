@@ -334,17 +334,14 @@ if (!user) {
 
 
 <p className="text-yellow-300 text-sm font-medium text-center">
-
-  Tu Capibara favorito está descansando
-
+  Estamos presentando un alto volumen de órdenes
 </p>
 
-
-<p className="text-gray-400 text-xs mt-1">
-
-  Volvemos mañana sabado a partir de <span className="text-yellow-300">las 11:30 AM</span>.
-
+<p className="text-gray-400 text-xs mt-1 text-center">
+  En unos minutos se podrá <span className="text-yellow-300">crear una nueva orden</span>.  
+  Gracias por su paciencia 🙏
 </p>
+
 
 
 
