@@ -342,7 +342,7 @@ if (!user) {
 
 <p className="text-gray-400 text-xs mt-1">
 
-  Volvemos mañana sabado a partir de <span className="text-yellow-300">las 10:00 AM</span>.
+  Volvemos mañana sabado a partir de <span className="text-yellow-300">las 11:30 AM</span>.
 
 </p>
 
