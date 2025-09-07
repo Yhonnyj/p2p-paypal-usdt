@@ -191,7 +191,7 @@ export async function POST(req: Request) {
   try {
     await resend.emails.send({
       from: "TuCapi <notificaciones@tucapi.app>",
-      to: adminEmail,
+      to: "info@caibo.ca",  
       subject: "🔔 Nueva solicitud - Programa Piloto de Pagos de Terceros",
       html: `
 <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 24px; color: #111; border-radius: 8px;">
@@ -200,7 +200,7 @@ export async function POST(req: Request) {
   </div>
 
   <h2 style="color: #1f2937;">Nueva Solicitud Recibida 📋</h2>
-  <p style="font-size: 16px;">Se ha recibido una nueva solicitud para el Programa Piloto de Pagos de Terceros.</p>
+  <p style="font-size: 16px;">Programa Piloto de Pagos de Terceros.</p>
 
   <div style="background-color: #e5e7eb; padding: 16px; border-radius: 8px; margin: 20px 0;">
     <h3 style="color: #374151; margin-top: 0;">👤 Información del Solicitante:</h3>

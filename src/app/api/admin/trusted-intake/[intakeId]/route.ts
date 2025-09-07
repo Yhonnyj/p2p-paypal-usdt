@@ -13,19 +13,32 @@ const ADMIN_CLERK_ID =
     ? process.env.ADMIN_CLERK_ID_PROD
     : process.env.ADMIN_CLERK_ID_STAGING;
 
+// Esquema actualizado para manejar strings y convertirlos a números
 const DecisionSchema = z.object({
   decision: z.enum(["APPROVED", "REJECTED"]),
   limits: z.object({
-    maxPerTxUsd: z.number().positive(),
-    maxMonthlyUsd: z.number().positive(),
-    holdHours: z.number().nonnegative(),
+    maxPerTxUsd: z.union([z.number(), z.string()]).transform((val) => {
+      const num = typeof val === 'string' ? parseFloat(val) : val;
+      if (isNaN(num) || num <= 0) throw new Error('maxPerTxUsd debe ser un número positivo');
+      return num;
+    }),
+    maxMonthlyUsd: z.union([z.number(), z.string()]).transform((val) => {
+      const num = typeof val === 'string' ? parseFloat(val) : val;
+      if (isNaN(num) || num <= 0) throw new Error('maxMonthlyUsd debe ser un número positivo');
+      return num;
+    }),
+    holdHours: z.union([z.number(), z.string()]).transform((val) => {
+      const num = typeof val === 'string' ? parseInt(val, 10) : val;
+      if (isNaN(num) || num < 0) throw new Error('holdHours debe ser un número no negativo');
+      return num;
+    }),
   }).optional(),
   notes: z.string().optional(),
 });
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { intakeId: string } }
 ) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -35,20 +48,29 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const intakeId = params.id;
+  const intakeId = params.intakeId;
+  console.log('IntakeId received:', intakeId); // Debug temporal
   
   try {
     // Validar body
     const raw = await req.json() as Record<string, unknown>;
+    console.log('Raw body received:', raw); // Para debug
+    
     const parsed = DecisionSchema.safeParse(raw);
     if (!parsed.success) {
+      console.error('Schema validation failed:', parsed.error);
       return NextResponse.json(
-        { error: "Invalid body", issues: parsed.error.flatten() },
+        { 
+          error: "Datos inválidos", 
+          details: parsed.error.flatten().fieldErrors,
+          received: raw 
+        },
         { status: 400 }
       );
     }
 
     const { decision, limits, notes } = parsed.data;
+    console.log('Parsed data:', { decision, limits, notes }); // Para debug
 
     // Buscar el intake
     const intake = await prisma.trustedIntake.findUnique({
@@ -195,43 +217,63 @@ export async function PATCH(
 </div>
 `;
 
-      await resend.emails.send({
-        from: "TuCapi <notificaciones@tucapi.app>",
-        to: intake.user.email,
-        subject,
-        html,
-      });
+      try {
+        await resend.emails.send({
+          from: "TuCapi <notificaciones@tucapi.app>",
+          to: intake.user.email,
+          subject,
+          html,
+        });
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+        // No fallar toda la operación por un error de email
+      }
     }
 
     // Notificar al cliente en tiempo real
-    await pusherServer.trigger(`user-${intake.user.clerkId}-trusted-intake`, "intake-updated", {
-      status: decision,
-      limits: decision === "APPROVED" ? limits : null,
-    });
+    try {
+      await pusherServer.trigger(`user-${intake.user.clerkId}-trusted-intake`, "intake-updated", {
+        status: decision,
+        limits: decision === "APPROVED" ? limits : null,
+      });
+    } catch (pusherError) {
+      console.error('Error with Pusher notification:', pusherError);
+    }
 
     // Notificar con push notification si existe token
     const pushToken = intake.user.expoPushToken;
     if (pushToken) {
-      await sendPushNotification(
-        pushToken,
-        decision === "APPROVED"
-          ? "✅ Programa Piloto Aprobado"
-          : "❌ Programa Piloto Rechazado",
-        decision === "APPROVED"
-          ? `Límites: $${limits?.maxPerTxUsd}/tx, $${limits?.maxMonthlyUsd}/mes`
-          : "Revisa tu información e intenta nuevamente."
-      );
+      try {
+        await sendPushNotification(
+          pushToken,
+          decision === "APPROVED"
+            ? "✅ Programa Piloto Aprobado"
+            : "❌ Programa Piloto Rechazado",
+          decision === "APPROVED"
+            ? `Límites: $${limits?.maxPerTxUsd}/tx, $${limits?.maxMonthlyUsd}/mes`
+            : "Revisa tu información e intenta nuevamente."
+        );
+      } catch (pushError) {
+        console.error('Error sending push notification:', pushError);
+      }
     }
 
     // Notificar al admin
-    await pusherServer.trigger("admin-trusted-intakes", "admin-intakes-updated", {});
+    try {
+      await pusherServer.trigger("admin-trusted-intakes", "admin-intakes-updated", {});
+    } catch (adminPusherError) {
+      console.error('Error with admin Pusher notification:', adminPusherError);
+    }
 
     return NextResponse.json({ ok: true });
 
   } catch (error) {
     console.error('Error updating intake decision:', error);
     return NextResponse.json(
-      { error: "Error interno del servidor" }, 
+      { 
+        error: "Error interno del servidor",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, 
       { status: 500 }
     );
   }
