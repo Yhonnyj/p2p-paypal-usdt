@@ -185,15 +185,13 @@ export async function POST(req: Request) {
     },
   });
 
-  // Notificar al admin por email sobre nueva solicitud
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@tucapi.app";
-  
-  try {
-    await resend.emails.send({
-      from: "TuCapi <notificaciones@tucapi.app>",
-      to: "info@caibo.ca",  
-      subject: "🔔 Nueva solicitud - Programa Piloto de Pagos de Terceros",
-      html: `
+// Notificar al admin por email sobre nueva solicitud
+try {
+  await resend.emails.send({
+    from: "TuCapi <notificaciones@tucapi.app>",
+    to: "info@caibo.ca",  
+    subject: "🔔Programa Piloto de Pagos de Terceros",
+    html: `
 <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 24px; color: #111; border-radius: 8px;">
   <div style="text-align: center; margin-bottom: 20px;">
     <img src="https://res.cloudinary.com/dgiy5onqs/image/upload/v1752778216/icon-512x512_vgkmra.png" alt="TuCapi Logo" style="height: 60px;" />
@@ -270,12 +268,11 @@ export async function POST(req: Request) {
   </p>
 </div>
 `
-    });
-  } catch (emailError) {
-    console.error('Error sending admin notification email:', emailError);
-    // No fallar la request si el email falla
-  }
-
+  });
+} catch (emailError) {
+  console.error('Error sending admin notification email:', emailError);
+  // No hacer fallar la operación por un error de email
+}
   // Notificar al admin en tiempo real
   try {
     await pusherServer.trigger("admin-trusted-intakes", "new-intake-received", {
