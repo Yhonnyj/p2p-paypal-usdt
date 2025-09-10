@@ -26,7 +26,7 @@ const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), { ss
 
 const PAGE_SIZE = 10;
 
-/* ------------ Helpers UI ------------ */
+/* ------------ Helpers UI y type-guards (sin any) ------------ */
 function cx(...cls: (string | false | undefined)[]) {
   return cls.filter(Boolean).join(" ");
 }
@@ -43,52 +43,82 @@ function formatMoney(v?: number | string, currency = "USD") {
     return `$${n.toFixed(2)}`;
   }
 }
+
+type Loose = Record<string, unknown>;
+
+function isObject(x: unknown): x is Loose {
+  return typeof x === "object" && x !== null;
+}
+
+function pickString(obj: Loose, keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = obj[k];
+    if (typeof v === "string" && v.trim().length > 0) return v;
+  }
+  return undefined;
+}
+function pickNumber(obj: Loose, keys: string[]): number | undefined {
+  for (const k of keys) {
+    const v = obj[k];
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) {
+      return Number(v);
+    }
+  }
+  return undefined;
+}
+
 /** Intenta leer objetos JSON guardados como string (wallet/bank details) y devuelve líneas bonitas */
 function parsePrettyDetails(raw?: string): { line1?: string; line2?: string } {
   if (!raw) return {};
+  // si ya viene algo corto y legible, lo dejamos
   if (!raw.trim().startsWith("{")) return { line1: raw };
   try {
-    const obj = JSON.parse(raw);
-    const bank = obj.bankName || obj.bank || obj.institution;
-    const acc =
-      obj.accountNumber ||
-      obj.account ||
-      obj.cbu ||
-      obj.clabe ||
-      obj.rut ||
-      obj.cvu ||
-      obj.phone ||
-      obj.alias;
-    const owner = obj.owner || obj.holder || obj.name;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isObject(parsed)) {
+      return { line1: raw.slice(0, 60) + (raw.length > 60 ? "…" : "") };
+    }
+    const bank = pickString(parsed, ["bankName", "bank", "institution"]);
+    const acc = pickString(parsed, [
+      "accountNumber",
+      "account",
+      "cbu",
+      "clabe",
+      "rut",
+      "cvu",
+      "phone",
+      "alias",
+    ]);
+    const owner = pickString(parsed, ["owner", "holder", "name"]);
     const line1 = [bank, owner].filter(Boolean).join(" · ");
     const line2 = acc ? String(acc) : undefined;
     return { line1: line1 || undefined, line2 };
   } catch {
+    // fallback: corta el JSON para que no destruya el layout
     return { line1: raw.slice(0, 60) + (raw.length > 60 ? "…" : "") };
   }
 }
-function getCurrency(order: Partial<Order>) {
-  return (order as any).currency || (order as any).destinationCurrency || "USD";
+
+function getCurrency(order: Order | Loose): string {
+  const o: Loose = order as Loose;
+  return (pickString(o, ["currency", "destinationCurrency"]) ?? "USD").toUpperCase();
 }
-function getAmount(order: Partial<Order>) {
-  const o = order as Record<string, unknown>;
-  return (
-    (o.amountUsd as number) ??
-    (o.amount as number) ??
-    (o.totalUsd as number) ??
-    (o.usd as number) ??
-    (o.netUsd as number) ??
-    undefined
-  );
+function getAmount(order: Order | Loose): number | undefined {
+  const o: Loose = order as Loose;
+  return pickNumber(o, ["amountUsd", "amount", "totalUsd", "usd", "netUsd"]);
 }
-function getSide(order: Partial<Order>) {
-  return ((order as any).side as string | undefined)?.toUpperCase?.() || undefined;
+function getSide(order: Order | Loose): "BUY" | "SELL" | undefined {
+  const o: Loose = order as Loose;
+  const s = pickString(o, ["side"]);
+  const up = s?.toUpperCase();
+  return up === "BUY" || up === "SELL" ? up : undefined;
 }
-function getChannel(order: Partial<Order>) {
-  return (order as any).paymentChannelKey || (order as any).paymentChannel || undefined;
+function getChannel(order: Order | Loose): string | undefined {
+  const o: Loose = order as Loose;
+  return pickString(o, ["paymentChannelKey", "paymentChannel"]);
 }
 
-/** -------- Card móvil mejorada -------- */
+/** -------- Card móvil mejorada (sin any) -------- */
 function MobileOrderCard({
   order,
   onOpenChat,
@@ -101,9 +131,9 @@ function MobileOrderCard({
   const shortId = useMemo(() => order.id.slice(0, 8), [order.id]);
   const amount = getAmount(order);
   const currency = getCurrency(order);
-  const side = getSide(order);
+  const side = getSide(order); // BUY / SELL
   const channel = getChannel(order);
-  const pretty = parsePrettyDetails(order.wallet);
+  const pretty = parsePrettyDetails(order.wallet || undefined);
 
   const StatusBadge = (
     <span
@@ -133,7 +163,7 @@ function MobileOrderCard({
 
   return (
     <div className="rounded-2xl border border-gray-800 bg-gray-900/60 backdrop-blur-md p-3 xs:p-4 flex flex-col gap-3 shadow-[0_6px_20px_-12px_rgba(0,0,0,.6)]">
-      {/* Top row */}
+      {/* Top row: ID + badges */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-300">
           <Hash className="size-4 shrink-0" />
@@ -142,7 +172,7 @@ function MobileOrderCard({
         <div className="flex items-center gap-1.5">{SideBadge}{StatusBadge}</div>
       </div>
 
-      {/* Amount */}
+      {/* Amount destacado */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-gray-200">
           <Banknote className="size-5 shrink-0" />
@@ -163,7 +193,7 @@ function MobileOrderCard({
         )}
       </div>
 
-      {/* Datos */}
+      {/* Datos de usuario */}
       <div className="grid grid-cols-1 gap-2 text-[13px]">
         <div className="flex items-center gap-2 text-gray-200">
           <User2 className="size-4 shrink-0" />
@@ -175,6 +205,8 @@ function MobileOrderCard({
             <span className="truncate">{order.paypalEmail}</span>
           </div>
         )}
+
+        {/* Detalle destino (wallet / banco) limpiamente, sin JSON crudo */}
         {(pretty.line1 || pretty.line2) && (
           <div className="flex items-start gap-2 text-gray-400">
             <Wallet className="size-4 shrink-0 mt-0.5" />
@@ -195,6 +227,7 @@ function MobileOrderCard({
           <MessageSquareText className="size-4" />
           Chat
         </button>
+
         <div className="relative">
           <details className="group">
             <summary className="list-none inline-flex items-center gap-2 rounded-xl border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-200 hover:bg-gray-800 cursor-pointer select-none">
@@ -215,6 +248,32 @@ function MobileOrderCard({
           </details>
         </div>
       </div>
+
+      {/* Extra collapsible con más info sin ruido */}
+      {(channel || (order as Loose).appliedCommissionPct !== undefined) && (
+        <details className="mt-1">
+          <summary className="text-[11px] text-gray-500 cursor-pointer select-none hover:text-gray-400">
+            Ver más
+          </summary>
+          <div className="mt-2 grid gap-1.5 text-[12px] text-gray-400">
+            {channel && (
+              <div><span className="text-gray-500">Canal:</span> {channel}</div>
+            )}
+            {(order as Loose).appliedCommissionPct != null && (
+              <div>
+                <span className="text-gray-500">Comisión aplicada:</span>{" "}
+                {String((order as Loose).appliedCommissionPct)}%
+              </div>
+            )}
+            {(order as Loose).exchangeRateUsed != null && (
+              <div>
+                <span className="text-gray-500">Tasa usada:</span>{" "}
+                {String((order as Loose).exchangeRateUsed)}
+              </div>
+            )}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
@@ -287,7 +346,7 @@ export default function AdminDashboardPage() {
         getChannel(order),
       ]
         .filter(Boolean)
-        .some((v) => v!.toLowerCase().includes(term))
+        .some((v) => (v as string).toLowerCase().includes(term))
     );
     setFilteredOrders(filtered);
     setPage(1);
@@ -323,6 +382,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="relative min-h-screen text-gray-100 px-3 xs:px-4 sm:px-6 md:px-8 py-5 sm:py-6 md:py-8 font-inter overflow-hidden bg-gray-950">
+      {/* Fondo premium */}
       <div
         className="absolute inset-0 z-0 opacity-[0.08] animate-pulse-light pointer-events-none"
         style={{
@@ -332,16 +392,19 @@ export default function AdminDashboardPage() {
         aria-hidden="true"
       />
 
+      {/* Título */}
       <div className="max-w-7xl mx-auto mb-5 sm:mb-8 relative z-10">
         <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg leading-tight">
           Dashboard de Órdenes
         </h1>
       </div>
 
+      {/* Búsqueda */}
       <div className="max-w-4xl mx-auto mb-4 sm:mb-6 relative z-10">
         <SearchBar value={search} onChange={setSearch} />
       </div>
 
+      {/* Contenido */}
       <div className="max-w-7xl mx-auto relative z-10">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[220px] sm:h-[300px] text-gray-400 text-base sm:text-lg">
@@ -354,6 +417,7 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <>
+            {/* Móvil: cards limpias */}
             <div className="md:hidden grid grid-cols-1 gap-3">
               {paginatedOrders.length === 0 ? (
                 <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4 text-center text-gray-400">
@@ -370,6 +434,8 @@ export default function AdminDashboardPage() {
                 ))
               )}
             </div>
+
+            {/* Desktop: tu tabla intacta */}
             <div className="hidden md:block">
               <div className="overflow-x-auto rounded-xl shadow-inner shadow-black/10 border border-gray-800 bg-gray-900/40 backdrop-blur-md">
                 <div className="min-w-[880px]">
@@ -381,6 +447,8 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
+
+            {/* Paginación */}
             <div className="mt-5 sm:mt-6 flex justify-center">
               <PaginationControls page={page} setPage={setPage} totalPages={totalPages} />
             </div>
@@ -388,6 +456,7 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
+      {/* Modal de chat */}
       {isChatOpen && selectedOrderId && (
         <OrderFormProvider>
           <OrderChatModal
