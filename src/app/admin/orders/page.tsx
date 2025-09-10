@@ -20,8 +20,6 @@ import {
   ChevronRight,
   Banknote,
   Building2,
-  ArrowDownRight,
-  ArrowUpRight
 } from "lucide-react";
 
 const OrderChatModal = dynamic(() => import("@/components/OrderChatModal"), { ssr: false });
@@ -48,12 +46,9 @@ function formatMoney(v?: number | string, currency = "USD") {
 /** Intenta leer objetos JSON guardados como string (wallet/bank details) y devuelve líneas bonitas */
 function parsePrettyDetails(raw?: string): { line1?: string; line2?: string } {
   if (!raw) return {};
-  // si ya viene algo corto y legible, lo dejamos
   if (!raw.trim().startsWith("{")) return { line1: raw };
   try {
     const obj = JSON.parse(raw);
-    // Casos comunes:
-    // { bankName, accountNumber, alias, cbu, rut, dni, clabe, phone, owner }
     const bank = obj.bankName || obj.bank || obj.institution;
     const acc =
       obj.accountNumber ||
@@ -65,27 +60,31 @@ function parsePrettyDetails(raw?: string): { line1?: string; line2?: string } {
       obj.phone ||
       obj.alias;
     const owner = obj.owner || obj.holder || obj.name;
-    let line1 = [bank, owner].filter(Boolean).join(" · ");
-    let line2 = acc ? String(acc) : undefined;
+    const line1 = [bank, owner].filter(Boolean).join(" · ");
+    const line2 = acc ? String(acc) : undefined;
     return { line1: line1 || undefined, line2 };
   } catch {
-    // fallback: corta el JSON para que no destruya el layout
     return { line1: raw.slice(0, 60) + (raw.length > 60 ? "…" : "") };
   }
 }
-function getCurrency(order: Order) {
-  // mejor esfuerzo
+function getCurrency(order: Partial<Order>) {
   return (order as any).currency || (order as any).destinationCurrency || "USD";
 }
-function getAmount(order: Order) {
-  // mejor esfuerzo con nombres típicos
-  const o: any = order as any;
-  return o.amountUsd ?? o.amount ?? o.totalUsd ?? o.usd ?? o.netUsd ?? undefined;
+function getAmount(order: Partial<Order>) {
+  const o = order as Record<string, unknown>;
+  return (
+    (o.amountUsd as number) ??
+    (o.amount as number) ??
+    (o.totalUsd as number) ??
+    (o.usd as number) ??
+    (o.netUsd as number) ??
+    undefined
+  );
 }
-function getSide(order: Order) {
+function getSide(order: Partial<Order>) {
   return ((order as any).side as string | undefined)?.toUpperCase?.() || undefined;
 }
-function getChannel(order: Order) {
+function getChannel(order: Partial<Order>) {
   return (order as any).paymentChannelKey || (order as any).paymentChannel || undefined;
 }
 
@@ -102,7 +101,7 @@ function MobileOrderCard({
   const shortId = useMemo(() => order.id.slice(0, 8), [order.id]);
   const amount = getAmount(order);
   const currency = getCurrency(order);
-  const side = getSide(order); // BUY / SELL
+  const side = getSide(order);
   const channel = getChannel(order);
   const pretty = parsePrettyDetails(order.wallet);
 
@@ -134,7 +133,7 @@ function MobileOrderCard({
 
   return (
     <div className="rounded-2xl border border-gray-800 bg-gray-900/60 backdrop-blur-md p-3 xs:p-4 flex flex-col gap-3 shadow-[0_6px_20px_-12px_rgba(0,0,0,.6)]">
-      {/* Top row: ID + badges */}
+      {/* Top row */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm text-gray-300">
           <Hash className="size-4 shrink-0" />
@@ -143,7 +142,7 @@ function MobileOrderCard({
         <div className="flex items-center gap-1.5">{SideBadge}{StatusBadge}</div>
       </div>
 
-      {/* Amount destacado */}
+      {/* Amount */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-gray-200">
           <Banknote className="size-5 shrink-0" />
@@ -164,7 +163,7 @@ function MobileOrderCard({
         )}
       </div>
 
-      {/* Datos de usuario */}
+      {/* Datos */}
       <div className="grid grid-cols-1 gap-2 text-[13px]">
         <div className="flex items-center gap-2 text-gray-200">
           <User2 className="size-4 shrink-0" />
@@ -176,8 +175,6 @@ function MobileOrderCard({
             <span className="truncate">{order.paypalEmail}</span>
           </div>
         )}
-
-        {/* Detalle destino (wallet / banco) limpiamente, sin JSON crudo */}
         {(pretty.line1 || pretty.line2) && (
           <div className="flex items-start gap-2 text-gray-400">
             <Wallet className="size-4 shrink-0 mt-0.5" />
@@ -198,7 +195,6 @@ function MobileOrderCard({
           <MessageSquareText className="size-4" />
           Chat
         </button>
-
         <div className="relative">
           <details className="group">
             <summary className="list-none inline-flex items-center gap-2 rounded-xl border border-gray-700 bg-gray-800/70 px-3 py-2 text-xs text-gray-200 hover:bg-gray-800 cursor-pointer select-none">
@@ -219,32 +215,6 @@ function MobileOrderCard({
           </details>
         </div>
       </div>
-
-      {/* Extra collapsible con más info sin ruido */}
-      {(channel || (order as any).appliedCommissionPct) && (
-        <details className="mt-1">
-          <summary className="text-[11px] text-gray-500 cursor-pointer select-none hover:text-gray-400">
-            Ver más
-          </summary>
-          <div className="mt-2 grid gap-1.5 text-[12px] text-gray-400">
-            {channel && (
-              <div><span className="text-gray-500">Canal:</span> {channel}</div>
-            )}
-            {(order as any).appliedCommissionPct != null && (
-              <div>
-                <span className="text-gray-500">Comisión aplicada:</span>{" "}
-                {(order as any).appliedCommissionPct}%
-              </div>
-            )}
-            {(order as any).exchangeRateUsed != null && (
-              <div>
-                <span className="text-gray-500">Tasa usada:</span>{" "}
-                {(order as any).exchangeRateUsed}
-              </div>
-            )}
-          </div>
-        </details>
-      )}
     </div>
   );
 }
@@ -314,7 +284,7 @@ export default function AdminDashboardPage() {
         order.paypalEmail,
         order.wallet,
         order.id,
-        (getChannel(order) || ""),
+        getChannel(order),
       ]
         .filter(Boolean)
         .some((v) => v!.toLowerCase().includes(term))
@@ -331,13 +301,10 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Error actualizando estado");
-
       const updatedOrder: Order = await res.json();
-
       if (selectedOrderDetails?.id === updatedOrder.id) {
         setSelectedOrderDetails({ ...selectedOrderDetails, status: updatedOrder.status });
       }
-
       setOrders((prev) =>
         prev.map((o) => (o.id === updatedOrder.id ? { ...updatedOrder, user: o.user } : o))
       );
@@ -355,8 +322,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <div className="relative min-h-screen text-gray-100 px-3 xs:px-4 sm:px-6 md:px-8 py-5 sm:py-6 md:py-8 font-inter overflow-hidden bg-gray-950 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      {/* Fondo premium */}
+    <div className="relative min-h-screen text-gray-100 px-3 xs:px-4 sm:px-6 md:px-8 py-5 sm:py-6 md:py-8 font-inter overflow-hidden bg-gray-950">
       <div
         className="absolute inset-0 z-0 opacity-[0.08] animate-pulse-light pointer-events-none"
         style={{
@@ -366,19 +332,16 @@ export default function AdminDashboardPage() {
         aria-hidden="true"
       />
 
-      {/* Título */}
       <div className="max-w-7xl mx-auto mb-5 sm:mb-8 relative z-10">
         <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 drop-shadow-lg leading-tight">
           Dashboard de Órdenes
         </h1>
       </div>
 
-      {/* Búsqueda */}
       <div className="max-w-4xl mx-auto mb-4 sm:mb-6 relative z-10">
         <SearchBar value={search} onChange={setSearch} />
       </div>
 
-      {/* Contenido */}
       <div className="max-w-7xl mx-auto relative z-10">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-[220px] sm:h-[300px] text-gray-400 text-base sm:text-lg">
@@ -391,7 +354,6 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <>
-            {/* Móvil: cards limpias */}
             <div className="md:hidden grid grid-cols-1 gap-3">
               {paginatedOrders.length === 0 ? (
                 <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4 text-center text-gray-400">
@@ -408,8 +370,6 @@ export default function AdminDashboardPage() {
                 ))
               )}
             </div>
-
-            {/* Desktop: tu tabla intacta */}
             <div className="hidden md:block">
               <div className="overflow-x-auto rounded-xl shadow-inner shadow-black/10 border border-gray-800 bg-gray-900/40 backdrop-blur-md">
                 <div className="min-w-[880px]">
@@ -421,8 +381,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-
-            {/* Paginación */}
             <div className="mt-5 sm:mt-6 flex justify-center">
               <PaginationControls page={page} setPage={setPage} totalPages={totalPages} />
             </div>
@@ -430,7 +388,6 @@ export default function AdminDashboardPage() {
         )}
       </div>
 
-      {/* Modal de chat */}
       {isChatOpen && selectedOrderId && (
         <OrderFormProvider>
           <OrderChatModal
