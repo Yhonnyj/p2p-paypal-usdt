@@ -253,115 +253,89 @@ if (!user) {
         </p>
         {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
 
+
           <button
+
 
             onClick={() => setIsOpen(true)}
 
+
             className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
+
 
           >
 
+
             Verificar Identidad
+
 
           </button>
 
+
         )}
+
 
    {verificationStatus === 'APPROVED' && (
 
 
 
 
-  <div className="flex flex-col items-center">
 
+          <button
 
 
 
-    <button
 
 
+            onClick={() => {
 
 
-      disabled
 
 
 
+              router.push('/dashboard/neworder');
 
-      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
 
 
 
 
-    >
+            }}
 
 
 
 
-      Crear Nueva Orden
 
+            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
 
-</button>
 
 
 
 
-    <div className="mt-6 flex flex-col items-center">
+          >
 
 
 
 
-      <img
 
+            Crear Nueva Orden
 
 
 
-        src="/images/capi-duerme.png"
 
 
+          </button>
 
 
-        alt="Capi Durmiendo"
 
 
 
+        )}
 
-        className="w-28 h-28 mb-2 object-contain"
 
 
 
 
-      />
-
-
-<p className="text-yellow-300 text-sm font-medium text-center">
-  Tu Capibara favorito está descansando, les deseamos un feliz fin de semana.
-</p> 
-
-<p className="text-gray-400 text-xs mt-1">
-  Volvemos el lunes a partir de <span className="text-yellow-300">las 11:00 AM</span>.
-</p>
-
-
-
-
-
-
-</div>
-
-
-
-
-  </div>
-
-
-
-
-)}
-
-
-
-
-</section>
+      </section>
 
 
 
