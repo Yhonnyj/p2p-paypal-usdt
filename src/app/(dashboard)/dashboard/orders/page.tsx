@@ -52,8 +52,8 @@ const statusIcons = {
 };
 
 const platformLogos: Record<string, string> = {
-  PayPal: "/images/paypal.png",
-  Zelle: "/images/zelle.png",
+  payPal: "/images/paypal.png",
+  zelle: "/images/zelle.png",
   USDT: "/images/usdt.png",
 };
 
