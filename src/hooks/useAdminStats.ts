@@ -18,12 +18,17 @@ export type AdminStatsResponse = {
   window?: { gte: string; lte: string };
   prevPeriod?: Partial<AdminStatsResponse>;
   delta?: Record<string, number>;
-  timeseries?: Array<{ label: string; totalUSD: number; totalUSDT: number; totalBS: number }>;
+  timeseries?: Array<{
+    label: string;
+    totalUSD: number;
+    totalUSDT: number;
+    totalBS: number;
+  }>;
 };
 
 type Options = {
-  tz?: string;                    // ej: "America/Toronto"
-  compare?: boolean;              // true -> ?compare=1
+  tz?: string; // ej: "America/Toronto"
+  compare?: boolean; // true -> ?compare=1
   series?: "day" | "week" | "month";
 };
 
@@ -65,11 +70,11 @@ export function useAdminStats(
         if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
         const json = (await res.json()) as AdminStatsResponse;
         setData(json);
-      } catch (e: any) {
-        if (e?.name !== "AbortError") {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== "AbortError") {
           console.error("❌ Error al cargar stats:", e);
           setData(null);
-          setError(e?.message || "Error al cargar estadísticas");
+          setError(e.message || "Error al cargar estadísticas");
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
