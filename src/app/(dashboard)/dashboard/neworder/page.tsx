@@ -99,41 +99,47 @@ function PedidoFormContent() {
           )}
 
           <div>
-            <label className="text-sm text-gray-300 mb-1 block font-medium">
-              Monto a enviar (USD)
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step="0.01"
-                value={
-                  Number.isFinite(form.monto)
-                    ? String(form.monto).replace(/^0+(?=\d)/, "")
-                    : ""
-                }
-                onChange={(e) => {
-                  const val = e.target.value.replace(/^0+(?=\d)/, "");
-                  const n = Number(val);
-                  form.setMonto(Number.isFinite(n) && n >= 0 ? n : 0);
-                }}
-                className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <DollarSign
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-                aria-hidden
-              />
-            </div>
+  <label className="text-sm text-gray-300 mb-1 block font-medium">
+    Monto a enviar (USD)
+  </label>
+  <div className="relative">
+    <input
+      type="number"
+      inputMode="numeric"
+      min={0}
+      step="0.01"
+      value={
+        Number.isFinite(form.monto)
+          ? String(form.monto).replace(/^0+(?=\d)/, "")
+          : ""
+      }
+      onChange={(e) => {
+        const val = e.target.value.replace(/^0+(?=\d)/, "");
+        const n = Number(val);
+        form.setMonto(Number.isFinite(n) && n >= 0 ? n : 0);
+      }}
+      className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+    />
+    <DollarSign
+      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+      size={18}
+      aria-hidden
+    />
+  </div>
 
-            <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow-md">
-              En TuCapi no hay sorpresas:{" "}
-              <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span>
-              <br />
-              El monto que quieras cambiar, es el monto que tienes que enviar.
-            </p>
-          </div>
+  {/* ⚠️ Aviso de monto mínimo */}
+  <p className="mt-2 text-sm font-semibold text-red-400 text-center">
+    ¡Monto mínimo 2 USD!
+  </p>
+
+  <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow-md">
+    En TuCapi no hay sorpresas:{" "}
+    <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span>
+    <br />
+    El monto que quieras cambiar, es el monto que tienes que enviar.
+  </p>
+</div>
+
 
           <SummaryCard />
 

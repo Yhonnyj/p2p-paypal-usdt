@@ -70,17 +70,22 @@ export default function TermsPage() {
           </ol>
 
           {/* 5. Responsabilidad del Usuario */}
-          <h2 className="text-2xl font-semibold text-teal-300">5. Responsabilidad del Usuario</h2>
-          <p>Usted es responsable de proporcionar:</p>
-          <ul className="list-disc list-inside space-y-1 text-gray-300">
-            <li>Correo, teléfono y/o datos de pago correctos y vigentes.</li>
-            <li>La dirección de billetera o información de destino exacta.</li>
-          </ul>
-          <p className="text-gray-300">
-            <strong>TuCapi no se hace responsable</strong> por pérdidas derivadas de datos mal ingresados por el usuario. 
-            En cripto, las transacciones son generalmente <strong>irreversibles</strong>; una vez enviado el monto acordado a la dirección proporcionada, 
-            la transacción se considera completada y no reembolsable.
-          </p>
+<h2 className="text-2xl font-semibold text-teal-300">5. Responsabilidad del Usuario</h2>
+<p>Usted es responsable de proporcionar:</p>
+<ul className="list-disc list-inside space-y-1 text-gray-300">
+  <li>Correo, teléfono y/o datos de pago correctos y vigentes.</li>
+  <li>La dirección de billetera o información de destino exacta.</li>
+  <li>
+    El titular de la cuenta registrada en TuCapi debe ser el mismo titular de la cuenta 
+    de pago utilizada (por ejemplo, PayPal). <strong>No se aceptan cuentas de terceros</strong>.
+  </li>
+</ul>
+<p className="text-gray-300">
+  <strong>TuCapi no se hace responsable</strong> por pérdidas derivadas de datos mal ingresados por el usuario. 
+  En cripto, las transacciones son generalmente <strong>irreversibles</strong>; una vez enviado el monto acordado a la dirección proporcionada, 
+  la transacción se considera completada y no reembolsable.
+</p>
+
 
           {/* 6. Límites, Seguridad y Antifraude */}
           <h2 className="text-2xl font-semibold text-teal-300">6. Límites, Seguridad y Antifraude</h2>

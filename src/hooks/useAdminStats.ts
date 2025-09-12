@@ -1,55 +1,86 @@
-import { useEffect, useState } from "react";
+"use client";
 
-type AdminStatsResponse = {
+import { useEffect, useMemo, useState } from "react";
+
+export type RangeOption = "7d" | "15d" | "month" | "all" | "custom";
+
+export type AdminStatsResponse = {
   totalUSD: number;
   totalUSDT: number;
-  totalBS: number; // ✅ CAMBIADO a totalBS para que coincida con la API
+  totalBS: number; // coherente con tu API
   stats: {
     COMPLETED: number;
     PENDING: number;
     CANCELLED: number;
   };
+  // opcionales para futuras mejoras
+  range?: string;
+  window?: { gte: string; lte: string };
+  prevPeriod?: Partial<AdminStatsResponse>;
+  delta?: Record<string, number>;
+  timeseries?: Array<{ label: string; totalUSD: number; totalUSDT: number; totalBS: number }>;
 };
 
-type RangeOption = "7d" | "15d" | "month" | "all" | "custom";
+type Options = {
+  tz?: string;                    // ej: "America/Toronto"
+  compare?: boolean;              // true -> ?compare=1
+  series?: "day" | "week" | "month";
+};
 
 export function useAdminStats(
   range: RangeOption = "month",
   customStart?: string,
-  customEnd?: string
+  customEnd?: string,
+  opts: Options = {}
 ) {
   const [data, setData] = useState<AdminStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const query = useMemo(() => {
+    const sp = new URLSearchParams();
+    sp.set("range", range);
+
+    if (range === "custom" && customStart && customEnd) {
+      sp.set("start", customStart);
+      sp.set("end", customEnd);
+    }
+    if (opts.tz) sp.set("tz", opts.tz);
+    if (opts.compare) sp.set("compare", "1");
+    if (opts.series) sp.set("series", opts.series);
+
+    return sp.toString();
+  }, [range, customStart, customEnd, opts.tz, opts.compare, opts.series]);
 
   useEffect(() => {
-    async function fetchStats() {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    (async () => {
       try {
-        let url = `/api/admin/stats?range=${range}`;
-
-        if (range === "custom" && customStart && customEnd) {
-          url += `&start=${customStart}&end=${customEnd}`;
-        }
-
-        const res = await fetch(url);
-
-        if (!res.ok) {
-          throw new Error(`Error ${res.status}: ${res.statusText}`);
-        }
-
-        const json = await res.json();
+        const res = await fetch(`/api/admin/stats?${query}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+        const json = (await res.json()) as AdminStatsResponse;
         setData(json);
-      } catch (err) {
-        console.error("❌ Error al cargar stats:", err);
-        setData(null);
+      } catch (e: any) {
+        if (e?.name !== "AbortError") {
+          console.error("❌ Error al cargar stats:", e);
+          setData(null);
+          setError(e?.message || "Error al cargar estadísticas");
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
-    }
+    })();
 
-    fetchStats();
-  }, [range, customStart, customEnd]);
+    return () => controller.abort();
+  }, [query]);
 
-  return { data, loading };
+  return { data, loading, error };
 }
 
-export type { RangeOption };
+// Si quieres también exportar el tipo de respuesta para otros componentes:
+// export type { AdminStatsResponse };

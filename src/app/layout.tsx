@@ -3,16 +3,17 @@ import { esES } from "@clerk/localizations";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AddToHomeModal from "@/components/AddToHomeModal";
-// import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // ❌ moveremos GA al gate
+// import { GoogleAnalytics } from "@/components/GoogleAnalytics"; // ❌ ya no lo usamos
 import WhatsAppSupportButton from "@/components/WhatsAppSupportButton";
 import ReferralTracker from "@/components/ReferralTracker";
-import CookieConsent from "@/components/CookieConsent";            // ✅ banner + modal
-import AnalyticsGate from "@/components/AnalyticsGate";            // ✅ carga condicional de GA
+import CookieConsent from "@/components/CookieConsent";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "TuCapi | Cambia PayPal a USDT o Moneda fiat como Bolívares al instante",
+  title:
+    "TuCapi | Cambia PayPal a USDT o Moneda fiat como Bolívares al instante",
   description:
     "Convierte PayPal a USDT o Moneda fiat como Bolívares con rapidez, seguridad y atención directa. Plataforma P2P regulada pensada para la comunidad latina.",
   keywords:
@@ -45,7 +46,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider localization={esES}>
       <html lang="es">
         <head>
-          {/* ❌ Quitar GoogleAnalytics del head para poder respetar consentimiento */}
           <link rel="manifest" href="/manifest.json" />
           <meta name="theme-color" content="#10B981" />
           <link rel="apple-touch-icon" href="/icon-192x192.png" />
@@ -64,11 +64,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <WhatsAppSupportButton />
 
-          {/* ✅ Siempre presente: banner + modal de cookies */}
+          {/* ✅ Siempre presente: banner de cookies */}
           <CookieConsent />
 
-          {/* ✅ Solo monta GoogleAnalytics si el usuario aceptó cookies analíticas */}
-          <AnalyticsGate />
+          {/* ✅ Google Analytics siempre activo */}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-SF8YL98H1R"
+            strategy="afterInteractive"
+          />
+          <Script id="ga-analytics" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-SF8YL98H1R');
+            `}
+          </Script>
         </body>
       </html>
     </ClerkProvider>
