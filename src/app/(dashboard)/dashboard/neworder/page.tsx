@@ -171,7 +171,7 @@ function PedidoFormContent() {
       <img
         src="/capi-spinner.png" // cámbialo a .gif si quieres animado
         alt="Capi cargando"
-        className="w-6 h-6 animate-spin"
+        className="w-8 h-8 animate-spin"
       />
        Creando tu orden
     </span>

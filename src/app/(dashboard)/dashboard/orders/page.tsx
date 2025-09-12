@@ -61,8 +61,8 @@ const destinationLogos: Record<string, string> = {
   BINANCE_PAY: "/images/binance_pay.png",
   ARBITRUM: "/images/arbitrum.png",
   BEP20: "/images/bep20.png",
-  TRC20: "/images/TRC20.png",
-  BS: "/images/BS.png",
+  TRC20: "/images/trc20.png",
+  BS: "/images/bs.png",
   COP: "/images/cop.png",
 };
 
