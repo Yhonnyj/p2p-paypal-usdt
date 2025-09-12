@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { ArrowRight, DollarSign } from "lucide-react";
+import { Rotate3d, DollarSign } from "lucide-react";
 import { OrderFormProvider, useOrderForm } from "@/context/OrderFormContext";
 import PlatformSelector from "@/components/neworders/PlatformSelector";
 import DestinationSelector from "@/components/neworders/DestinationSelector";
@@ -38,6 +38,12 @@ function PedidoFormContent() {
   };
 
   const handleContinuar = async () => {
+    // 🚨 Validación de monto mínimo
+    if (form.monto < 5) {
+      alert("El monto mínimo es 5 USD para crear una orden.");
+      return;
+    }
+
     // Guarda datos persistentes del destino antes de crear la orden
     if (form.selectedDestinationCurrency !== "USDT" && fiatRef.current) {
       await fiatRef.current.saveFiatAccount();
@@ -53,13 +59,18 @@ function PedidoFormContent() {
   // Validación previa para habilitar el botón
   const hasMonto = Number.isFinite(form.monto) && form.monto > 0;
 
-  const baseFiatOk = form.bankName.trim().length > 0 || !!form.selectedAccountId;
+  const baseFiatOk =
+    form.bankName.trim().length > 0 || !!form.selectedAccountId;
 
   const fiatOk =
     form.selectedDestinationCurrency === "BS"
-      ? baseFiatOk && form.bsPhoneNumber.trim() !== "" && form.bsIdNumber.trim() !== ""
+      ? baseFiatOk &&
+        form.bsPhoneNumber.trim() !== "" &&
+        form.bsIdNumber.trim() !== ""
       : form.selectedDestinationCurrency === "COP"
-      ? baseFiatOk && form.copAccountNumber.trim() !== "" && form.copAccountHolder.trim() !== ""
+      ? baseFiatOk &&
+        form.copAccountNumber.trim() !== "" &&
+        form.copAccountHolder.trim() !== ""
       : baseFiatOk; // otras monedas FIAT: solo cuenta/banco
 
   const destOk =
@@ -67,7 +78,8 @@ function PedidoFormContent() {
       ? form.wallet.trim().length > 0
       : fiatOk;
 
-  const paypalOk = !isPayPal || (isPayPal && form.paypalEmail.trim().length > 0);
+  const paypalOk =
+    !isPayPal || (isPayPal && form.paypalEmail.trim().length > 0);
 
   const canContinue =
     !form.loading &&
@@ -99,47 +111,48 @@ function PedidoFormContent() {
           )}
 
           <div>
-  <label className="text-sm text-gray-300 mb-1 block font-medium">
-    Monto a enviar (USD)
-  </label>
-  <div className="relative">
-    <input
-      type="number"
-      inputMode="numeric"
-      min={0}
-      step="0.01"
-      value={
-        Number.isFinite(form.monto)
-          ? String(form.monto).replace(/^0+(?=\d)/, "")
-          : ""
-      }
-      onChange={(e) => {
-        const val = e.target.value.replace(/^0+(?=\d)/, "");
-        const n = Number(val);
-        form.setMonto(Number.isFinite(n) && n >= 0 ? n : 0);
-      }}
-      className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-    />
-    <DollarSign
-      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-      size={18}
-      aria-hidden
-    />
-  </div>
+            <label className="text-sm text-gray-300 mb-1 block font-medium">
+              Monto a enviar (USD)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step="0.01"
+                value={
+                  Number.isFinite(form.monto)
+                    ? String(form.monto).replace(/^0+(?=\d)/, "")
+                    : ""
+                }
+                onChange={(e) => {
+                  const val = e.target.value.replace(/^0+(?=\d)/, "");
+                  const n = Number(val);
+                  form.setMonto(Number.isFinite(n) && n >= 0 ? n : 0);
+                }}
+                className="w-full px-5 py-3 pl-12 rounded-xl bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <DollarSign
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+                aria-hidden
+              />
+            </div>
 
-  {/* ⚠️ Aviso de monto mínimo */}
-  <p className="mt-2 text-sm font-semibold text-red-400 text-center">
-    ¡Monto mínimo 2 USD!
-  </p>
+            {/* ⚠️ Aviso de monto mínimo fijo */}
+            <p className="mt-2 text-sm font-semibold text-red-400 text-center">
+              ¡Monto mínimo 5 USD!
+            </p>
 
-  <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow-md">
-    En TuCapi no hay sorpresas:{" "}
-    <span className="font-semibold">Nosotros cubrimos las comisiones de PayPal.</span>
-    <br />
-    El monto que quieras cambiar, es el monto que tienes que enviar.
-  </p>
-</div>
-
+            <p className="text-sm text-green-400 font-medium mt-3 bg-gray-800 border border-green-600 px-4 py-3 rounded-xl text-center shadow-md">
+              En TuCapi no hay sorpresas:{" "}
+              <span className="font-semibold">
+                Nosotros cubrimos las comisiones de PayPal.
+              </span>
+              <br />
+              El monto que quieras cambiar, es el monto que tienes que enviar.
+            </p>
+          </div>
 
           <SummaryCard />
 
@@ -152,9 +165,23 @@ function PedidoFormContent() {
                 : "bg-emerald-900/40 cursor-not-allowed"
             }`}
           >
-            {form.loading ? "Procesando..." : "Continuar"}
-            {!form.loading && <ArrowRight size={22} aria-hidden />}
-          </button>
+          {form.loading ? (
+    <span className="flex items-center gap-2">
+      {/* 👇 Aquí va tu capi spinner (puede ser PNG o GIF) */}
+      <img
+        src="/capi-spinner.png" // cámbialo a .gif si quieres animado
+        alt="Capi cargando"
+        className="w-6 h-6 animate-spin"
+      />
+      El Capi está creando tu orden...
+    </span>
+  ) : (
+    <>
+      Crear Orden
+      <Rotate3d size={22} aria-hidden />
+    </>
+  )}
+</button>
         </div>
       </div>
 
