@@ -173,7 +173,7 @@ function PedidoFormContent() {
         alt="Capi cargando"
         className="w-6 h-6 animate-spin"
       />
-      El Capi está creando tu orden...
+       Creando tu orden
     </span>
   ) : (
     <>
