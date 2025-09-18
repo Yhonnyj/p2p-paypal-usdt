@@ -289,23 +289,28 @@ if (!user) {
 
 
 
-        src="/images/capi-constructor.png"
+        src="/images/capi-dueme.png"
 
 
 
-        alt="Capi Constructor"
+        alt="Capi Duerme"
 
 
 
-        className="w-24 h-24 mb-2 object-contain"
+        className="w-28 h-28 mb-2 object-contain"
 
 
 
       />
 
  <p className="text-yellow-300 text-sm font-medium text-center">
-  🛠 Tu Capibara favorito está descansando. Volvemos mañana lunes a partir de las 10:00 AM.
+  Tu Capibara favorito está descansando. Volveremos mañana a las 10:30 AM.
 </p>
+
+<p className="text-gray-400 text-xs mt-1">
+  Gracias por tu paciencia y comprensión. 💛
+</p>
+
 
 
 </div>
