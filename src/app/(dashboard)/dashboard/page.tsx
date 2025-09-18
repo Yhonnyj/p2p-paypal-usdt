@@ -304,7 +304,7 @@ if (!user) {
       />
 
  <p className="text-yellow-300 text-sm font-medium text-center">
-  Tu Capibara favorito está descansando. Volveremos mañana a las 10:30 AM.
+  Tu Capibara favorito está descansando. Volveremos hoy a las 12:00 PM.
 </p>
 
 <p className="text-gray-400 text-xs mt-1">
