@@ -251,7 +251,31 @@ if (!user) {
             <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
           )}
         </p>
- {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+   {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+
+
+          <button
+
+
+            onClick={() => setIsOpen(true)}
+
+
+            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
+
+
+          >
+
+
+            Verificar Identidad
+
+
+          </button>
+
+
+        )}
+
+
+   {verificationStatus === 'APPROVED' && (
 
 
 
