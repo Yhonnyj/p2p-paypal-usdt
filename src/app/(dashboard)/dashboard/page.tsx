@@ -251,7 +251,7 @@ if (!user) {
             <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
           )}
         </p>
-        {verificationStatus === 'APPROVED' && (
+ {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
 
 
 
