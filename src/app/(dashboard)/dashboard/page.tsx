@@ -328,11 +328,11 @@ if (!user) {
       />
 
  <p className="text-yellow-300 text-sm font-medium text-center">
-  Tu Capibara favorito está descansando. Volveremos el dia lunes a las 12:00 PM.
+  Tu Capibara favorito está descansando. Volveremos mañana a las 9AM.
 </p>
 
-<p className="text-gray-400 text-xs mt-1">
-  Gracias por su comprensión, feliz fin de semana 💛
+<p className="text-gray-400 text-xs mt-2">
+  Gracias por su comprensión 💛
 </p>
 
 
