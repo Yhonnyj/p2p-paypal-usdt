@@ -143,10 +143,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5) OK
-    return NextResponse.json({ success: true, invoiceId, account_used: account });
-  } catch (error: any) {
-    console.error("❌ Error al crear/enviar factura:", error?.message || error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
-  }
+  // 5) OK
+return NextResponse.json({ success: true, invoiceId, account_used: account });
+} catch (error: unknown) {
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: unknown }).message)
+      : String(error);
+
+  console.error("❌ Error al crear/enviar factura:", message);
+  return NextResponse.json({ error: "Error interno", details: message }, { status: 500 });
+}
 }
