@@ -1,4 +1,14 @@
+// app/api/paypal/invoice/route.ts
 import { NextRequest, NextResponse } from "next/server";
+
+type Account = "CAIBO" | "CLOUD";
+
+// Regla: >=100 → Caibo ; <100 → Cloud
+const THRESHOLD_USD = 100;
+
+// Términos ES para ambas cuentas
+const TERMS_ES =
+  "El Cliente reconoce y acepta que no se admitirán reclamaciones ni reembolsos una vez que el servicio haya sido prestado y recibido. Cualquier intento de iniciar un reclamo después de la recepción del servicio podrá considerarse fraudulento y será notificado de inmediato a las autoridades competentes.";
 
 export async function POST(req: NextRequest) {
   const { email, amount } = await req.json();
@@ -7,25 +17,60 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
   }
 
-  const clientId = process.env.PAYPAL_CLIENT_ID!;
-  const secret = process.env.PAYPAL_CLIENT_SECRET!;
+  const amountNum = Number(amount);
+  if (!Number.isFinite(amountNum) || amountNum <= 0) {
+    return NextResponse.json({ error: "Monto inválido" }, { status: 400 });
+  }
+
+  // 0) Elegir cuenta por monto
+  const account: Account = amountNum < THRESHOLD_USD ? "CLOUD" : "CAIBO";
+  const isCaibo = account === "CAIBO";
+
+  // 1) Credenciales por cuenta (Caibo = las que ya tenías)
+  const clientId = isCaibo
+    ? process.env.PAYPAL_CLIENT_ID!
+    : process.env.PAYPAL_CLOUD_CLIENT_ID!;
+  const secret = isCaibo
+    ? process.env.PAYPAL_CLIENT_SECRET!
+    : process.env.PAYPAL_CLOUD_CLIENT_SECRET!;
+
+  if (!clientId || !secret) {
+    return NextResponse.json(
+      { error: `Faltan credenciales para ${account}` },
+      { status: 500 }
+    );
+  }
+
   const basicAuth = Buffer.from(`${clientId}:${secret}`).toString("base64");
 
   try {
-    // 1. Obtener access token
+    // 2) Access token
     const tokenRes = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
       method: "POST",
       headers: {
         Authorization: `Basic ${basicAuth}`,
         "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        "Accept-Language": "en_US",
       },
       body: "grant_type=client_credentials",
     });
 
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text();
+      return NextResponse.json(
+        { error: "No se pudo obtener access_token", details: errText, account_used: account },
+        { status: 400 }
+      );
+    }
+
     const tokenData = await tokenRes.json();
     const accessToken = tokenData.access_token;
 
-    // 2. Crear la factura
+    // 3) Crear la factura (branding y concepto por cuenta)
+    const itemName = isCaibo ? "Servicio de marketing" : "Servicios administrativos";
+    const note = itemName;
+
     const invoiceRes = await fetch("https://api-m.paypal.com/v2/invoicing/invoices", {
       method: "POST",
       headers: {
@@ -35,11 +80,12 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         detail: {
           currency_code: "USD",
-          note: "Servicio de marketing",
-          terms_and_conditions: "Gracias por usar Caibo INC",
+          note,
+          terms_and_conditions: TERMS_ES,
+          reference: account, // útil para conciliación
         },
         invoicer: {
-          name: { given_name: "Caibo INC" },
+          name: { given_name: isCaibo ? "Caibo INC" : "Cloud Connection LLC" },
         },
         primary_recipients: [
           {
@@ -50,11 +96,11 @@ export async function POST(req: NextRequest) {
         ],
         items: [
           {
-            name: "Servicio de marketing",
+            name: itemName,
             quantity: "1",
             unit_amount: {
               currency_code: "USD",
-              value: amount.toString(),
+              value: amountNum.toFixed(2),
             },
           },
         ],
@@ -62,14 +108,25 @@ export async function POST(req: NextRequest) {
     });
 
     const invoice = await invoiceRes.json();
-    const invoiceId = invoice.href?.split("/").pop();
 
-    if (!invoiceId) {
-      console.error("💥 No se pudo obtener el ID de la factura:", invoice);
-      return NextResponse.json({ error: "No se pudo obtener el ID de la factura", details: invoice }, { status: 400 });
+    if (!invoiceRes.ok) {
+      return NextResponse.json(
+        { error: "No se pudo crear la factura", details: invoice, account_used: account },
+        { status: 400 }
+      );
     }
 
-    // 3. Enviar la factura
+    // PayPal v2 retorna id; mantenemos fallback a href por compatibilidad con tu versión previa
+    const invoiceId: string | undefined = invoice.id || invoice.href?.split("/").pop();
+
+    if (!invoiceId) {
+      return NextResponse.json(
+        { error: "No se pudo obtener invoiceId", details: invoice, account_used: account },
+        { status: 400 }
+      );
+    }
+
+    // 4) Enviar la factura (evita que quede en Draft)
     const sendRes = await fetch(`https://api-m.paypal.com/v2/invoicing/invoices/${invoiceId}/send`, {
       method: "POST",
       headers: {
@@ -79,15 +136,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!sendRes.ok) {
-      const error = await sendRes.json();
-      console.error("💥 Error al enviar factura:", error);
-      return NextResponse.json({ error: "No se pudo enviar factura", details: error }, { status: 400 });
+      const error = await sendRes.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: "No se pudo enviar la factura", details: error, account_used: account, invoiceId },
+        { status: 400 }
+      );
     }
 
-    // 4. Retornar éxito
-    return NextResponse.json({ success: true, invoiceId });
-  } catch (error) {
-    console.error("❌ Error al crear/enviar factura:", error);
+    // 5) OK
+    return NextResponse.json({ success: true, invoiceId, account_used: account });
+  } catch (error: any) {
+    console.error("❌ Error al crear/enviar factura:", error?.message || error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
