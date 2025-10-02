@@ -262,7 +262,7 @@ if (sideU === "BUY") {
     await prisma.message.create({
       data: {
         content:
-          "Gracias por preferir nuestra plataforma, tu orden está siendo procesada y la factura ha sido enviada si corresponde.",
+          "Gracias por preferir nuestra plataforma, tu orden está siendo procesada y la factura ha sido enviada a tu cuenta paypal.",
         senderId: "cmclws6rl0000vh38t04argqp", // bot / soporte automático
         orderId: order.id,
       },
@@ -290,7 +290,7 @@ if (sideU === "BUY") {
       if (process.env.RESEND_API_KEY) {
         await resend.emails.send({
           from: "Nueva Orden P2P en TuCapi <notificaciones@tucapi.app>",
-          to: "info@caibo.ca",
+          to: "info@caibo.ca, alejandro@tucapi.app",
           subject: `🟢 Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
           html: `
             <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px; color: #111; border-radius: 8px;">
