@@ -5,7 +5,10 @@ import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const ADMIN_CLERK_ID = "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH"; // 👈 tu ID real
+const ADMIN_CLERK_IDS = [
+  "user_2yyZX2DgvOUrxDtPBU0tRHgxsXH", // 👈 tu ID real
+  "user_33WDM3uAde6xgwBlVwOBqV9irvz", // 👈 ID de Alejandro
+];
 
 export default function SignInPage() {
   const router = useRouter();
@@ -15,13 +18,14 @@ export default function SignInPage() {
     if (!isLoaded) return;
 
     if (user) {
-      if (user.id === ADMIN_CLERK_ID) {
+      if (ADMIN_CLERK_IDS.includes(user.id)) {
         router.replace("/admin/orders");
       } else {
         router.replace("/dashboard");
       }
     }
   }, [isLoaded, user, router]);
+
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
