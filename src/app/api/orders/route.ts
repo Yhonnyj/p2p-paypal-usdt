@@ -285,38 +285,39 @@ if (sideU === "BUY") {
 
     await pusherServer.trigger("orders-channel", "order-created", order);
 
-    // -------- Notificación email (opcional) --------
-    try {
-      if (process.env.RESEND_API_KEY) {
-        await resend.emails.send({
-          from: "Nueva Orden P2P en TuCapi <notificaciones@tucapi.app>",
-          to: "info@caibo.ca, alejandro@tucapi.app",
-          subject: `🟢 Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px; color: #111; border-radius: 8px;">
-              <div style="text-align: center; margin-bottom: 20px;">
-                <img src="https://res.cloudinary.com/dgiy5onqs/image/upload/v1752778216/icon-512x512_vgkmra.png" alt="TuCapi Logo" style="height: 60px;" />
-              </div>
-              <h2 style="color: #10b981; text-align: center;">¡Nueva orden recibida! 🔔</h2>
-              <p style="font-size: 16px; text-align: center;">
-                Se ha generado una <strong>nueva orden P2P</strong> en TuCapi. A continuación, los detalles:
-              </p>
-              <div style="background: #fff; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #ddd;">
-                <p style="font-size: 16px; margin: 4px 0;"><strong>Cliente:</strong> ${order.user.fullName || order.user.email}</p>
-                <p style="font-size: 16px; margin: 4px 0;"><strong>Plataforma:</strong> ${order.platform}</p>
-                <p style="font-size: 16px; margin: 4px 0;"><strong>Monto:</strong> $${order.amount.toFixed(2)}</p>
-                <p style="font-size: 16px; margin: 4px 0;"><strong>Destino:</strong> ${order.to}</p>
-                <p style="font-size: 16px; margin: 4px 0;"><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString("es-ES")}</p>
-              </div>
-              <p style="font-size: 16px; text-align: center;">Ingresa al panel de administración para gestionar la orden lo antes posible.</p>
-              <p style="font-size: 16px; text-align: center;"><strong>Equipo TuCapi 💬</strong></p>
-            </div>
-          `,
-        });
-      }
-    } catch (e) {
-      console.warn("No se pudo enviar email con Resend:", e);
-    }
+  // -------- Notificación email (opcional) --------
+try {
+  if (process.env.RESEND_API_KEY) {
+    await resend.emails.send({
+      from: "Nueva Orden P2P en TuCapi <notificaciones@tucapi.app>",
+      to: ["info@caibo.ca", "alejandro@tucapi.app"], // ✅ array de correos
+      subject: `🟢 Tienes una nueva orden de ${order.user.fullName || order.user.email}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px; color: #111; border-radius: 8px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://res.cloudinary.com/dgiy5onqs/image/upload/v1752778216/icon-512x512_vgkmra.png" alt="TuCapi Logo" style="height: 60px;" />
+          </div>
+          <h2 style="color: #10b981; text-align: center;">¡Nueva orden recibida! 🔔</h2>
+          <p style="font-size: 16px; text-align: center;">
+            Se ha generado una <strong>nueva orden P2P</strong> en TuCapi. A continuación, los detalles:
+          </p>
+          <div style="background: #fff; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #ddd;">
+            <p style="font-size: 16px; margin: 4px 0;"><strong>Cliente:</strong> ${order.user.fullName || order.user.email}</p>
+            <p style="font-size: 16px; margin: 4px 0;"><strong>Plataforma:</strong> ${order.platform}</p>
+            <p style="font-size: 16px; margin: 4px 0;"><strong>Monto:</strong> $${order.amount.toFixed(2)}</p>
+            <p style="font-size: 16px; margin: 4px 0;"><strong>Destino:</strong> ${order.to}</p>
+            <p style="font-size: 16px; margin: 4px 0;"><strong>Fecha:</strong> ${new Date(order.createdAt).toLocaleString("es-ES")}</p>
+          </div>
+          <p style="font-size: 16px; text-align: center;">Ingresa al panel de administración para gestionar la orden lo antes posible.</p>
+          <p style="font-size: 16px; text-align: center;"><strong>Equipo TuCapi 💬</strong></p>
+        </div>
+      `,
+    });
+  }
+} catch (e) {
+  console.warn("No se pudo enviar email con Resend:", e);
+}
+
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
