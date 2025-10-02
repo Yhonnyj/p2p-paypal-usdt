@@ -48,7 +48,7 @@ export async function POST(req: Request) {
    // ✅ Enviar email al admin
 await resend.emails.send({
   from: "Nueva verificación <notificaciones@tucapi.app>",
-  to: "info@caibo.ca, alejandro@tucapi.app",
+  to: "info@caibo.ca",
   subject: `🔐 Verificación pendiente: ${user.fullName || user.email}`,
   html: `
     <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 24px; color: #111; border-radius: 8px;">
