@@ -7,10 +7,13 @@ import { pusherServer } from "@/lib/pusher";
 import { resend } from "@/lib/resend";
 import { sendPushNotification } from "@/lib/sendPushNotification";
 
-const ADMIN_CLERK_ID =
+const ADMIN_CLERK_IDS =
   process.env.APP_ENV === "production"
-    ? process.env.ADMIN_CLERK_ID_PROD
-    : process.env.ADMIN_CLERK_ID_STAGING;
+    ? [
+        process.env.ADMIN_CLERK_ID_PROD,
+        process.env.ADMIN_CLERK_ID_PROD2,
+      ].filter(Boolean) // quita los undefined si faltara alguno
+    : [process.env.ADMIN_CLERK_ID_STAGING || ""];
 
 export async function PATCH(
   req: NextRequest,
@@ -19,10 +22,11 @@ export async function PATCH(
   const orderId = params.orderId;
   const { userId } = await auth();
 
-  if (userId !== ADMIN_CLERK_ID) {
+  // 👉 validación: el userId debe estar en la lista
+  if (!userId || !ADMIN_CLERK_IDS.includes(userId)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
-
+  
   try {
     const { status } = await req.json();
     const normalizedStatus = status.toUpperCase();
