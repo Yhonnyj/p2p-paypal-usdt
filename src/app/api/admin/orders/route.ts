@@ -14,7 +14,6 @@ export async function GET() {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-
   try {
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
@@ -32,8 +31,14 @@ export async function GET() {
   } catch (error: unknown) {
     console.error("Error obteniendo órdenes admin:", error);
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 });
+      return NextResponse.json(
+        { error: error.message || "Error interno del servidor" },
+        { status: 500 }
+      );
     }
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
   }
 }

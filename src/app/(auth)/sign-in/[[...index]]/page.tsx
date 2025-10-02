@@ -26,7 +26,6 @@ export default function SignInPage() {
     }
   }, [isLoaded, user, router]);
 
-
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0" />
@@ -67,29 +66,27 @@ export default function SignInPage() {
           }}
           className="w-full max-w-md rounded-xl"
         >
-      <SignIn
-  redirectUrl="/dashboard"
-  appearance={{
-    elements: {
-      card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
-      headerTitle: "hidden",
-      headerSubtitle: "hidden",
-      formFieldInput:
-        "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
-      formButtonPrimary:
-        "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
-      footer: "hidden",
-      socialButtonsBlockButton: "bg-gray-800 text-white",
-      dividerLine: "bg-gray-700",
-    },
-    variables: {
-      colorPrimary: "#10b981",
-      colorBackground: "transparent",
-      colorText: "#ffffff",
-    },
-  }}
-/>
-
+          <SignIn
+            appearance={{
+              elements: {
+                card: "bg-gray-900 border border-gray-800 text-white shadow-lg rounded-xl",
+                headerTitle: "hidden",
+                headerSubtitle: "hidden",
+                formFieldInput:
+                  "bg-gray-800 text-white placeholder-gray-400 border border-gray-600",
+                formButtonPrimary:
+                  "bg-emerald-600 hover:bg-emerald-700 text-white font-semibold",
+                footer: "hidden",
+                socialButtonsBlockButton: "bg-gray-800 text-white",
+                dividerLine: "bg-gray-700",
+              },
+              variables: {
+                colorPrimary: "#10b981",
+                colorBackground: "transparent",
+                colorText: "#ffffff",
+              },
+            }}
+          />
         </motion.div>
       </section>
     </main>
