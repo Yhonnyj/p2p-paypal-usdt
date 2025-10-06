@@ -59,9 +59,9 @@ export default function SummaryCard() {
 
     const motivoDescuento =
       milestone === "FIRST"
-        ? "🎁 ¡Recibiste un 50% de descuento por ser tu primera orden!"
+        ? "🎁 ¡Recibiste un 25% de descuento por ser tu primera orden!"
         : milestone === "FIFTH"
-        ? "🎉 ¡Obtuviste un 18% de descuento por tu quinta orden!"
+        ? "🎉 ¡Obtuviste un 15% de descuento por tu quinta orden!"
         : milestone === "FIFTEEN_PLUS"
         ? "🏅 ¡Gracias por tu fidelidad! Recibiste un 10% de descuento."
         : hasDiscount

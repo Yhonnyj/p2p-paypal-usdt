@@ -33,8 +33,8 @@ interface OrderRequestBody {
 }
 
 function milestoneDiscount(nthOrder: number): { percent: number; milestone: Milestone } {
-  if (nthOrder === 1) return { percent: 50, milestone: "FIRST" };
-  if (nthOrder === 5) return { percent: 18, milestone: "FIFTH" };
+  if (nthOrder === 1) return { percent: 25, milestone: "FIRST" };
+  if (nthOrder === 5) return { percent: 15, milestone: "FIFTH" };
   if (nthOrder >= 15) return { percent: 10, milestone: "FIFTEEN_PLUS" };
   return { percent: 0, milestone: null };
 }

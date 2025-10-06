@@ -54,8 +54,8 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
   <p style="font-size: 16px;">Queremos darte la bienvenida con una oferta especial:</p>
 
   <ul style="font-size: 16px; line-height: 1.6; padding-left: 20px;">
-    <li>🔹 50% de descuento en la cotización del día en tu primera operación.</li>
-    <li>🔹 En tu 5ta operación, te aplicaremos 18% de descuento en la comisión.</li>
+    <li>🔹 25% de descuento en la cotización del día en tu primera operación.</li>
+    <li>🔹 En tu 5ta operación, te aplicaremos 10% de descuento en la comisión.</li>
     <li>🔹 Y a partir de tu 15ta operación, accedes a una comisión fija con 10%  de descuento por fidelidad 💛</li>
   </ul>
 
