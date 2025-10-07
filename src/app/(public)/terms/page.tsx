@@ -15,10 +15,10 @@ export default function TermsPage() {
           <h1 className="text-4xl font-bold text-emerald-400">
             Términos y Condiciones de Uso
           </h1>
-          <p className="text-gray-400">Última actualización: Agosto 2025</p>
+          <p className="text-gray-400">Última actualización: Octubre 2025</p>
 
           <p>
-            Bienvenido a <strong>TuCapi</strong>, una plataforma operada por <strong>Caibo INC</strong>, registrada como Money Services Business (MSB) ante FINTRAC. 
+            Bienvenido a <strong>TuCapi</strong>, una plataforma operada por <strong>TU CAPI LLC</strong>, que contrata los servicios de CAIBO INC., empresa registrada como Money Services Business (MSB) ante FINTRAC. 
             Al acceder y utilizar nuestros servicios, usted acepta quedar vinculado por los presentes Términos y Condiciones.
           </p>
 
@@ -136,7 +136,7 @@ export default function TermsPage() {
           {/* 11. Ley Aplicable */}
           <h2 className="text-2xl font-semibold text-teal-300">11. Ley Aplicable y Jurisdicción</h2>
           <p className="text-gray-300">
-            Estos Términos se rigen por las leyes de <strong>Canadá</strong>, provincia de <strong>Ontario</strong>. 
+            Estos Términos se rigen por las leyes de <strong>Estados Unidos</strong>, estado de <strong>Wyoming</strong>. 
             Cualquier disputa será resuelta por los tribunales competentes de dicha jurisdicción.
           </p>
 
@@ -165,7 +165,7 @@ export default function TermsPage() {
 
         {/* Información de regulación */}
         <div className="mt-10 text-sm text-gray-400 border-t border-gray-700 pt-6">
-         <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) M23228298 desde agosto 2023, autorizada para el intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p> 
+          <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) C100000990 desde Octubre de 2025, para la prestación de servicios de intercambio de divisas tradicionales y monedas virtuales conforme a las regulaciones AML/CFT de Canadá.</p> 
         </div>
       </div>
     </main>

@@ -259,7 +259,7 @@ export default async function Home() {
           <span>|</span>
         </div>
         <div className="mt-6 text-xs text-gray-400 leading-relaxed max-w-3xl mx-auto">
-          <p>Tu Capi LLC contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) M23228298 desde agosto 2023, autorizada para el intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p> 
+          <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) C100000990 desde Octubre de 2025, para la prestación de servicios de intercambio de divisas tradicionales y monedas virtuales conforme a las regulaciones AML/CFT de Canadá.</p> 
         </div>
       </footer>
     </main>

@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
         <h1 className="text-4xl font-bold text-emerald-400 flex items-center gap-2">
           <Lock className="w-7 h-7 text-emerald-400" /> Política de Privacidad
         </h1>
-        <p className="text-gray-400">Última actualización: Agosto 2025</p>
+        <p className="text-gray-400">Última actualización: Octubre 2025</p>
 
         <p>
           En <strong>Tu Capi LLC</strong>, contrata los servicios de <strong>Caibo INC</strong>., y nos comprometemos a proteger la privacidad de nuestros usuarios y la seguridad de sus datos personales.
@@ -125,7 +125,9 @@ export default function PrivacyPolicyPage() {
 
         {/* Regulación */}
         <div className="mt-10 text-sm text-gray-400 border-t border-gray-700 pt-6">
-          <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) M23228298 desde agosto 2023, autorizada para el intercambio de divisas tradicionales y monedas virtuales bajo normativas AML/CFT.</p> 
+          <p>
+  Tu Capi LLC contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) C100000990 desde octubre de 2025, para la prestación de servicios de intercambio de divisas tradicionales y monedas virtuales conforme a las regulaciones AML/CFT de Canadá.
+</p>
         </div>
       </div>
     </main>

@@ -56,7 +56,7 @@ const FaqPage = () => {
     {
       question: '¿Necesito verificar mi identidad?',
       answer:
-        'Sí, para garantizar la seguridad de nuestra comunidad y cumplir con las regulaciones ya que estamos registrados en MSB (FINTRAC), requerimos que todos los usuarios pasen por un proceso de verificación de identidad. Esto ayuda a prevenir fraudes y a mantener un entorno de intercambio confiable.',
+        'Sí, para garantizar la seguridad de nuestra comunidad y cumplir con las regulaciones ya que contratamos los servicios de CAIBO INC., que esta registrada en MSB (FINTRAC), requerimos que todos los usuarios pasen por un proceso de verificación de identidad. Esto ayuda a prevenir fraudes y a mantener un entorno de intercambio confiable.',
     },
     {
       question: '¿Cómo contacto al soporte de TuCapi?',
