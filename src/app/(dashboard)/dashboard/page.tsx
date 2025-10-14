@@ -297,14 +297,8 @@ if (!user) {
 
       <p className="text-yellow-300 text-sm font-medium text-center mt-3">
 
-Nuestro proveedor de USDT/Bolívares está presentando problemas internos, lo cual está causando muchos retrasos.
-Lamentablemente, esto escapa de nuestras manos.
+ Volveremos hoy martesa las 12pm🙏  
 
-
-    <br />  Por esta razón, hemos decidido cerrar por el día de hoy.
-Pedimos disculpas y agradecemos su comprensión.<br />
-
-    Volveremos mañana martes. 🙏  
 
     <br /><br />
 
@@ -315,9 +309,9 @@ Pedimos disculpas y agradecemos su comprensión.<br />
 
   <p className="text-gray-400 text-xs mt-2">
 
-    Podrás crear nuevas órdenes mañana martes a  
+    Podrás crear nuevas órdenes hoy martes a  
 
-    <span className="text-yellow-300"> partir de las 10 AM</span>.
+    <span className="text-yellow-300"> partir de las 12 PM</span>.
 
   </p>
 
