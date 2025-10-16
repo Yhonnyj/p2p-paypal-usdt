@@ -251,75 +251,120 @@ if (!user) {
             <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
           )}
         </p>
-    {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+   {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+
+
+
 
           <button
 
+
+
+
             onClick={() => setIsOpen(true)}
+
+
+
 
             className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
 
+
+
+
           >
+
+
+
 
             Verificar Identidad
 
+
+
+
           </button>
+
+
+
 
         )}
 
-    {verificationStatus === 'APPROVED' && (
-
-  <div className="flex flex-col items-center">
-
-    <button
-
-      disabled
-
-      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
-
-    >
-
-      Crear Nueva Orden
-
-    </button>
 
 
-    <div className="mt-2 flex flex-col items-center">
 
-      <img
-
-        src="/images/capi-constructor.png"
-
-        alt="Capi Constructor"
-
-      />
+   {verificationStatus === 'APPROVED' && (
 
 
-      <p className="text-yellow-300 text-sm font-medium text-center mt-3">
-
- Volveremos hoy martesa las 12pm🙏  
 
 
-    <br /><br />
-
-    ¡Gracias por tu confianza!
-
-  </p>
 
 
-  <p className="text-gray-400 text-xs mt-2">
 
-    Podrás crear nuevas órdenes hoy martes a  
+          <button
 
-    <span className="text-yellow-300"> partir de las 12 PM</span>.
 
-  </p>
 
-</div>
 
-  </div>
 
-)}
+
+
+            onClick={() => {
+
+
+
+
+
+
+
+              router.push('/dashboard/neworder');
+
+
+
+
+
+
+
+            }}
+
+
+
+
+
+
+
+            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+
+
+
+
+
+
+
+          >
+
+
+
+
+
+
+
+            Crear Nueva Orden
+
+
+
+
+
+
+
+          </button>
+
+
+
+
+
+
+
+        )}
+
 
 
 
@@ -327,6 +372,8 @@ if (!user) {
 
 
       </section>
+
+
 
 
 
