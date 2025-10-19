@@ -1,4 +1,3 @@
-// app/(public)/layout.tsx
 'use client';
 
 import Navbar from '@/components/Navbar';
@@ -9,35 +8,25 @@ export default function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isHalloween, setIsHalloween] = useState(false);
+  const [showHalloweenIcons, setShowHalloweenIcons] = useState(false);
 
   useEffect(() => {
     const today = new Date();
     const active =
       today.getMonth() === 9 && today.getDate() >= 18 && today.getDate() <= 31;
-    setIsHalloween(active);
+    setShowHalloweenIcons(active);
   }, []);
 
   return (
-    <div
-      className={`relative min-h-screen text-white font-inter transition-all duration-700 ${
-        isHalloween
-          ? 'bg-gradient-to-br from-[#150C1F] via-[#241134] to-[#000000]'
-          : 'bg-gradient-to-br from-gray-950 via-gray-900 to-black'
-      }`}
-    >
-      {/* 🌌 Fondo visual */}
-      <div
-        className="absolute inset-0 z-0 opacity-25 transition-all duration-700"
-        style={{
-          background: isHalloween
-            ? 'radial-gradient(circle at top left, #7E3FF2, transparent), radial-gradient(circle at bottom right, #E35C1F, transparent)'
-            : 'radial-gradient(circle at top left, #34D399, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
-        }}
-      ></div>
+    <div className="relative min-h-screen flex flex-col text-white font-inter transition-all duration-700 bg-gray-950 overflow-hidden">
+      {/* 🌌 Fondo premium con blobs */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0" />
+      <div className="absolute top-0 left-0 w-80 h-80 bg-emerald-600 rounded-full mix-blend-multiply blur-xl opacity-30 animate-blob z-0" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply blur-xl opacity-30 animate-blob animation-delay-2000 z-0" />
+      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply blur-xl opacity-30 animate-blob animation-delay-4000 z-0" />
 
-      {/* 👻🎃🕸️ Decoraciones flotantes */}
-      {isHalloween && (
+      {/* 👻🎃🕸️ Decoraciones flotantes (solo visibles en Halloween) */}
+      {showHalloweenIcons && (
         <>
           {/* Lado izquierdo */}
           <div className="absolute top-1/4 left-4 text-5xl float-emoji opacity-90">🎃</div>
@@ -61,7 +50,7 @@ export default function PublicLayout({
       <Navbar />
       <div className="pt-20 relative z-10">{children}</div>
 
-      {/* ✅ Animaciones flotantes */}
+      {/* ✅ Animaciones globales */}
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0); }
@@ -70,6 +59,26 @@ export default function PublicLayout({
         @keyframes float-slow {
           0%, 100% { transform: translateY(0) rotate(2deg); }
           50% { transform: translateY(-20px) rotate(-2deg); }
+        }
+        @keyframes blob {
+          0%, 100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+        .animate-blob {
+          animation: blob 12s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
         }
         .float-emoji {
           animation: float 6s ease-in-out infinite;

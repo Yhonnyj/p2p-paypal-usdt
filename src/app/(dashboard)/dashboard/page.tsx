@@ -267,7 +267,7 @@ if (!user) {
       />
       <p className="text-yellow-300 text-sm font-medium text-center">
         🎃 El CapiWitch está preparando nuevas pociones para tus intercambios.<br />
-        Cerrado por descanso,<strong> volveremos el lunes a las 12:00 PM con más hechizos y velocidad mágica! 🧹💫</strong>.
+        Cerrado por descanso,<strong> volveremos el manana a las 9AM con más hechizos y velocidad mágica! 🧹💫</strong>.
       </p>
       <p className="text-gray-400 text-xs mt-2 text-center">
       Gracias por tu comprensión, ¡feliz fin de semana encantado! 🎃✨
