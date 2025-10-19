@@ -242,7 +242,7 @@ if (!user) {
             <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
           )}
         </p>
-     {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+   {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
   <button
     onClick={() => setIsOpen(true)}
     className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
@@ -276,64 +276,171 @@ if (!user) {
   </div>
 )}
 </section>
+
+      {/* Key Features */}
+
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 animate-fade-in delay-400">
+
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-blue-500/50">
+
+          <DollarSign size={36} className="text-blue-400 mx-auto mb-3" />
+
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">
+
+            Transacciones Seguras
+
+          </h3>
+
+          <p className="text-gray-400 text-xs sm:text-sm">
+
+            Tu seguridad es nuestra prioridad. Todas tus operaciones están protegidas.
+
+          </p>
+
+        </div>
+
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-purple-500/50">
+
+          <Wallet size={36} className="text-purple-400 mx-auto mb-3" />
+
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">Múltiples Destinos</h3>
+
+          <p className="text-gray-400 text-xs sm:text-sm">
+
+            Elige entre USDT, Bolívares y otras monedas fiat.
+
+          </p>
+
+        </div>
+
+        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-yellow-500/50">
+
+          <Repeat2 size={36} className="text-yellow-400 mx-auto mb-3" />
+
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">Proceso Ágil</h3>
+
+          <p className="text-gray-400 text-xs sm:text-sm">
+
+            Realiza tus pedidos de forma rápida y eficiente.
+
+          </p>
+
+        </div>
+
+      </section>
+
     </div>
 
 
     <VerificationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
+
     {/* Profile Modal */}
+
     {isProfileModalOpen && (
+
       <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fadeIn">
+
         <div className="bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 w-[95vw] max-w-[95vw] md:max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 animate-scale-up-fade-in relative flex flex-col">
+
           <button
+
             onClick={() => setIsProfileModalOpen(false)}
+
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors duration-200 z-10"
+
             aria-label="Cerrar perfil"
+
           >
+
             ✖️
+
           </button>
+
           <div className="clerk-profile-container flex-grow overflow-y-auto p-0 md:p-6">
+
             <UserProfile />
+
           </div>
+
         </div>
+
       </div>
+
     )}
 
+
       {/* Custom Alert/Modal */}
+
       {showAlert && (
+
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 animate-fade-in">
+
           <div className="bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-700 max-w-sm w-full text-center transform scale-95 opacity-0 animate-scale-up-fade-in">
+
             {alertType === 'success' ? (
+
               <CheckCircle className="text-green-500 mx-auto mb-5 animate-bounce-in" size={56} />
+
             ) : (
+
               <XCircle className="text-red-500 mx-auto mb-5 animate-bounce-in" size={56} />
+
             )}
+
             <p className="text-white text-lg font-semibold mb-6">{alertMessage}</p>
+
             <button
+
               onClick={() => setShowAlert(false)}
+
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold transition-all duration-300 shadow-md hover:shadow-lg transform active:scale-95"
+
             >
+
               Entendido
+
             </button>
+
           </div>
+
         </div>
+
       )}
 
+
       {/* Animations */}
+
       <style jsx>{`
+
         @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
         @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
         @keyframes scale-up-fade-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         @keyframes bounce-in { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+
         .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+
         .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+
         .animate-scale-up-fade-in { animation: scale-up-fade-in 0.3s ease-out forwards; }
+
         .animate-bounce-in { animation: bounce-in 0.4s ease-out forwards; }
+
         .font-inter { font-family: 'Inter', sans-serif; }
+
         .delay-200 { animation-delay: 0.2s; }
+
         .delay-400 { animation-delay: 0.4s; }
+
         .delay-600 { animation-delay: 0.6s; }
+
       `}</style>
+
     </div>
+
   );
+
 }
