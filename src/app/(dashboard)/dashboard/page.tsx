@@ -242,54 +242,42 @@ if (!user) {
             <> Ahora tienes acceso completo a todas las funcionalidades de la plataforma.</>
           )}
         </p>
-   {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
-          >
-            Verificar Identidad
-          </button>
-        )}
+     {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
+  <button
+    onClick={() => setIsOpen(true)}
+    className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
+  >
+    Verificar Identidad
+  </button>
+)}
 
-   {verificationStatus === 'APPROVED' && (
-          <button
-            onClick={() => {
-              router.push('/dashboard/neworder');
-            }}
-            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
-          >
-            Crear Nueva Orden
-          </button>
-        )}
-      </section>
-
-      {/* Key Features */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 animate-fade-in delay-400">
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-blue-500/50">
-          <DollarSign size={36} className="text-blue-400 mx-auto mb-3" />
-          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">
-            Transacciones Seguras
-          </h3>
-          <p className="text-gray-400 text-xs sm:text-sm">
-            Tu seguridad es nuestra prioridad. Todas tus operaciones están protegidas.
-          </p>
-        </div>
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-purple-500/50">
-          <Wallet size={36} className="text-purple-400 mx-auto mb-3" />
-          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">Múltiples Destinos</h3>
-          <p className="text-gray-400 text-xs sm:text-sm">
-            Elige entre USDT, Bolívares y otras monedas fiat.
-          </p>
-        </div>
-        <div className="bg-gray-800/70 backdrop-blur-md rounded-2xl p-5 border border-gray-700 shadow-lg text-center transition-all duration-300 hover:scale-105 hover:border-yellow-500/50">
-          <Repeat2 size={36} className="text-yellow-400 mx-auto mb-3" />
-          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-gray-100">Proceso Ágil</h3>
-          <p className="text-gray-400 text-xs sm:text-sm">
-            Realiza tus pedidos de forma rápida y eficiente.
-          </p>
-        </div>
-      </section>
+{verificationStatus === 'APPROVED' && (
+  <div className="flex flex-col items-center">
+    <button
+      disabled
+      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
+    >
+      Crear Nueva Orden
+    </button>
+    <div className="mt-8 flex flex-col items-center">
+      <img
+        src="/images/capi-witch.png"
+        alt="Capi Witch"
+        className="w-32 h-32 mb-2 object-contain"
+      />
+      <p className="text-yellow-300 text-sm font-medium text-center">
+        🎃 El CapiWitch está preparando nuevas pociones para tus intercambios.<br />
+        Cerrado por descanso,<strong> volveremos el lunes a las 12:00 PM con más hechizos y velocidad mágica! 🧹💫</strong>.
+      </p>
+      <p className="text-gray-400 text-xs mt-2 text-center">
+      Gracias por tu comprensión, ¡feliz fin de semana encantado! 🎃✨
+      </p>
     </div>
+  </div>
+)}
+</section>
+    </div>
+
 
     <VerificationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
