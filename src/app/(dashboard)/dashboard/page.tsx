@@ -243,39 +243,43 @@ if (!user) {
           )}
         </p>
    {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
-  <button
-    onClick={() => setIsOpen(true)}
-    className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
-  >
-    Verificar Identidad
-  </button>
-)}
 
-{verificationStatus === 'APPROVED' && (
-  <div className="flex flex-col items-center">
-    <button
-      disabled
-      className="bg-gray-600 text-gray-300 cursor-not-allowed px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg opacity-70"
-    >
-      Crear Nueva Orden
-    </button>
-    <div className="mt-8 flex flex-col items-center">
-      <img
-        src="/images/capi-witch.png"
-        alt="Capi Witch"
-        className="w-32 h-32 mb-2 object-contain"
-      />
-      <p className="text-yellow-300 text-sm font-medium text-center">
-        🎃 El CapiWitch está preparando nuevas pociones para tus intercambios.<br />
-        Cerrado por descanso,<strong> volveremos el manana a las 9AM con más hechizos y velocidad mágica! 🧹💫</strong>.
-      </p>
-      <p className="text-gray-400 text-xs mt-2 text-center">
-      Gracias por tu comprensión, ¡feliz fin de semana encantado! 🎃✨
-      </p>
-    </div>
-  </div>
-)}
-</section>
+          <button
+
+            onClick={() => setIsOpen(true)}
+
+            className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
+
+          >
+
+            Verificar Identidad
+
+          </button>
+
+        )}
+
+
+   {verificationStatus === 'APPROVED' && (
+
+          <button
+
+            onClick={() => {
+
+              router.push('/dashboard/neworder');
+
+            }}
+
+            className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
+
+          >
+
+            Crear Nueva Orden
+
+          </button>
+
+        )}
+
+      </section>
 
       {/* Key Features */}
 
