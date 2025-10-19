@@ -2,7 +2,6 @@
 
 import { OrderFormProvider, useOrderForm } from "@/context/OrderFormContext";
 import {
-  Zap,
   Loader2,
   CheckCircle,
   Clock,
@@ -177,10 +176,16 @@ function OrdersContent() {
   return (
     <div className="flex-1 text-white p-8 font-inter overflow-y-auto">
       <div className="relative z-10 max-w-4xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
-          <Zap className="text-yellow-400 animate-pulse drop-shadow-md" size={36} />
-          Historial de Órdenes
-        </h1>
+       <h1 className="text-4xl md:text-5xl font-extrabold mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 flex items-center justify-center gap-3 drop-shadow-lg animate-fade-in-up">
+  {/* Imagen del capibara vampiro en lugar del rayo */}
+  <img
+    src="/capi-vampiro.png"
+    alt="Capibara Vampiro"
+    className="w-14 h-16 md:w-12 md:h-12 animate-fade-in-up drop-shadow-lg"
+  />
+  Historial de Órdenes
+</h1>
+
 
         {/* Resumen */}
         <div className="flex flex-wrap justify-center gap-4 mb-6">

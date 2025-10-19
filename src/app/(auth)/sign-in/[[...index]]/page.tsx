@@ -14,6 +14,11 @@ export default function SignInPage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
 
+  // 🎃 Detectar si estamos en Halloween (18–31 octubre)
+  const today = new Date();
+  const isHalloween =
+    today.getMonth() === 9 && today.getDate() >= 18 && today.getDate() <= 31;
+
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -27,11 +32,39 @@ export default function SignInPage() {
   }, [isLoaded, user, router]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0" />
-      <div className="absolute top-0 left-0 w-80 h-80 bg-emerald-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob z-0" />
-      <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0" />
-      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0" />
+    <main
+      className={`min-h-screen flex flex-col items-center justify-center text-white p-6 relative overflow-hidden transition-all duration-700 ${
+        isHalloween
+          ? "bg-gradient-to-br from-[#2A1040] via-[#3B1460] to-[#000000]"
+          : "bg-gray-950"
+      }`}
+    >
+      {/* 🔮 Fondo dinámico */}
+      <div
+        className={`absolute inset-0 z-0 opacity-25 transition-all duration-700 ${
+          isHalloween
+            ? "bg-[radial-gradient(circle_at_top_left,_#7E3FF2,_transparent),_radial-gradient(circle_at_bottom_right,_#E35C1F,_transparent)]"
+            : "bg-[radial-gradient(circle_at_top_left,_#34D399,_transparent),_radial-gradient(circle_at_bottom_right,_#6366F1,_transparent)]"
+        }`}
+      />
+
+      {/* 💫 Burbujas decorativas (solo si no es Halloween) */}
+      {!isHalloween && (
+        <>
+          <div className="absolute top-0 left-0 w-80 h-80 bg-emerald-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob z-0" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0" />
+          <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0" />
+        </>
+      )}
+
+      {/* 🎃 Decoraciones Halloween */}
+      {isHalloween && (
+        <>
+          <div className="absolute top-10 left-10 text-6xl opacity-80 animate-bounce">🎃</div>
+          <div className="absolute bottom-12 right-12 text-6xl opacity-80 animate-float">👻</div>
+          <div className="absolute top-1/2 left-1/4 text-6xl opacity-60 rotate-12">🕸️</div>
+        </>
+      )}
 
       <section className="relative z-10 flex flex-col items-center justify-center text-center p-4 max-w-xl mx-auto">
         <motion.h1
@@ -89,6 +122,17 @@ export default function SignInPage() {
           />
         </motion.div>
       </section>
+
+      {/* 🌟 Animaciones */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+      `}</style>
     </main>
   );
 }

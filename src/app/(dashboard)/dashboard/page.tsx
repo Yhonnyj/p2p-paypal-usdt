@@ -97,16 +97,7 @@ export default function DashboardPage() {
 
 if (user === undefined) {
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white font-inter overflow-hidden flex items-center justify-center">
-      {/* Fondo radial */}
-      <div
-        className="absolute inset-0 z-0 opacity-20"
-        style={{
-          background:
-            'radial-gradient(circle at top left, #34D399, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
-        }}
-      ></div>
-
+    <div className="relative min-h-screen text-white font-inter overflow-hidden flex items-center justify-center">
       {/* Logo girando */}
       <div className="relative z-10 flex flex-col items-center justify-center">
         <img
@@ -122,7 +113,7 @@ if (user === undefined) {
 
 if (!user) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black flex items-center justify-center p-8 text-white font-inter">
+    <div className="min-h-screen flex items-center justify-center p-8 text-white font-inter">
       <div className="text-center bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
         <p className="text-2xl font-bold mb-4 text-red-500">Acceso No Autorizado</p>
         <p className="text-gray-300">Por favor, inicia sesión para acceder a tu panel.</p>
@@ -171,25 +162,25 @@ if (!user) {
   }
 
  return (
-  <div className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white p-6 sm:p-8 font-inter overflow-hidden">
-    {/* Background radial gradient */}
-    <div
-      className="absolute inset-0 z-0 opacity-20"
-      style={{
-        background:
-          'radial-gradient(circle at top left, #34D399, transparent), radial-gradient(circle at bottom right, #6366F1, transparent)',
-      }}
-    ></div>
-
-    <div className="relative z-10 max-w-5xl mx-auto">
-      {/* Top bar for User Profile */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-6">
-        <div className="flex flex-col gap-2 text-center sm:text-left">
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-lg animate-fade-in-up">
+  <div className="relative min-h-screen text-white p-6 sm:p-8 font-inter overflow-hidden">
+  <div className="relative z-10 max-w-5xl mx-auto">
+    {/* Top bar for User Profile */}
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-6">
+      <div className="flex flex-col gap-2 text-center sm:text-left">
+        <div className="flex items-center justify-center sm:justify-start gap-3">
+          {/* Imagen decorativa Halloween a la izquierda */}
+          <img
+            src="/capi-vampiro.png"
+            alt="Capibara Vampiro"
+            className="w-14 sm:w-16 h-auto animate-fade-in-up"
+          />
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 drop-shadow-lg animate-fade-in-up flex items-center gap-2">
             ¡Bienvenido, {user.firstName}!
           </h1>
-          <WarningBanner />
         </div>
+        <WarningBanner />
+      </div>
+
 
         <div
           className="flex items-center gap-3 bg-gray-800/70 backdrop-blur-md rounded-full px-3 sm:px-5 py-2 border border-gray-700 shadow-lg transition-all duration-300 hover:shadow-blue-500/20 animate-fade-in delay-200 cursor-pointer mx-auto sm:mx-0 w-fit"
@@ -252,132 +243,25 @@ if (!user) {
           )}
         </p>
    {(verificationStatus === 'NONE' || verificationStatus === 'REJECTED') && (
-
-
-
-
           <button
-
-
-
-
             onClick={() => setIsOpen(true)}
-
-
-
-
             className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-green-500/30 transform active:scale-98"
-
-
-
-
           >
-
-
-
-
             Verificar Identidad
-
-
-
-
           </button>
-
-
-
-
         )}
-
-
-
 
    {verificationStatus === 'APPROVED' && (
-
-
-
-
-
-
-
           <button
-
-
-
-
-
-
-
             onClick={() => {
-
-
-
-
-
-
-
               router.push('/dashboard/neworder');
-
-
-
-
-
-
-
             }}
-
-
-
-
-
-
-
             className="bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-green-600 transition-all duration-300 px-6 py-3 rounded-xl text-white font-bold text-sm sm:text-lg shadow-lg shadow-blue-500/30 transform active:scale-98"
-
-
-
-
-
-
-
           >
-
-
-
-
-
-
-
             Crear Nueva Orden
-
-
-
-
-
-
-
           </button>
-
-
-
-
-
-
-
         )}
-
-
-
-
-
-
-
       </section>
-
-
-
-
-
-      
 
       {/* Key Features */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 animate-fade-in delay-400">
@@ -418,20 +302,7 @@ if (!user) {
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors duration-200 z-10"
             aria-label="Cerrar perfil"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            ✖️
           </button>
           <div className="clerk-profile-container flex-grow overflow-y-auto p-0 md:p-6">
             <UserProfile />
@@ -440,11 +311,7 @@ if (!user) {
       </div>
     )}
 
-
-
-
-
-      {/* Custom Alert/Modal (for messages like "Redireccionando...") */}
+      {/* Custom Alert/Modal */}
       {showAlert && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-700 max-w-sm w-full text-center transform scale-95 opacity-0 animate-scale-up-fade-in">
@@ -464,30 +331,17 @@ if (!user) {
         </div>
       )}
 
-      {/* Tailwind Custom Keyframe Animations */}
+      {/* Animations */}
       <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes scale-up-fade-in {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        @keyframes bounce-in {
-          0% { transform: scale(0.5); opacity: 0; }
-          70% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(1); }
-        }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fade-in-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scale-up-fade-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes bounce-in { 0% { transform: scale(0.5); opacity: 0; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
         .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
         .animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
         .animate-scale-up-fade-in { animation: scale-up-fade-in 0.3s ease-out forwards; }
         .animate-bounce-in { animation: bounce-in 0.4s ease-out forwards; }
-        .font-inter { font-family: 'Inter', sans-serif; } /* Ensure Inter font is used */
+        .font-inter { font-family: 'Inter', sans-serif; }
         .delay-200 { animation-delay: 0.2s; }
         .delay-400 { animation-delay: 0.4s; }
         .delay-600 { animation-delay: 0.6s; }

@@ -6,7 +6,7 @@ import { useChatStore } from '@/store/chatStore'; // Asegúrate que la ruta sea 
 export default function WhatsAppSupportButton() {
   const isChatModalOpen = useChatStore((s) => s.isChatModalOpen);
 
-  // Si el chat modal está abierto, no mostramos el botón de WhatsApp
+  // Si el chat modal está abierto, no mostramos el botón de WhatsA
   if (isChatModalOpen) return null;
 
   const phoneNumber = '15068998648';
@@ -19,7 +19,7 @@ export default function WhatsAppSupportButton() {
       rel="noopener noreferrer"
       className="fixed bottom-4 right-4 z-50 animate-pulse hover:scale-110 transition-transform duration-300"
     >
-      <div className="w-16 h-16 rounded-full shadow-xl bg-teal-500 p-1 flex items-center justify-center">
+      <div className="w-16 h-16 rounded-full shadow-xl bg-purple-800 p-1 flex items-center justify-center">
         <Image
           src="/whatsapp-support.png"
           alt="Soporte por WhatsApp"

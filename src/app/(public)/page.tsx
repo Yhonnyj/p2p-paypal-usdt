@@ -17,12 +17,8 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-emerald-950 opacity-90 z-0"></div>
-      <div className="absolute top-0 left-0 w-80 h-80 bg-emerald-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob z-0"></div>
-      <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000 z-0"></div>
-      <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 z-0"></div>
-
+    <main className="min-h-screen flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
+      {/* 🧠 Ahora el fondo proviene del layout */}
       <WarningBanner />
 
       {/* VELOCIDAD + CONFIANZA */}
@@ -41,6 +37,7 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* HERO */}
       <section className="text-center mb-16 relative z-10 p-4 max-w-6xl w-full">
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 leading-none mb-6 drop-shadow-lg animate-slideInUp">
           De PayPal a tu cuenta en minutos, no en días
@@ -50,7 +47,7 @@ export default async function Home() {
           El intercambio <strong className="font-bold text-emerald-200">más rápido del mercado</strong>. Convierte tu PayPal a <strong className="font-bold text-emerald-200">USDT</strong> o <strong className="font-bold text-emerald-200">Bolívares</strong> con el mejor soporte del mercado.
         </p>
 
-        {/* BADGES DE VELOCIDAD */}
+        {/* BADGES */}
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           <div className="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-2 rounded-full text-white font-bold text-sm shadow-lg">
             ⚡ INTERCAMBIO RÁPIDO
@@ -73,31 +70,16 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CASOS DE USO CON VELOCIDAD */}
+      {/* CASOS DE USO */}
       <section className="w-full max-w-6xl mb-20 px-4 relative z-10">
         <h2 className="text-4xl font-bold text-center text-emerald-300 mb-4">¿Por qué eligen TuCapi?</h2>
         <p className="text-center text-gray-400 mb-12 text-lg">Mientras otros te hacen esperar, nosotros ya te pagamos</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { 
-              title: 'Freelancers', 
-              desc: 'Convierte tus pagos de clientes en tu paypal sin perder tiempo esperando',
-              time: '8 min promedio',
-              icon: '💼'
-            },
-            { 
-              title: 'Vendedores Online', 
-              desc: 'Transforma tus ventas de PayPal a crypto o bolívares al instante',
-              time: '8 min promedio', 
-              icon: '🛒'
-            },
-            { 
-              title: 'Profesionales', 
-              desc: 'Recibe y convierte tu paypal con el mejor soporte',
-              time: '9 min promedio',
-              icon: '👨‍💼'
-            }
+            { title: 'Freelancers', desc: 'Convierte tus pagos de clientes en tu PayPal sin perder tiempo esperando', time: '8 min promedio', icon: '💼' },
+            { title: 'Vendedores Online', desc: 'Transforma tus ventas de PayPal a crypto o bolívares al instante', time: '8 min promedio', icon: '🛒' },
+            { title: 'Profesionales', desc: 'Recibe y convierte tu PayPal con el mejor soporte', time: '9 min promedio', icon: '👨‍💼' }
           ].map((item) => (
             <div
               key={item.title}
@@ -114,27 +96,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CARACTERÍSTICAS CON ENFOQUE EN VELOCIDAD */}
+      {/* CARACTERÍSTICAS */}
       <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-12 mt-8 mb-24 px-4 relative z-10">
         {[
-          { 
-            title: 'Velocidad Extrema', 
-            desc: 'Procesamos tu intercambio en minutos. El más rápido del mercado.',
-            details: 'Promedio: 8 min • Sin colas • Sin demoras',
-            icon: '⚡'
-          },
-          { 
-            title: 'Súper Fácil', 
-            desc: '3 clics y listo. La plataforma más simple que hayas usado. Somos TuCapi de confianza',
-            details: 'Sin formularios largos • Interfaz intuitiva • Proceso directo',
-            icon: '🎯'
-          },
-          { 
-            title: 'Soporte Rayo', 
-            desc: 'Respuesta inmediata. Humanos reales que solucionan todo.',
-            details: 'Chat en vivo • Respuesta < 2 min • Disponibles de 9am - 9pm',
-            icon: '💬'
-          }
+          { title: 'Velocidad Extrema', desc: 'Procesamos tu intercambio en minutos. El más rápido del mercado.', details: 'Promedio: 8 min • Sin colas • Sin demoras', icon: '⚡' },
+          { title: 'Súper Fácil', desc: '3 clics y listo. La plataforma más simple que hayas usado.', details: 'Sin formularios largos • Interfaz intuitiva', icon: '🎯' },
+          { title: 'Soporte Rayo', desc: 'Respuesta inmediata. Humanos reales que solucionan todo.', details: 'Chat en vivo • < 2 min • 9am - 9pm', icon: '💬' }
         ].map((item, index) => (
           <div
             key={item.title}
@@ -153,34 +120,16 @@ export default async function Home() {
         ))}
       </section>
 
-      {/* TESTIMONIOS DE VELOCIDAD */}
+      {/* TESTIMONIOS */}
       <section className="w-full max-w-6xl mb-20 px-4 relative z-10">
         <h2 className="text-3xl font-bold text-center text-emerald-300 mb-4">La velocidad que nuestros usuarios aman</h2>
         <p className="text-center text-gray-400 mb-12">Experiencias reales de intercambios rápidos</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            {
-              name: "Carlos M.",
-              role: "Freelancer Web",
-              text: "En 8 minutos tenía mi USDT en la wallet. Otros me hacían esperar horas.",
-              rating: 5,
-              time: "8 min"
-            },
-            {
-              name: "María S.",
-              role: "Diseñadora",
-              text: "El soporte me respondió antes de que terminara de escribir. Increíble.",
-              rating: 5,
-              time: "< 1 min soporte"
-            },
-            {
-              name: "José R.",
-              role: "Consultor",
-              text: "5 minutos y ya tenía mis bolívares. La rapidez es brutal.",
-              rating: 5,
-              time: "5 min"
-            }
+            { name: "Carlos M.", role: "Freelancer Web", text: "En 8 minutos tenía mi USDT en la wallet. Otros me hacían esperar horas.", rating: 5, time: "8 min" },
+            { name: "María S.", role: "Diseñadora", text: "El soporte me respondió antes de que terminara de escribir. Increíble.", rating: 5, time: "< 1 min soporte" },
+            { name: "José R.", role: "Consultor", text: "5 minutos y ya tenía mis bolívares. La rapidez es brutal.", rating: 5, time: "5 min" }
           ].map((testimonial, index) => (
             <div key={index} className="bg-gray-800/80 p-6 rounded-2xl border border-gray-700 hover:border-emerald-600 transition-all duration-300 relative overflow-hidden group">
               <div className="absolute top-2 right-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full font-bold">
@@ -201,32 +150,19 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* INFORMACIÓN CLAVE COMPACTA */}
+      {/* INFO + CTA FINAL */}
       <section className="w-full max-w-6xl mb-20 px-4 relative z-10">
         <div className="bg-gradient-to-r from-gray-800/80 to-emerald-900/40 backdrop-blur-sm border border-emerald-600 rounded-3xl p-8">
           <h2 className="text-2xl font-bold text-center text-emerald-300 mb-6">Todo lo que necesitas saber</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="p-4">
-              <div className="text-xl font-bold text-emerald-400 mb-1">$4 - $3K</div>
-              <div className="text-xs text-gray-400">Por intercambio</div>
-            </div>
-            <div className="p-4">
-              <div className="text-xl font-bold text-emerald-400 mb-1">3-10 min</div>
-              <div className="text-xs text-gray-400">Tiempo promedio</div>
-            </div>
-            <div className="p-4">
-              <div className="text-xl font-bold text-emerald-400 mb-1">9am - 9pm</div>
-              <div className="text-xs text-gray-400">Disponibles</div>
-            </div>
-            <div className="p-4">
-              <div className="text-xl font-bold text-emerald-400 mb-1">0%</div>
-              <div className="text-xs text-gray-400">Comisiones PayPal de tu parte</div>
-            </div>
+            <div><div className="text-xl font-bold text-emerald-400 mb-1">$4 - $3K</div><div className="text-xs text-gray-400">Por intercambio</div></div>
+            <div><div className="text-xl font-bold text-emerald-400 mb-1">3-10 min</div><div className="text-xs text-gray-400">Tiempo promedio</div></div>
+            <div><div className="text-xl font-bold text-emerald-400 mb-1">9am - 9pm</div><div className="text-xs text-gray-400">Disponibles</div></div>
+            <div><div className="text-xl font-bold text-emerald-400 mb-1">0%</div><div className="text-xs text-gray-400">Comisiones PayPal</div></div>
           </div>
         </div>
       </section>
 
-      {/* CTA FINAL CON URGENCIA */}
       <section className="w-full text-center bg-gradient-to-r from-emerald-600 to-teal-500 text-white p-16 rounded-xl shadow-2xl max-w-4xl mb-12 relative z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-400/20 animate-pulse"></div>
         <div className="relative z-10">
@@ -237,7 +173,7 @@ export default async function Home() {
             Únete a +1,500 usuarios que ya disfrutan de velocidad extrema
           </p>
           <p className="text-sm mb-8 opacity-80">
-            Promedio de intercambio: 8 minutos • Soporte:  2 minutos
+            Promedio de intercambio: 8 minutos • Soporte: 2 minutos
           </p>
           <Link href="/sign-up" passHref legacyBehavior>
             <a className="relative inline-block px-16 py-5 rounded-full bg-white text-emerald-700 font-bold text-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-out-quart transform hover:-translate-y-1 hover:scale-105 group overflow-hidden">
@@ -249,14 +185,11 @@ export default async function Home() {
       </section>
 
       <footer className="text-center text-gray-500 text-sm mt-10 mb-4 relative z-10 space-y-2 max-w-4xl">
-        <p>
-          &copy; {new Date().getFullYear()} Tu Capi LLC. El intercambio más rápido del mercado.
-        </p>
+        <p>&copy; {new Date().getFullYear()} Tu Capi LLC. El intercambio más rápido del mercado.</p>
         <div className="space-x-4">
           <a href="/terms" className="underline hover:text-emerald-400 transition-colors">Términos</a>
           <span>|</span>
           <a href="/privacy" className="underline hover:text-emerald-400 transition-colors">Privacidad</a>
-          <span>|</span>
         </div>
         <div className="mt-6 text-xs text-gray-400 leading-relaxed max-w-3xl mx-auto">
           <p>Tu Capi LLC, contrata los servicios de Caibo Inc., registrada ante FINTRAC (MSB) C100000990 desde Octubre de 2025, para la prestación de servicios de intercambio de divisas tradicionales y monedas virtuales conforme a las regulaciones AML/CFT de Canadá.</p> 
